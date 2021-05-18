@@ -1,15 +1,9 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"io/ioutil"
-	"log"
-	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"time"
 )
 
@@ -110,120 +104,23 @@ func SendMsgToChannel(msg string, replyToId string) {
 	}
 }
 
-type Alerts struct {
-	Alerts Items `json:"alerts"`
-}
-
-type Items struct {
-	Items []AlertItem `json:"items"`
-}
-
-type AlertItem struct {
-	Item AlertItemConcrete `json:"item"`
-}
-
-type AlertItemConcrete struct {
-	Guid        string `json:"guid"`
-	Time        string `json:"pubdate"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Link        string `json:"link"`
-}
-
 func LoopOnAlerts() {
 	announced := make(map[string]bool)
+	failed := 0
 	for {
 		time.Sleep(250 * time.Millisecond)
-		res, err := http.Get(AlertsUrl)
-		if err != nil {
-			log.Fatal(err)
+		content := GetYnetAlertContent()
+		if content == nil {
+			failed += 1
+			if failed > 30 {
+				os.Exit(4)
+			}
 			continue
 		}
-		if res.StatusCode != 200 {
-			log.Fatal(res.StatusCode)
-			os.Exit(3)
-		}
-		content, err := ioutil.ReadAll(res.Body)
 		message := GenerateMessageFromAlert(content, announced)
 		if len(message) == 0 {
 			continue
 		}
 		SendMsgToChannel(message, "")
 	}
-	//alertContent := `jsonCallback({"alerts": {"items": [{"item": {"guid": "6c38fbbd-d8c0-40e4-bfe0-a17b1657203e","pubdate": "20:53","title": "שדה ניצן","description": "היכנסו למרחב המוגן","link": ""}},{"item": {"guid": "6c38fbbd-d8c0-40e4-bfe0-a17b1657203e","pubdate": "20:53","title": "תלמי אליהו","description": "היכנסו למרחב המוגן","link": ""}},{"item": {"guid": "8a299260-c12c-4e2e-adc7-671b325474a3","pubdate": "20:53","title": "צוחר ואוהד","description": "היכנסו למרחב המוגן","link": ""}},{"item": {"guid": "56d79011-549d-4862-85f5-58a2240c12a7","pubdate": "20:53","title": "מבטחים עמיעוז ישע","description": "היכנסו למרחב המוגן","link": ""}}]}});`
-}
-
-func GenerateMessageFromAlert(alertContent []byte, announced map[string]bool) string {
-	txtJson := alertContent[13 : len(alertContent)-2]
-	var alerts Alerts
-	json.Unmarshal([]byte(txtJson), &alerts)
-	var hashtag strings.Builder
-	var mentions strings.Builder
-	var verbal strings.Builder
-	var description string
-
-	if len(alerts.Alerts.Items) == 0 {
-		for k := range announced {
-			delete(announced, k)
-		}
-		return ""
-	}
-
-	items := 0
-
-	for _, item := range alerts.Alerts.Items {
-		if _, ok := announced[item.Item.Guid]; ok {
-			continue
-		}
-
-		if items != 0 {
-			hashtag.WriteString(" ")
-			mentions.WriteString(" ")
-			verbal.WriteString(", ")
-		}
-
-		items += 1
-
-		city := strings.ReplaceAll(
-			strings.ReplaceAll(
-				strings.ReplaceAll(
-					strings.ReplaceAll(
-						item.Item.Title, " - ", " ",
-					), ",", "",
-				), " ", "_",
-			), "-", "_",
-		)
-		cityShort := strings.ReplaceAll(
-			strings.ReplaceAll(
-				strings.ReplaceAll(
-					item.Item.Title, " ", "",
-				), ",", "",
-			), "-", "",
-		)
-		hashtag.WriteString("#")
-		hashtag.WriteString(city)
-		mentions.WriteString("צבעאדום")
-		mentions.WriteString(cityShort)
-		verbal.WriteString(item.Item.Title)
-
-		description = item.Item.Description
-	}
-
-	for _, item := range alerts.Alerts.Items {
-		announced[item.Item.Guid] = true
-	}
-
-	if items == 0 {
-		return ""
-	}
-
-	verbal.WriteString(": ")
-	verbal.WriteString(description)
-
-	return fmt.Sprintf(
-		"%s\n%s\n%s",
-		verbal.String(),
-		hashtag.String(),
-		mentions.String(),
-	)
 }
