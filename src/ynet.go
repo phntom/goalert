@@ -67,10 +67,17 @@ func GenerateMessageFromAlert(alertContent []byte, announced map[string]bool) st
 	}
 
 	items := 0
+	responseTime := 0
 
 	for _, item := range alerts.Alerts.Items {
 		if _, ok := announced[item.Item.Guid]; ok {
 			continue
+		}
+
+		if val, ok := CitiesResponseTime[item.Item.Title]; ok {
+			if val > responseTime {
+				responseTime = val
+			}
 		}
 
 		if items != 0 {
@@ -86,7 +93,9 @@ func GenerateMessageFromAlert(alertContent []byte, announced map[string]bool) st
 				strings.ReplaceAll(
 					strings.ReplaceAll(
 						strings.ReplaceAll(
-							item.Item.Title, " - ", " ",
+							strings.ReplaceAll(
+								item.Item.Title, " - ", " ",
+							), "'", "",
 						), "\"", "",
 					), ",", "",
 				), " ", "_",
@@ -96,7 +105,9 @@ func GenerateMessageFromAlert(alertContent []byte, announced map[string]bool) st
 			strings.ReplaceAll(
 				strings.ReplaceAll(
 					strings.ReplaceAll(
-						item.Item.Title, " ", "",
+						strings.ReplaceAll(
+							item.Item.Title, " ", "",
+						), "'", "",
 					), "\"", "",
 				), ",", "",
 			), "-", "",
@@ -118,11 +129,21 @@ func GenerateMessageFromAlert(alertContent []byte, announced map[string]bool) st
 		return ""
 	}
 
-	verbal.WriteString(": ")
-	verbal.WriteString(description)
+	hashtag.WriteString(" ")
+	hashtag.WriteString(description)
+
+	largeCityTitle := ""
+	if responseTime >= 90 {
+		largeCityTitle = "#"
+	} else if responseTime >= 60 {
+		largeCityTitle = "##"
+	} else if responseTime >= 45 {
+		largeCityTitle = "###"
+	}
 
 	return fmt.Sprintf(
-		"### %s\n%s\n%s",
+		"%s %s\n%s\n%s",
+		largeCityTitle,
 		verbal.String(),
 		hashtag.String(),
 		mentions.String(),
