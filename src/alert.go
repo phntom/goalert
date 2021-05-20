@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	AlertsUrl = "https://alerts.ynet.co.il/alertsRss/YnetPicodeHaorefAlertFiles.js?callback=jsonCallback"
+	AlertsUrl = "https://source-alerts.ynet.co.il/alertsRss/YnetPicodeHaorefAlertFiles.js?callback=jsonCallback"
 )
 
 var /* const */ CitiesResponseTime = map[string]int{

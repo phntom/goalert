@@ -6,11 +6,10 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"regexp"
 	"strings"
 )
 
-var /* const */ replaceCityRegex = regexp.MustCompile(`[^א-ת]`)
+//var /* const */ replaceCityRegex = regexp.MustCompile(`[^א-ת]`)
 
 type Alerts struct {
 	Alerts Items `json:"alerts"`
