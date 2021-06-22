@@ -1,6 +1,6 @@
 config:
   authToken: xxx
-  domain: https://kix.co.il
+  domain: http://mattermost-team-edition.chat.svc:8065
   team: nix
   channel: rockets
 
