@@ -50,6 +50,10 @@ func GetYnetAlertContent() []byte {
 }
 
 func GenerateMessageFromAlert(alertContent []byte, announced map[string]bool) string {
+	if len(alertContent) < 15 {
+		log.Println("Unexpected content from ynet: %s", alertContent)
+		return ""
+	}
 	txtJson := alertContent[13 : len(alertContent)-2]
 	var alerts Alerts
 	json.Unmarshal(txtJson, &alerts)
