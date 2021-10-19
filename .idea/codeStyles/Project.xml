@@ -1,15 +1,7 @@
 <component name="ProjectCodeStyleConfiguration">
   <code_scheme name="Project" version="173">
-    <option name="RIGHT_MARGIN" value="79" />
-    <Python>
-      <option name="NEW_LINE_AFTER_COLON" value="true" />
-      <option name="OPTIMIZE_IMPORTS_SORT_NAMES_IN_FROM_IMPORTS" value="true" />
-      <option name="OPTIMIZE_IMPORTS_CASE_INSENSITIVE_ORDER" value="true" />
-      <option name="FROM_IMPORT_NEW_LINE_AFTER_LEFT_PARENTHESIS" value="true" />
-      <option name="FROM_IMPORT_TRAILING_COMMA_IF_MULTILINE" value="true" />
-    </Python>
-    <codeStyleSettings language="Python">
-      <option name="WRAP_LONG_LINES" value="true" />
-    </codeStyleSettings>
+    <ScalaCodeStyleSettings>
+      <option name="MULTILINE_STRING_CLOSING_QUOTES_ON_NEW_LINE" value="true" />
+    </ScalaCodeStyleSettings>
   </code_scheme>
 </component>
