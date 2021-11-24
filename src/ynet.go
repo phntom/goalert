@@ -51,12 +51,18 @@ func GetYnetAlertContent() []byte {
 
 func GenerateMessageFromAlert(alertContent []byte, announced map[string]bool) string {
 	if len(alertContent) < 15 {
-		log.Println("Unexpected content from ynet: %s", alertContent)
+		if len(alertContent) != 2 {
+			log.Println("Unexpected content from ynet: ", alertContent)
+		}
 		return ""
 	}
 	txtJson := alertContent[13 : len(alertContent)-2]
 	var alerts Alerts
-	json.Unmarshal(txtJson, &alerts)
+	err := json.Unmarshal(txtJson, &alerts)
+	if err != nil {
+		log.Println("Error in Unmarshal content ", alertContent, " ", err)
+		return ""
+	}
 	var hashtag strings.Builder
 	var mentions strings.Builder
 	var verbal strings.Builder
@@ -77,11 +83,8 @@ func GenerateMessageFromAlert(alertContent []byte, announced map[string]bool) st
 			continue
 		}
 
-		if val, ok := CitiesResponseTime[item.Item.Title]; ok {
-			if val > responseTime {
-				responseTime = val
-			}
-		}
+		city := cityNameCleanFull(item)
+		cityShort := cityNameCleanShort(item)
 
 		if items != 0 {
 			hashtag.WriteString(" ")
@@ -91,30 +94,22 @@ func GenerateMessageFromAlert(alertContent []byte, announced map[string]bool) st
 
 		items += 1
 
-		city := strings.ReplaceAll(
-			strings.ReplaceAll(
-				strings.ReplaceAll(
-					strings.ReplaceAll(
-						strings.ReplaceAll(
-							strings.ReplaceAll(
-								item.Item.Title, " - ", " ",
-							), "'", "",
-						), "\"", "",
-					), ",", "",
-				), " ", "_",
-			), "-", "",
-		)
-		cityShort := strings.ReplaceAll(
-			strings.ReplaceAll(
-				strings.ReplaceAll(
-					strings.ReplaceAll(
-						strings.ReplaceAll(
-							item.Item.Title, " ", "",
-						), "'", "",
-					), "\"", "",
-				), ",", "",
-			), "-", "",
-		)
+		if strings.Contains(item.Item.Description, "אזעקה במסגרת תרגיל") {
+			verbal.WriteString("~~")
+			verbal.WriteString(item.Item.Title)
+			verbal.WriteString("~~")
+			if len(description) == 0 {
+				description = item.Item.Description
+			}
+			continue
+		}
+
+		if val, ok := CitiesResponseTime[item.Item.Title]; ok {
+			if val > responseTime {
+				responseTime = val
+			}
+		}
+
 		hashtag.WriteString("#")
 		hashtag.WriteString(city)
 		mentions.WriteString("צבעאדום")
@@ -153,4 +148,34 @@ func GenerateMessageFromAlert(alertContent []byte, announced map[string]bool) st
 	)
 }
 
-//alertContent := `jsonCallback({"alerts": {"items": [{"item": {"guid": "6c38fbbd-d8c0-40e4-bfe0-a17b1657203e","pubdate": "20:53","title": "שדה ניצן","description": "היכנסו למרחב המוגן","link": ""}},{"item": {"guid": "6c38fbbd-d8c0-40e4-bfe0-a17b1657203e","pubdate": "20:53","title": "תלמי אליהו","description": "היכנסו למרחב המוגן","link": ""}},{"item": {"guid": "8a299260-c12c-4e2e-adc7-671b325474a3","pubdate": "20:53","title": "צוחר ואוהד","description": "היכנסו למרחב המוגן","link": ""}},{"item": {"guid": "56d79011-549d-4862-85f5-58a2240c12a7","pubdate": "20:53","title": "מבטחים עמיעוז ישע","description": "היכנסו למרחב המוגן","link": ""}}]}});`
+func cityNameCleanFull(item AlertItem) string {
+	city := strings.ReplaceAll(
+		strings.ReplaceAll(
+			strings.ReplaceAll(
+				strings.ReplaceAll(
+					strings.ReplaceAll(
+						strings.ReplaceAll(
+							item.Item.Title, " - ", " ",
+						), "'", "",
+					), "\"", "",
+				), ",", "",
+			), " ", "_",
+		), "-", "",
+	)
+	return city
+}
+
+func cityNameCleanShort(item AlertItem) string {
+	cityShort := strings.ReplaceAll(
+		strings.ReplaceAll(
+			strings.ReplaceAll(
+				strings.ReplaceAll(
+					strings.ReplaceAll(
+						item.Item.Title, " ", "",
+					), "'", "",
+				), "\"", "",
+			), ",", "",
+		), "-", "",
+	)
+	return cityShort
+}
