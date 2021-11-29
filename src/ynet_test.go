@@ -24,7 +24,7 @@ func TestGenerateMessageFromAlert(t *testing.T) {
 		{
 			name: "empty2",
 			args: args{
-				alertContent: []byte("[]"),
+				alertContent: []byte(" []"),
 				announced:    make(map[string]bool),
 			},
 			want: "",

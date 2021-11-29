@@ -51,7 +51,7 @@ func GetYnetAlertContent() []byte {
 
 func GenerateMessageFromAlert(alertContent []byte, announced map[string]bool) string {
 	if len(alertContent) < 15 {
-		if len(alertContent) != 2 {
+		if len(alertContent) != 3 {
 			log.Println("Unexpected content from ynet: ", alertContent)
 		}
 		return ""
