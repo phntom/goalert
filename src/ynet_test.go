@@ -7,7 +7,7 @@ func TestGenerateMessageFromAlert(t *testing.T) {
 		alertContent []byte
 		announced    map[string]bool
 	}
-	persistent_announced := make(map[string]bool)
+	persistentAnnounced := make(map[string]bool)
 	tests := []struct {
 		name string
 		args args
@@ -38,10 +38,26 @@ func TestGenerateMessageFromAlert(t *testing.T) {
 			want: "",
 		},
 		{
+			name: "empty4",
+			args: args{
+				alertContent: []byte("jsonCallback({\"alerts\": {\"items\": ]}});"),
+				announced:    make(map[string]bool),
+			},
+			want: "",
+		},
+		{
+			name: "empty5",
+			args: args{
+				alertContent: []byte("[]"),
+				announced:    make(map[string]bool),
+			},
+			want: "",
+		},
+		{
 			name: "sanity",
 			args: args{
 				alertContent: []byte("jsonCallback({\"alerts\": {\"items\": [{\"item\": {\"guid\": \"6c38fbbd-d8c0-40e4-bfe0-a17b1657203e\",\"pubdate\": \"20:53\",\"title\": \"שדה ניצן\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"6c38fbbd-d8c0-40e4-bfe0-a17b1657203e\",\"pubdate\": \"20:53\",\"title\": \"תלמי אליהו\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"8a299260-c12c-4e2e-adc7-671b325474a3\",\"pubdate\": \"20:53\",\"title\": \"צוחר ואוהד\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"56d79011-549d-4862-85f5-58a2240c12a7\",\"pubdate\": \"20:53\",\"title\": \"מבטחים עמיעוז ישע\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}}]}});"),
-				announced:    persistent_announced,
+				announced:    persistentAnnounced,
 			},
 			want: " שדה ניצן, תלמי אליהו, צוחר ואוהד, מבטחים עמיעוז ישע\n#שדה_ניצן #תלמי_אליהו #צוחר_ואוהד #מבטחים_עמיעוז_ישע היכנסו למרחב המוגן\nצבעאדוםשדהניצן צבעאדוםתלמיאליהו צבעאדוםצוחרואוהד צבעאדוםמבטחיםעמיעוזישע",
 		},
@@ -49,7 +65,7 @@ func TestGenerateMessageFromAlert(t *testing.T) {
 			name: "same again",
 			args: args{
 				alertContent: []byte("jsonCallback({\"alerts\": {\"items\": [{\"item\": {\"guid\": \"6c38fbbd-d8c0-40e4-bfe0-a17b1657203e\",\"pubdate\": \"20:53\",\"title\": \"שדה ניצן\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"6c38fbbd-d8c0-40e4-bfe0-a17b1657203e\",\"pubdate\": \"20:53\",\"title\": \"תלמי אליהו\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"8a299260-c12c-4e2e-adc7-671b325474a3\",\"pubdate\": \"20:53\",\"title\": \"צוחר ואוהד\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"56d79011-549d-4862-85f5-58a2240c12a7\",\"pubdate\": \"20:53\",\"title\": \"מבטחים עמיעוז ישע\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}}]}});"),
-				announced:    persistent_announced,
+				announced:    persistentAnnounced,
 			},
 			want: "",
 		},
@@ -57,7 +73,7 @@ func TestGenerateMessageFromAlert(t *testing.T) {
 			name: "old with new",
 			args: args{
 				alertContent: []byte("jsonCallback({\"alerts\": {\"items\": [{\"item\": {\"guid\": \"6c38fbbd-d8c0-40e4-bfe0-a17b1657203e\",\"pubdate\": \"20:53\",\"title\": \"שדה ניצן\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"6c38fbbd-d8c0-40e4-bfe0-a17b1657203e\",\"pubdate\": \"20:53\",\"title\": \"תלמי אליהו\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"11111111-c12c-4e2e-adc7-671b325474a3\",\"pubdate\": \"20:53\",\"title\": \"צוחר ואוהד\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}}]}});"),
-				announced:    persistent_announced,
+				announced:    persistentAnnounced,
 			},
 			want: " צוחר ואוהד\n#צוחר_ואוהד היכנסו למרחב המוגן\nצבעאדוםצוחרואוהד",
 		},
@@ -65,7 +81,7 @@ func TestGenerateMessageFromAlert(t *testing.T) {
 			name: "only old",
 			args: args{
 				alertContent: []byte("jsonCallback({\"alerts\": {\"items\": [{\"item\": {\"guid\": \"11111111-c12c-4e2e-adc7-671b325474a3\",\"pubdate\": \"20:53\",\"title\": \"צוחר ואוהד\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}}]}});"),
-				announced:    persistent_announced,
+				announced:    persistentAnnounced,
 			},
 			want: "",
 		},
