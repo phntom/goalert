@@ -10,7 +10,8 @@ image:
   repository: phntom/goalert
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "0.0.9"
+  hash: "sha256:0db1fb24a2c6abf5fc239fe7119148bbad88172b30a0c529425b4100875e6c9b"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -41,8 +42,8 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
-nodeSelector:
-  doks.digitalocean.com/node-pool: pool-production
+#nodeSelector:
+#  doks.digitalocean.com/node-pool: pool-production
 
 tolerations: []
 

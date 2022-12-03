@@ -1,4 +1,4 @@
-FROM golang:1.16-alpine3.13 AS builder
+FROM golang:alpine AS builder
 WORKDIR /app
 COPY go.mod go.sum src ./
 RUN go build -o /app/alert
