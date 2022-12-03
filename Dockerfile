@@ -2,8 +2,10 @@ FROM golang:alpine AS builder
 WORKDIR /app
 COPY go.mod go.sum src ./
 RUN go build -o /app/alert
+ENV CGO_ENABLED 0
+RUN go test
 
-FROM alpine:3.13
+FROM alpine:3.14
 WORKDIR /app
 COPY --from=builder /app/alert ./
 ENV AUTH_TOKEN=""
