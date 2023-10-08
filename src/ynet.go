@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -41,7 +41,7 @@ func GetYnetAlertContent() []byte {
 		log.Fatal(res.StatusCode)
 		return nil
 	}
-	content, err := ioutil.ReadAll(res.Body)
+	content, err := io.ReadAll(res.Body)
 	if err != nil {
 		log.Fatal(err)
 		return nil
@@ -49,20 +49,20 @@ func GetYnetAlertContent() []byte {
 	return content
 }
 
-func GenerateMessageFromAlert(alertContent []byte, announced map[string]bool) string {
+func GenerateMessageFromAlert(alertContent []byte, announced map[string]bool) (string, int) {
 	lenAlertContent := len(alertContent)
 	if lenAlertContent < 40 {
 		if lenAlertContent > 3 && lenAlertContent != 39 {
 			log.Println("Unexpected content from ynet: ", alertContent)
 		}
-		return ""
+		return "", 0
 	}
 	txtJson := alertContent[13 : len(alertContent)-2]
 	var alerts Alerts
 	err := json.Unmarshal(txtJson, &alerts)
 	if err != nil {
 		log.Println("Error in Unmarshal content ", alertContent, " ", err)
-		return ""
+		return "", 0
 	}
 	var hashtag strings.Builder
 	var mentions strings.Builder
@@ -73,7 +73,7 @@ func GenerateMessageFromAlert(alertContent []byte, announced map[string]bool) st
 		for k := range announced {
 			delete(announced, k)
 		}
-		return ""
+		return "", 0
 	}
 
 	items := 0
@@ -125,19 +125,19 @@ func GenerateMessageFromAlert(alertContent []byte, announced map[string]bool) st
 	}
 
 	if items == 0 {
-		return ""
+		return "", 0
 	}
 
 	hashtag.WriteString(" ")
 	hashtag.WriteString(description)
 
-	largeCityTitle := ""
+	largeCityTitle := "######"
 	if responseTime >= 90 {
-		largeCityTitle = "#"
-	} else if responseTime >= 60 {
-		largeCityTitle = "##"
-	} else if responseTime >= 45 {
 		largeCityTitle = "###"
+	} else if responseTime >= 60 {
+		largeCityTitle = "####"
+	} else if responseTime >= 45 {
+		largeCityTitle = "#####"
 	}
 
 	return fmt.Sprintf(
@@ -146,7 +146,7 @@ func GenerateMessageFromAlert(alertContent []byte, announced map[string]bool) st
 		verbal.String(),
 		hashtag.String(),
 		mentions.String(),
-	)
+	), responseTime
 }
 
 func cityNameCleanFull(item AlertItem) string {

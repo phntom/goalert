@@ -136,7 +136,7 @@ func TestGenerateMessageFromAlert(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := GenerateMessageFromAlert(tt.args.alertContent, tt.args.announced); got != tt.want {
+			if got, _ := GenerateMessageFromAlert(tt.args.alertContent, tt.args.announced); got != tt.want {
 				t.Errorf("GenerateMessageFromAlert() = %v, want %v", got, tt.want)
 			}
 		})

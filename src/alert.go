@@ -1,53 +1,14 @@
 package main
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
+	"context"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 )
-
-const (
-	AlertsUrl = "https://source-alerts.ynet.co.il/alertsRss/YnetPicodeHaorefAlertFiles.js?callback=jsonCallback"
-)
-
-var /* const */ CitiesResponseTime = map[string]int{
-	"אשדוד - יא,יב,טו,יז,מרינה":      45,
-	"אשדוד - ח,ט,י,יג,יד,טז":         45,
-	"אשדוד - ג,ו,ז":                  45,
-	"אשדוד - אזור תעשייה צפוני ונמל": 45,
-	"אשדוד - א,ב,ד,ה":                45,
-	"קריית גת, כרמי גת":              45,
-	"אופקים":                         45,
-	"באר שבע - מערב":                 60,
-	"באר שבע - מזרח":                 60,
-	"באר שבע - צפון":                 60,
-	"באר שבע - דרום":                 60,
-	"לוד":                            90,
-	"תל אביב - מרכז העיר":            90,
-	"תל אביב - מזרח":                 90,
-	"תל אביב - דרום העיר ויפו":       90,
-	"תל אביב - עבר הירקון":           90,
-	"רמת גן - מזרח":                  90,
-	"רמת גן - מערב":                  90,
-	"ראש העין":                       90,
-	"נס ציונה":                       90,
-	"ראשון לציון - מערב":             90,
-	"ראשון לציון - מזרח":             90,
-	"בת-ים":                          90,
-	"חולון":                          90,
-	"גבעתיים":                        90,
-	"פתח תקווה":                      90,
-	"קריית מוצקין":                   60,
-	"קריית ים":                       60,
-	"קריית ביאליק":                   60,
-	"עכו - אזור תעשייה":              30,
-	"עכו":                            30,
-	"חיפה - כרמל ועיר תחתית":         60,
-	"חיפה - מערב":                    60,
-	"חיפה - נווה שאנן ורמות כרמל":    60,
-	"חיפה - מפרץ והקריות":            60,
-}
 
 var client *model.Client4
 var webSocketClient *model.WebSocketClient
@@ -79,12 +40,11 @@ func SetupGracefulShutdown() {
 }
 
 func MakeSureServerIsRunning() {
-	if props, resp := client.GetOldClientConfig(""); resp.Error != nil {
-		println("There was a problem pinging the Mattermost server.  Are you sure it's running?")
-		PrintError(resp.Error)
+	if props, _, err := client.GetOldClientConfig(context.Background(), ""); err != nil {
+		mlog.Error("There was a problem pinging the Mattermost server.  Are you sure it's running?", mlog.Err(err))
 		os.Exit(1)
 	} else {
-		println("Server detected and is running version " + props["Version"])
+		mlog.Info("Server detected and is running", mlog.Any("version", props["Version"]))
 	}
 }
 
@@ -97,22 +57,19 @@ func PrintError(err *model.AppError) {
 
 func LoginAsTheBotUser() {
 	client.SetToken(os.Getenv("AUTH_TOKEN"))
-	if user, resp := client.GetMe(""); resp.Error != nil {
-		println("There was a problem logging into the Mattermost server.  Are you sure ran the setup steps from the README.md?")
-		PrintError(resp.Error)
+	if user, _, err := client.GetMe(context.Background(), ""); err != nil {
+		mlog.Error("There was a problem logging into the Mattermost server", mlog.Err(err))
 		os.Exit(1)
 	} else {
-		println("Logged in as " + user.Username)
+		mlog.Info("Logged in", mlog.Any("username", user.Username))
 	}
 
 }
 
 func FindBotTeam() {
 	teamName := os.Getenv("TEAM_NAME")
-	if team, resp := client.GetTeamByName(teamName, ""); resp.Error != nil {
-		println("We failed to get the initial load")
-		println("or we do not appear to be a member of the team '" + teamName + "'")
-		PrintError(resp.Error)
+	if team, _, err := client.GetTeamByName(context.Background(), teamName, ""); err != nil {
+		mlog.Error("We failed to get the initial load or not in team", mlog.Any("teamName", teamName), mlog.Err(err))
 		os.Exit(1)
 	} else {
 		botTeam = team
@@ -121,24 +78,36 @@ func FindBotTeam() {
 
 func FindBotChannel() {
 	channelName := os.Getenv("CHANNEL_NAME")
-	if rchannel, resp := client.GetChannelByName(channelName, botTeam.Id, ""); resp.Error != nil {
-		println("We're not in channel " + channelName)
-		PrintError(resp.Error)
+	if rchannel, _, err := client.GetChannelByName(context.Background(), channelName, botTeam.Id, ""); err != nil {
+		mlog.Error("We're not in channel", mlog.Any("channelName", channelName), mlog.Err(err))
+		os.Exit(2)
 	} else {
 		targetChannel = rchannel
 		return
 	}
 }
 
-func SendMsgToChannel(msg string, replyToId string) {
+func SendMsgToChannel(msg string, replyToId string, urgent bool, ack bool) {
+	priorityStr := "important"
+	if urgent {
+		priorityStr = "urgent"
+	}
+	postPriority := model.PostPriority{
+		Priority:                model.NewString(priorityStr),
+		RequestedAck:            model.NewBool(ack),
+		PersistentNotifications: model.NewBool(false),
+	}
+	metadata := model.PostMetadata{
+		Priority: &postPriority,
+	}
 	post := &model.Post{
 		ChannelId: targetChannel.Id,
 		Message:   msg,
 		RootId:    replyToId,
+		Metadata:  &metadata,
 	}
-	if _, resp := client.CreatePost(post); resp.Error != nil {
-		println("We failed to send a message to the logging channel")
-		PrintError(resp.Error)
+	if _, _, err := client.CreatePost(context.Background(), post); err != nil {
+		mlog.Error("We failed to send a message to the logging channel", mlog.Any("post", post), mlog.Err(err))
 	}
 }
 
@@ -155,10 +124,21 @@ func LoopOnAlerts() {
 			}
 			continue
 		}
-		message := GenerateMessageFromAlert(content, announced)
+		message, responseTime := GenerateMessageFromAlert(content, announced)
 		if len(message) == 0 {
 			continue
 		}
-		SendMsgToChannel(message, "")
+		urgent := !strings.Contains(message, "נעלו")
+		ack := responseTime == 90
+		SendMsgToChannel(message, "", urgent, ack)
 	}
 }
+
+//func TestAlert() {
+//	announced := make(map[string]bool)
+//	content := []byte("jsonCallback({\"alerts\": {\"items\": [{\"item\": {\"guid\": \"22222222-1111-1111-1111-111111111111\",\"pubdate\": \"11:12\",\"title\": \"באר שבע - מערב\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"11111111-1111-1111-1111-111111111111\",\"pubdate\": \"11:11\",\"title\": \"תל אביב - מרכז העיר\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}}]}});")
+//	message, responseTime := GenerateMessageFromAlert(content, announced)
+//	urgent := !strings.Contains(message, "נעלו")
+//	ack := responseTime == 90
+//	SendMsgToChannel(message, "", urgent, ack)
+//}
