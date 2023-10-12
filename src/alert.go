@@ -106,8 +106,31 @@ func SendMsgToChannel(msg string, replyToId string, urgent bool, ack bool) {
 		RootId:    replyToId,
 		Metadata:  &metadata,
 	}
-	if _, _, err := client.CreatePost(context.Background(), post); err != nil {
-		mlog.Error("We failed to send a message to the logging channel", mlog.Any("post", post), mlog.Err(err))
+
+	// Create a context that will timeout after maxTimeout
+	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	defer cancel()
+
+	success := false
+	for i := 0; i < maxRetries && !success; i++ {
+		select {
+		case <-ctx.Done():
+			mlog.Error("Failed to send the message within the timeout", mlog.Any("post", post), mlog.String("reason", ctx.Err().Error()))
+			return
+		default:
+			if _, _, err := client.CreatePost(ctx, post); err == nil {
+				success = true
+			} else {
+				mlog.Error("Attempt to send a message failed", mlog.Any("post", post), mlog.Err(err))
+				if i < maxRetries-1 {
+					time.Sleep(retryInterval)
+				}
+			}
+		}
+	}
+
+	if !success {
+		mlog.Error("Failed to send a message to the logging channel after all retries", mlog.Any("post", post))
 	}
 }
 
