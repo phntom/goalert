@@ -7,6 +7,7 @@ const (
 	maxRetries    = 500                    // number of times to retry sending the message
 	retryInterval = 200 * time.Millisecond // time between retries
 	maxTimeout    = 90 * time.Second       // overall timeout for the entire process
+	postTimeout   = 10 * time.Second
 )
 
 var /* const */ CitiesResponseTime = map[string]int{

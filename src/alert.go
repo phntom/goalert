@@ -48,13 +48,6 @@ func MakeSureServerIsRunning() {
 	}
 }
 
-func PrintError(err *model.AppError) {
-	println("\tError Details:")
-	println("\t\t" + err.Message)
-	println("\t\t" + err.Id)
-	println("\t\t" + err.DetailedError)
-}
-
 func LoginAsTheBotUser() {
 	client.SetToken(os.Getenv("AUTH_TOKEN"))
 	if user, _, err := client.GetMe(context.Background(), ""); err != nil {
@@ -88,50 +81,63 @@ func FindBotChannel() {
 }
 
 func SendMsgToChannel(msg string, replyToId string, urgent bool, ack bool) {
-	priorityStr := "important"
-	if urgent {
-		priorityStr = "urgent"
-	}
-	postPriority := model.PostPriority{
-		Priority:                model.NewString(priorityStr),
-		RequestedAck:            model.NewBool(ack),
-		PersistentNotifications: model.NewBool(false),
-	}
-	metadata := model.PostMetadata{
-		Priority: &postPriority,
-	}
-	post := &model.Post{
-		ChannelId: targetChannel.Id,
-		Message:   msg,
-		RootId:    replyToId,
-		Metadata:  &metadata,
-	}
+	var previousPostId string
 
-	// Create a context that will timeout after maxTimeout
-	ctx, cancel := context.WithTimeout(context.Background(), maxTimeout)
+	mlog.Info("Alert", mlog.Any("msg", msg), mlog.Any("urgent", urgent), mlog.Any("ack", ack))
+
+	outerCtx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
 
-	success := false
-	for i := 0; i < maxRetries && !success; i++ {
+	for i := 0; i < maxRetries; i++ {
 		select {
-		case <-ctx.Done():
-			mlog.Error("Failed to send the message within the timeout", mlog.Any("post", post), mlog.String("reason", ctx.Err().Error()))
+		case <-outerCtx.Done():
+			mlog.Error("Failed to send the message within the timeout", mlog.String("reason", outerCtx.Err().Error()))
 			return
 		default:
-			if _, _, err := client.CreatePost(ctx, post); err == nil {
-				success = true
-			} else {
-				mlog.Error("Attempt to send a message failed", mlog.Any("post", post), mlog.Err(err))
-				if i < maxRetries-1 {
-					time.Sleep(retryInterval)
+			ctx, cancel := context.WithTimeout(outerCtx, postTimeout)
+			post, _, err := client.CreatePost(ctx, &model.Post{
+				ChannelId: targetChannel.Id,
+				Message:   msg,
+				RootId:    replyToId,
+				Metadata: &model.PostMetadata{
+					Priority: &model.PostPriority{
+						Priority:                model.NewString(urgentPriority(urgent)),
+						RequestedAck:            model.NewBool(ack),
+						PersistentNotifications: model.NewBool(false),
+					},
+				},
+			})
+			cancel()
+
+			if err == nil && post != nil {
+				mlog.Debug("Create post", mlog.Any("postId", post.Id), mlog.Any("createAt", post.CreateAt), mlog.Any("message", post.Message))
+				if previousPostId != "" {
+					if _, err := client.DeletePost(ctx, previousPostId); err != nil {
+						mlog.Error("Failed to delete previous post", mlog.String("postId", previousPostId), mlog.Err(err))
+					}
 				}
+				return // Exit if the post was successful
 			}
+
+			if post != nil {
+				previousPostId = post.Id
+			}
+
+			if err != nil {
+				mlog.Error("Failed to send the message", mlog.Err(err))
+			}
+			time.Sleep(retryInterval)
 		}
 	}
 
-	if !success {
-		mlog.Error("Failed to send a message to the logging channel after all retries", mlog.Any("post", post))
+	mlog.Fatal("Failed to send the message", mlog.Any("attempts", maxRetries))
+}
+
+func urgentPriority(urgent bool) string {
+	if urgent {
+		return "urgent"
 	}
+	return "important"
 }
 
 func LoopOnAlerts() {
