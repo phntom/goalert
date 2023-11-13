@@ -1,0 +1,7 @@
+district:
+  mention_prefix: OrefAlarm
+subdivision:
+  replace:
+    "1017": Acre - Industrial Zone
+  industrial_zone: Industrial Zone
+  regional_center: Regional Council

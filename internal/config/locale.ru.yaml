@@ -1,0 +1,10 @@
+district:
+  mention_prefix: ТревогаТыла
+subdivision:
+  replace:
+    "1354": Метный совет Маром Галиль
+    "1355": Местный совет Мавоот Хермон
+  industrial_zone: Промышленная зона
+  industrial_zone_alt: промзона
+  industrial_zone_alt2: Промзона
+  regional_center: Местный совет

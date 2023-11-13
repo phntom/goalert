@@ -2,8 +2,12 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/phntom/goalert/internal/config"
+	"github.com/phntom/goalert/internal/district"
+	"github.com/phntom/goalert/internal/sources"
 	"os"
 	"os/signal"
 	"strings"
@@ -30,7 +34,7 @@ func SetupGracefulShutdown() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	go func() {
-		for _ = range c {
+		for range c {
 			if webSocketClient != nil {
 				webSocketClient.Close()
 			}
@@ -80,10 +84,42 @@ func FindBotChannel() {
 	}
 }
 
-func SendMsgToChannel(msg string, replyToId string, urgent bool, ack bool) {
+func CitiesToFields(cities map[string][]string) []*model.SlackAttachmentField {
+	var fields []*model.SlackAttachmentField
+	for n1, n2 := range cities {
+		value := strings.Join(n2, "\n")
+		if len(n2) == 1 && n1 == n2[0] {
+			value = ""
+			fields = append(fields, &model.SlackAttachmentField{
+				Title: n1,
+				Value: value,
+				Short: true,
+			})
+		} else {
+			fields = append([]*model.SlackAttachmentField{{
+				Title: n1,
+				Value: value,
+				Short: true,
+			}}, fields...)
+		}
+
+	}
+	return fields
+}
+
+func SendMsgToChannel(instructions string, replyToId string, urgent bool, ack bool, cities map[string][]string, legacy string, text string) {
 	var previousPostId string
 
-	mlog.Info("Alert", mlog.Any("msg", msg), mlog.Any("urgent", urgent), mlog.Any("ack", ack))
+	mlog.Info("Alert",
+		mlog.Any("instructions", instructions),
+		mlog.Any("urgent", urgent),
+		mlog.Any("ack", ack),
+		mlog.Any("cities", cities),
+		mlog.Any("legacy", legacy),
+		mlog.Any("text", text),
+	)
+
+	fields := CitiesToFields(cities)
 
 	outerCtx, cancel := context.WithTimeout(context.Background(), maxTimeout)
 	defer cancel()
@@ -97,13 +133,23 @@ func SendMsgToChannel(msg string, replyToId string, urgent bool, ack bool) {
 			ctx, cancel := context.WithTimeout(outerCtx, postTimeout)
 			post, _, err := client.CreatePost(ctx, &model.Post{
 				ChannelId: targetChannel.Id,
-				Message:   msg,
+				Message:   "",
 				RootId:    replyToId,
+				Props: map[string]any{
+					"attachments": []*model.SlackAttachment{
+						{
+							Text:     text,
+							Fallback: legacy,
+							Color:    "#CF1434",
+							Fields:   fields,
+						},
+					},
+				},
 				Metadata: &model.PostMetadata{
 					Priority: &model.PostPriority{
-						Priority:                model.NewString(urgentPriority(urgent)),
-						RequestedAck:            model.NewBool(ack),
-						PersistentNotifications: model.NewBool(false),
+						Priority:     model.NewString(urgentPriority(urgent)),
+						RequestedAck: model.NewBool(ack),
+						// PersistentNotifications: model.NewBool(false),
 					},
 				},
 			})
@@ -141,11 +187,16 @@ func urgentPriority(urgent bool) string {
 }
 
 func LoopOnAlerts() {
-	announced := make(map[string]bool)
 	failed := 0
+	ynet := sources.SourceYnet{
+		URL: AlertsUrl,
+	}
+	ynet.Register()
+	districts := district.GetDistricts()
+	lang := config.Language("he")
 	for {
 		time.Sleep(250 * time.Millisecond)
-		content := GetYnetAlertContent()
+		content := ynet.Fetch()
 		if content == nil {
 			failed += 1
 			if failed > 30 {
@@ -153,21 +204,46 @@ func LoopOnAlerts() {
 			}
 			continue
 		}
-		message, responseTime := GenerateMessageFromAlert(content, announced)
-		if len(message) == 0 {
-			continue
+		for instructions, cityIDs := range ynet.Added(ynet.Parse(content)) {
+			urgent := !strings.Contains(instructions, "נעלו")
+			maxResponseTime := 0
+			cities, hashtags, mentions, legacy := district.CitiesToHashtagsMentionsLegacy(cityIDs, lang)
+			for _, cityID := range cityIDs {
+				city := districts[lang][cityID]
+				maxResponseTime = max(maxResponseTime, city.SafetyBufferSeconds)
+			}
+			ack := maxResponseTime == 90
+			text := fmt.Sprintf("%s\n%s %s\n%s",
+				strings.Join(legacy, ", "),
+				strings.Join(hashtags, " "),
+				instructions,
+				strings.Join(mentions, " "),
+			)
+			legacyStr := fmt.Sprintf("%s %s %s",
+				strings.Join(legacy, ", "),
+				instructions,
+				strings.Join(mentions, " "),
+			)
+			SendMsgToChannel(
+				instructions,
+				"",
+				urgent,
+				ack,
+				cities,
+				legacyStr,
+				text,
+			)
 		}
-		urgent := !strings.Contains(message, "נעלו")
-		ack := responseTime == 90
-		SendMsgToChannel(message, "", urgent, ack)
 	}
 }
 
 //func TestAlert() {
-//	announced := make(map[string]bool)
-//	content := []byte("jsonCallback({\"alerts\": {\"items\": [{\"item\": {\"guid\": \"22222222-1111-1111-1111-111111111111\",\"pubdate\": \"11:12\",\"title\": \"באר שבע - מערב\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"11111111-1111-1111-1111-111111111111\",\"pubdate\": \"11:11\",\"title\": \"תל אביב - מרכז העיר\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}}]}});")
-//	message, responseTime := GenerateMessageFromAlert(content, announced)
-//	urgent := !strings.Contains(message, "נעלו")
+//	announced := make(map[district.ID]bool)
+//	content := []byte("jsonCallback({\"alerts\": {\"items\": [{\"item\": {\"guid\": \"22222222-1111-1111-1111-111111111111\",\"pubdate\": \"11:12\",\"title\": \"תלמי אליהו\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"11111111-1111-1111-1111-111111111111\",\"pubdate\": \"11:11\",\"title\": \"תל אביב - מרכז העיר\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}}]}});")
+//	ynet := sources.SourceYnet{}
+//	message := ynet.Parse(content)
+//	legacy, responseTime, cities, mentions, text := GenerateMessageFromAlert(message, announced)
+//	urgent := !strings.Contains(text, "נעלו")
 //	ack := responseTime == 90
-//	SendMsgToChannel(message, "", urgent, ack)
+//	SendMsgToChannel(legacy, "", urgent, ack, cities, mentions, text)
 //}

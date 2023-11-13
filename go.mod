@@ -2,7 +2,12 @@ module github.com/phntom/goalert
 
 go 1.21
 
-require github.com/mattermost/mattermost/server/public v0.0.9
+require (
+	github.com/mattermost/mattermost/server/public v0.0.9
+	github.com/nicksnyder/go-i18n/v2 v2.2.2
+	golang.org/x/text v0.14.0
+	gopkg.in/yaml.v3 v3.0.1
+)
 
 require (
 	github.com/blang/semver/v4 v4.0.0 // indirect
@@ -26,7 +31,6 @@ require (
 	github.com/wiggin77/srslog v1.0.1 // indirect
 	golang.org/x/crypto v0.10.0 // indirect
 	golang.org/x/net v0.11.0 // indirect
-	golang.org/x/text v0.10.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
