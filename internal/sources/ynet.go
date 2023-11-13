@@ -3,18 +3,16 @@ package sources
 import (
 	"encoding/json"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/phntom/goalert/internal/config"
 	"github.com/phntom/goalert/internal/district"
 	"github.com/phntom/goalert/internal/fetcher"
 	"io"
 	"net/http"
-	"strings"
 )
 
 type SourceYnet struct {
 	client *http.Client
 	URL    string
-	seen   map[string][]district.ID
+	seen   map[string]bool
 }
 
 type YnetMessage struct {
@@ -39,6 +37,7 @@ type YnetMessageItemConcrete struct {
 
 func (s *SourceYnet) Register() {
 	s.client = fetcher.CreateHTTPClient()
+	s.seen = make(map[string]bool)
 }
 
 func (s *SourceYnet) Fetch() []byte {
@@ -59,6 +58,9 @@ func (s *SourceYnet) Fetch() []byte {
 		mlog.Error("failed to fetch source ynet - io error", mlog.Err(err))
 		return nil
 	}
+	if len(string(content)) > 40 {
+		mlog.Debug("ynet", mlog.Any("content", string(content)))
+	}
 	return content
 }
 
@@ -73,6 +75,9 @@ func (s *SourceYnet) Parse(content []byte) map[string][]district.ID {
 			)
 		}
 		// empty - i.e. no messages
+		for s2 := range s.seen {
+			delete(s.seen, s2)
+		}
 		return result
 	}
 	txtJson := content[13 : len(content)-2]
@@ -83,37 +88,16 @@ func (s *SourceYnet) Parse(content []byte) map[string][]district.ID {
 		return nil
 	}
 	for _, item := range alerts.Alerts.Items {
+		if s.seen[item.Item.Guid] {
+			continue
+		}
 		districtID := district.GetDistrictByCity(item.Item.Title)
 		if districtID == "" {
 			mlog.Warn("district not found", mlog.Any("title", item.Item.Title))
 			continue
 		}
 		result[item.Item.Description] = append(result[item.Item.Description], districtID)
+		s.seen[item.Item.Guid] = true
 	}
-	return result
-}
-
-func (s *SourceYnet) Added(parsed map[string][]district.ID) map[string][]district.ID {
-	result := make(map[string][]district.ID)
-	for instructions, cities := range parsed {
-		if strings.Contains(instructions, config.GetText("ynet.drill", "he")) {
-			continue
-		}
-		prev, ok := s.seen[instructions]
-		prevCitySet := make(map[district.ID]bool)
-		if ok {
-			for _, id := range prev {
-				prevCitySet[id] = true
-			}
-			for _, city := range cities {
-				if !prevCitySet[city] {
-					result[instructions] = append(result[instructions], city)
-				}
-			}
-		} else {
-			result[instructions] = cities
-		}
-	}
-	s.seen = parsed
 	return result
 }

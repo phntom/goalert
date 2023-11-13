@@ -210,7 +210,7 @@ func LoopOnAlerts() {
 }
 
 func SendContent(ynet sources.SourceYnet, content []byte, lang config.Language, districts district.Districts) {
-	for instructions, cityIDs := range ynet.Added(ynet.Parse(content)) {
+	for instructions, cityIDs := range ynet.Parse(content) {
 		urgent := !strings.Contains(instructions, "נעלו")
 		maxResponseTime := 0
 		cities, hashtags, mentions, legacy := district.CitiesToHashtagsMentionsLegacy(cityIDs, lang)
@@ -248,5 +248,6 @@ func TestAlert() {
 	ynet.Register()
 	districts := district.GetDistricts()
 	lang := config.Language("he")
+	ynet.Parse(content)
 	SendContent(ynet, content, lang, districts)
 }
