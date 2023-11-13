@@ -1,6 +1,9 @@
 FROM golang:alpine AS builder
 WORKDIR /app
-COPY go.mod go.sum src ./
+COPY go.mod go.sum src /app/
+COPY internal /app/internal/
+#RUN ls && false
+RUN go mod tidy
 RUN go build -o /app/alert
 ENV CGO_ENABLED 0
 RUN go test

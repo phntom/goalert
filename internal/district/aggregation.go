@@ -23,11 +23,23 @@ var replacerHashtag = strings.NewReplacer(
 )
 
 func CityNameCleanFull(title string) string {
-	return replacerFull.Replace(title)
+	for {
+		newTitle := replacerFull.Replace(title)
+		if newTitle == title {
+			return title
+		}
+		title = newTitle
+	}
 }
 
 func CityNameCleanShort(title string) string {
-	return replacerHashtag.Replace(title)
+	for {
+		newTitle := replacerHashtag.Replace(title)
+		if newTitle == title {
+			return title
+		}
+		title = newTitle
+	}
 }
 
 func CitiesToHashtagsMentionsLegacy(cities []ID, lang config.Language) (map[string][]string, []string, []string, []string) {

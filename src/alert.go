@@ -28,6 +28,7 @@ func main() {
 	FindBotTeam()
 	FindBotChannel()
 	LoopOnAlerts()
+	//TestAlert()
 }
 
 func SetupGracefulShutdown() {
@@ -133,12 +134,12 @@ func SendMsgToChannel(instructions string, replyToId string, urgent bool, ack bo
 			ctx, cancel := context.WithTimeout(outerCtx, postTimeout)
 			post, _, err := client.CreatePost(ctx, &model.Post{
 				ChannelId: targetChannel.Id,
-				Message:   "",
+				Message:   text,
 				RootId:    replyToId,
 				Props: map[string]any{
 					"attachments": []*model.SlackAttachment{
 						{
-							Text:     text,
+							Text:     instructions,
 							Fallback: legacy,
 							Color:    "#CF1434",
 							Fields:   fields,
@@ -204,46 +205,48 @@ func LoopOnAlerts() {
 			}
 			continue
 		}
-		for instructions, cityIDs := range ynet.Added(ynet.Parse(content)) {
-			urgent := !strings.Contains(instructions, "נעלו")
-			maxResponseTime := 0
-			cities, hashtags, mentions, legacy := district.CitiesToHashtagsMentionsLegacy(cityIDs, lang)
-			for _, cityID := range cityIDs {
-				city := districts[lang][cityID]
-				maxResponseTime = max(maxResponseTime, city.SafetyBufferSeconds)
-			}
-			ack := maxResponseTime == 90
-			text := fmt.Sprintf("%s\n%s %s\n%s",
-				strings.Join(legacy, ", "),
-				strings.Join(hashtags, " "),
-				instructions,
-				strings.Join(mentions, " "),
-			)
-			legacyStr := fmt.Sprintf("%s %s %s",
-				strings.Join(legacy, ", "),
-				instructions,
-				strings.Join(mentions, " "),
-			)
-			SendMsgToChannel(
-				instructions,
-				"",
-				urgent,
-				ack,
-				cities,
-				legacyStr,
-				text,
-			)
-		}
+		SendContent(ynet, content, lang, districts)
 	}
 }
 
-//func TestAlert() {
-//	announced := make(map[district.ID]bool)
-//	content := []byte("jsonCallback({\"alerts\": {\"items\": [{\"item\": {\"guid\": \"22222222-1111-1111-1111-111111111111\",\"pubdate\": \"11:12\",\"title\": \"תלמי אליהו\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"11111111-1111-1111-1111-111111111111\",\"pubdate\": \"11:11\",\"title\": \"תל אביב - מרכז העיר\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}}]}});")
-//	ynet := sources.SourceYnet{}
-//	message := ynet.Parse(content)
-//	legacy, responseTime, cities, mentions, text := GenerateMessageFromAlert(message, announced)
-//	urgent := !strings.Contains(text, "נעלו")
-//	ack := responseTime == 90
-//	SendMsgToChannel(legacy, "", urgent, ack, cities, mentions, text)
-//}
+func SendContent(ynet sources.SourceYnet, content []byte, lang config.Language, districts district.Districts) {
+	for instructions, cityIDs := range ynet.Added(ynet.Parse(content)) {
+		urgent := !strings.Contains(instructions, "נעלו")
+		maxResponseTime := 0
+		cities, hashtags, mentions, legacy := district.CitiesToHashtagsMentionsLegacy(cityIDs, lang)
+		for _, cityID := range cityIDs {
+			city := districts[lang][cityID]
+			maxResponseTime = max(maxResponseTime, city.SafetyBufferSeconds)
+		}
+		ack := maxResponseTime == 90
+		text := fmt.Sprintf("%s\n%s %s\n%s",
+			strings.Join(legacy, ", "),
+			strings.Join(hashtags, " "),
+			instructions,
+			strings.Join(mentions, " "),
+		)
+		legacyStr := fmt.Sprintf("%s %s %s",
+			strings.Join(legacy, ", "),
+			instructions,
+			strings.Join(mentions, " "),
+		)
+		SendMsgToChannel(
+			instructions,
+			"",
+			urgent,
+			ack,
+			cities,
+			legacyStr,
+			text,
+		)
+	}
+}
+
+func TestAlert() {
+	content := []byte("jsonCallback({\"alerts\": {\"items\": [{\"item\": {\"guid\": \"22222222-1111-1111-1111-111111111111\",\"pubdate\": \"11:12\",\"title\": \"תלמי אליהו\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"11111111-1111-1111-1111-111111111111\",\"pubdate\": \"11:11\",\"title\": \"תל אביב - מרכז העיר\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}}]}});")
+	ynet := sources.SourceYnet{}
+	ynet.Register()
+	districts := district.GetDistricts()
+	lang := config.Language("he")
+	SendContent(ynet, content, lang, districts)
+}
