@@ -97,6 +97,8 @@ func (s *SourceYnet) Parse(content []byte) map[string][]district.ID {
 			continue
 		}
 		result[item.Item.Description] = append(result[item.Item.Description], districtID)
+	}
+	for _, item := range alerts.Alerts.Items {
 		s.seen[item.Item.Guid] = true
 	}
 	return result

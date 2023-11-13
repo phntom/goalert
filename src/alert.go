@@ -157,7 +157,7 @@ func SendMsgToChannel(instructions string, replyToId string, urgent bool, ack bo
 			cancel()
 
 			if err == nil && post != nil {
-				mlog.Debug("Create post", mlog.Any("postId", post.Id), mlog.Any("createAt", post.CreateAt), mlog.Any("message", post.Message))
+				mlog.Debug("Create post", mlog.Any("post", post))
 				if previousPostId != "" {
 					if _, err := client.DeletePost(ctx, previousPostId); err != nil {
 						mlog.Error("Failed to delete previous post", mlog.String("postId", previousPostId), mlog.Err(err))

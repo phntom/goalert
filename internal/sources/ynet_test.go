@@ -270,6 +270,22 @@ func TestSourceYnet_Parse(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "multiple cities same guid",
+			args: args{
+				content: []byte("jsonCallback({\"alerts\": {\"items\": [{\"item\": {\"guid\": \"61d68de5-f4f3-4d53-a67d-d2ce24ac9efe\",\"pubdate\": \"22:34\",\"title\": \"אביבים\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"61d68de5-f4f3-4d53-a67d-d2ce24ac9efe\",\"pubdate\": \"22:34\",\"title\": \"ברעם\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"61d68de5-f4f3-4d53-a67d-d2ce24ac9efe\",\"pubdate\": \"22:34\",\"title\": \"דוב''ב\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"61d68de5-f4f3-4d53-a67d-d2ce24ac9efe\",\"pubdate\": \"22:34\",\"title\": \"יראון\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"61d68de5-f4f3-4d53-a67d-d2ce24ac9efe\",\"pubdate\": \"22:34\",\"title\": \"מתת\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"61d68de5-f4f3-4d53-a67d-d2ce24ac9efe\",\"pubdate\": \"22:34\",\"title\": \"סאסא\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}}]}});"),
+			},
+			want: map[string][]district.ID{
+				"היכנסו למרחב המוגן": {
+					"7",
+					"262",
+					"364",
+					"540",
+					"838",
+					"936",
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
