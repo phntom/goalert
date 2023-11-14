@@ -58,9 +58,9 @@ func (s *SourceYnet) Fetch() []byte {
 		mlog.Error("failed to fetch source ynet - io error", mlog.Err(err))
 		return nil
 	}
-	if len(string(content)) > 40 {
-		mlog.Debug("ynet", mlog.Any("content", string(content)))
-	}
+	//if len(string(content)) > 40 {
+	//	mlog.Debug("ynet", mlog.Any("content", string(content)))
+	//}
 	return content
 }
 

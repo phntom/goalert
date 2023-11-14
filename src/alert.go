@@ -157,7 +157,7 @@ func SendMsgToChannel(instructions string, replyToId string, urgent bool, ack bo
 			cancel()
 
 			if err == nil && post != nil {
-				mlog.Debug("Create post", mlog.Any("post", post))
+				//mlog.Debug("Create post", mlog.Any("post", post))
 				if previousPostId != "" {
 					if _, err := client.DeletePost(ctx, previousPostId); err != nil {
 						mlog.Error("Failed to delete previous post", mlog.String("postId", previousPostId), mlog.Err(err))
@@ -243,11 +243,11 @@ func SendContent(ynet sources.SourceYnet, content []byte, lang config.Language, 
 }
 
 func TestAlert() {
-	content := []byte("jsonCallback({\"alerts\": {\"items\": [{\"item\": {\"guid\": \"22222222-1111-1111-1111-111111111111\",\"pubdate\": \"11:12\",\"title\": \"תלמי אליהו\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"11111111-1111-1111-1111-111111111111\",\"pubdate\": \"11:11\",\"title\": \"תל אביב - מרכז העיר\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}}]}});")
+	content := []byte("jsonCallback({\"alerts\": {\"items\": [{\"item\": {\"guid\": \"61d68de5-f4f3-4d53-a67d-d2ce24ac9efe\",\"pubdate\": \"22:34\",\"title\": \"אביבים\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"61d68de5-f4f3-4d53-a67d-d2ce24ac9efe\",\"pubdate\": \"22:34\",\"title\": \"ברעם\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"61d68de5-f4f3-4d53-a67d-d2ce24ac9efe\",\"pubdate\": \"22:34\",\"title\": \"דוב''ב\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"61d68de5-f4f3-4d53-a67d-d2ce24ac9efe\",\"pubdate\": \"22:34\",\"title\": \"יראון\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"61d68de5-f4f3-4d53-a67d-d2ce24ac9efe\",\"pubdate\": \"22:34\",\"title\": \"מתת\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"61d68de5-f4f3-4d53-a67d-d2ce24ac9efe\",\"pubdate\": \"22:34\",\"title\": \"סאסא\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}}]}});")
 	ynet := sources.SourceYnet{}
 	ynet.Register()
 	districts := district.GetDistricts()
 	lang := config.Language("he")
-	ynet.Parse(content)
+	SendContent(ynet, content, lang, districts)
 	SendContent(ynet, content, lang, districts)
 }
