@@ -11,7 +11,6 @@ import (
 	"sync"
 )
 
-// Type definitions for clarity
 type ID string
 
 // District represents the JSON structure of each district.
@@ -103,7 +102,6 @@ func initDistricts() {
 		}
 		districts[lang] = d
 	}
-	return
 }
 
 func GetDistricts() Districts {

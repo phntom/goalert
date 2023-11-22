@@ -1,6 +1,8 @@
 package fetcher
 
 import (
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"io"
 	"net/http"
 	"time"
 )
@@ -10,40 +12,60 @@ func CreateHTTPClient() *http.Client {
 		Timeout: 500 * time.Millisecond,
 	}
 
-	// Customize HTTP headers with default values.
-	defaultHeaders := map[string]string{
-		"Accept":             "*/*",
-		"User-Agent":         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-		"Accept-Language":    "en-GB,en-US;q=0.9,en;q=0.8",
-		"Sec-Ch-Ua":          "\"Google Chrome\";v=\"119\", \"Chromium\";v=\"119\", \"Not?A_Brand\";v=\"24\"",
-		"Sec-Ch-Ua-Mobile":   "?0",
-		"Sec-Ch-Ua-Platform": "\"Linux\"",
-		"Sec-Fetch-Dest":     "script",
-		"Sec-Fetch-Mode":     "no-cors",
-		"Sec-Fetch-Site":     "same-site",
-	}
-
-	// Apply default headers to the HTTP client's Transport.
-	client.Transport = &headerTransport{
-		base:           http.DefaultTransport,
-		defaultHeaders: defaultHeaders,
-	}
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	t.DisableKeepAlives = false
+	client.Transport = t
 
 	return client
 }
 
-// Custom transport to set default headers.
-type headerTransport struct {
-	base           http.RoundTripper
-	defaultHeaders map[string]string
-}
-
-func (t *headerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	// Apply default headers to the request.
-	for key, value := range t.defaultHeaders {
-		req.Header.Set(key, value)
+func FetchSource(client *http.Client, url string, sourceName string, referrer string) []byte {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		panic(err)
 	}
 
-	// Perform the actual HTTP request using the underlying transport.
-	return t.base.RoundTrip(req)
+	// Setting headers
+	req.Header.Set("Accept", "*/*")
+	req.Header.Set("Cache-Control", "no-cache")
+	req.Header.Set("Pragma", "no-cache")
+	req.Header.Set("Referer", referrer)
+	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36")
+	req.Header.Set("X-Requested-With", "XMLHttpRequest")
+	req.Header.Set("Content-Type", "application/json;charset=utf-8")
+
+	var res *http.Response
+	for i := 0; i < 5; i++ {
+		// Sending the request
+		res, err = client.Do(req)
+
+		if err != nil {
+			mlog.Error("failed to fetch - client error",
+				mlog.Err(err),
+				mlog.Any("source", sourceName),
+				mlog.Any("attempt", i),
+			)
+			client.CloseIdleConnections()
+			continue
+		}
+		break
+	}
+
+	if res.StatusCode != 200 {
+		mlog.Warn("failed to fetch - wrong status code",
+			mlog.Any("status", res.StatusCode),
+			mlog.Any("res", res),
+			mlog.Any("source", sourceName),
+		)
+		return nil
+	}
+	content, err := io.ReadAll(res.Body)
+	if err != nil {
+		mlog.Error("failed to fetch - io error",
+			mlog.Err(err),
+			mlog.Any("source", sourceName),
+		)
+		return nil
+	}
+	return content
 }

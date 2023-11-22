@@ -3,7 +3,8 @@ module github.com/phntom/goalert
 go 1.21
 
 require (
-	github.com/mattermost/mattermost/server/public v0.0.9
+	github.com/go-test/deep v1.1.0
+	github.com/mattermost/mattermost/server/public v0.0.10
 	github.com/nicksnyder/go-i18n/v2 v2.2.2
 	golang.org/x/text v0.14.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -16,7 +17,6 @@ require (
 	github.com/go-asn1-ber/asn1-ber v1.5.4 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
-	github.com/graph-gophers/graphql-go v1.5.1-0.20230110080634-edea822f558a // indirect
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404 // indirect
 	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d // indirect
 	github.com/mattermost/logr/v2 v2.0.16 // indirect

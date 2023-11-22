@@ -1,25 +1,28 @@
 package main
 
 import (
-	"github.com/phntom/goalert/internal/district"
-	"sort"
+	"github.com/phntom/goalert/internal/bot"
+	"github.com/phntom/goalert/internal/sources"
 )
 
 func main() {
-	var collect []string
-	for language, districts := range district.GetDistricts() {
-		if language != "he" {
-			continue
-		}
-		for id, d := range districts {
-			name1, _ := district.GetCity(id, language)
-			//name := d.SettlementName
-			d = d
-			collect = append(collect, name1)
-		}
+	b := bot.Bot{}
+	b.Register()
+	b.Connect()
+	b.FindBotChannel()
+	go b.Cleanup()
+
+	ynet := sources.SourceYnet{
+		URL: sources.YnetURL,
+		Bot: b,
 	}
-	sort.Slice(collect, func(i, j int) bool {
-		return len(collect[i]) > len(collect[j])
-	})
-	print(collect)
+	ynet.Register()
+	go ynet.Run()
+	oref := sources.SourceOref{
+		Bot: b,
+	}
+	oref.Register()
+	go oref.Run()
+
+	b.AwaitMessage()
 }

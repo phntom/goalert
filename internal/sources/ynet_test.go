@@ -3,6 +3,8 @@ package sources
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/go-test/deep"
+	"github.com/phntom/goalert/internal/bot"
 	"github.com/phntom/goalert/internal/district"
 	"reflect"
 	"testing"
@@ -93,42 +95,42 @@ func TestSourceYnet_Parse(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want map[string][]district.ID
+		want []bot.Message
 	}{
 		{
 			name: "empty1",
 			args: args{
 				content: []byte(""),
 			},
-			want: make(map[string][]district.ID),
+			want: nil,
 		},
 		{
 			name: "empty2",
 			args: args{
 				content: []byte(" []"),
 			},
-			want: make(map[string][]district.ID),
+			want: nil,
 		},
 		{
 			name: "empty3",
 			args: args{
 				content: []byte("jsonCallback({\"alerts\": {\"items\": []}});"),
 			},
-			want: make(map[string][]district.ID),
+			want: nil,
 		},
 		{
 			name: "empty4",
 			args: args{
 				content: []byte("jsonCallback({\"alerts\": {\"items\": ]}});"),
 			},
-			want: make(map[string][]district.ID),
+			want: nil,
 		},
 		{
 			name: "empty5",
 			args: args{
 				content: []byte("[]"),
 			},
-			want: make(map[string][]district.ID),
+			want: nil,
 		},
 		{
 			name: "sanity",
@@ -145,7 +147,7 @@ func TestSourceYnet_Parse(t *testing.T) {
 					},
 					{
 						Item: YnetMessageItemConcrete{
-							Guid:        "7c38fbbd-d8c0-40e4-bfe0-a17b1657203e",
+							Guid:        "6c38fbbd-d8c0-40e4-bfe0-a17b1657203e",
 							Time:        "20:53",
 							Title:       "תלמי אליהו",
 							Description: "היכנסו למרחב המוגן",
@@ -154,7 +156,7 @@ func TestSourceYnet_Parse(t *testing.T) {
 					},
 					{
 						Item: YnetMessageItemConcrete{
-							Guid:        "8c38fbbd-d8c0-40e4-bfe0-a17b1657203e",
+							Guid:        "6c38fbbd-d8c0-40e4-bfe0-a17b1657203e",
 							Time:        "20:53",
 							Title:       "תקומה",
 							Description: "היכנסו למרחב המוגן",
@@ -163,7 +165,7 @@ func TestSourceYnet_Parse(t *testing.T) {
 					},
 					{
 						Item: YnetMessageItemConcrete{
-							Guid:        "9c38fbbd-d8c0-40e4-bfe0-a17b1657203e",
+							Guid:        "6c38fbbd-d8c0-40e4-bfe0-a17b1657203e",
 							Time:        "20:53",
 							Title:       "מבטחים, עמיעוז, ישע",
 							Description: "היכנסו למרחב המוגן",
@@ -172,12 +174,20 @@ func TestSourceYnet_Parse(t *testing.T) {
 					},
 				}),
 			},
-			want: map[string][]district.ID{
-				"היכנסו למרחב המוגן": {
-					"1211",
-					"1289",
-					"1349",
-					"697",
+			want: []bot.Message{
+				{
+					Instructions:  "instructions",
+					Category:      "",
+					SafetySeconds: 15,
+					Cities: []district.ID{
+						"1211",
+						"1289",
+						"1349",
+						"697",
+					},
+					RocketIDs: map[string]bool{
+						"6c38fbbd-d8c0-40e4-bfe0-a17b1657203e": true,
+					},
 				},
 			},
 		},
@@ -196,9 +206,17 @@ func TestSourceYnet_Parse(t *testing.T) {
 					},
 				}),
 			},
-			want: map[string][]district.ID{
-				"היכנסו למרחב המוגן": {
-					"6031",
+			want: []bot.Message{
+				{
+					Instructions:  "instructions",
+					Category:      "",
+					SafetySeconds: 90,
+					Cities: []district.ID{
+						"6031",
+					},
+					RocketIDs: map[string]bool{
+						"11111111-1111-1111-1111-111111111111": true,
+					},
 				},
 			},
 		},
@@ -217,11 +235,7 @@ func TestSourceYnet_Parse(t *testing.T) {
 					},
 				}),
 			},
-			want: map[string][]district.ID{
-				"ברגעים אלה נשמעת אזעקה במסגרת תרגיל העורף הלאומי תרגלו כניסה למרחב המוגן": {
-					"6031",
-				},
-			},
+			want: nil,
 		},
 		{
 			name: "exercise and real rocket 1",
@@ -247,12 +261,17 @@ func TestSourceYnet_Parse(t *testing.T) {
 					},
 				}),
 			},
-			want: map[string][]district.ID{
-				"היכנסו למרחב המוגן": {
-					"6006",
-				},
-				"ברגעים אלה נשמעת אזעקה במסגרת תרגיל העורף הלאומי תרגלו כניסה למרחב המוגן": {
-					"6031",
+			want: []bot.Message{
+				{
+					Instructions:  "instructions",
+					Category:      "",
+					SafetySeconds: 60,
+					Cities: []district.ID{
+						"6006",
+					},
+					RocketIDs: map[string]bool{
+						"22222222-2222-2222-2222-222222222222": true,
+					},
 				},
 			},
 		},
@@ -261,12 +280,17 @@ func TestSourceYnet_Parse(t *testing.T) {
 			args: args{
 				content: []byte("jsonCallback({\"alerts\": {\"items\": [{\"item\": {\"guid\": \"22222222-1111-1111-1111-111111111111\",\"pubdate\": \"11:12\",\"title\": \"באר שבע - מערב\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"11111111-1111-1111-1111-111111111111\",\"pubdate\": \"11:11\",\"title\": \"תל אביב - מרכז העיר\",\"description\": \"ברגעים אלה נשמעת אזעקה במסגרת תרגיל העורף הלאומי תרגלו כניסה למרחב המוגן\",\"link\": \"\"}}]}});"),
 			},
-			want: map[string][]district.ID{
-				"היכנסו למרחב המוגן": {
-					"6006",
-				},
-				"ברגעים אלה נשמעת אזעקה במסגרת תרגיל העורף הלאומי תרגלו כניסה למרחב המוגן": {
-					"6031",
+			want: []bot.Message{
+				{
+					Instructions:  "instructions",
+					Category:      "",
+					SafetySeconds: 60,
+					Cities: []district.ID{
+						"6006",
+					},
+					RocketIDs: map[string]bool{
+						"22222222-1111-1111-1111-111111111111": true,
+					},
 				},
 			},
 		},
@@ -275,14 +299,22 @@ func TestSourceYnet_Parse(t *testing.T) {
 			args: args{
 				content: []byte("jsonCallback({\"alerts\": {\"items\": [{\"item\": {\"guid\": \"61d68de5-f4f3-4d53-a67d-d2ce24ac9efe\",\"pubdate\": \"22:34\",\"title\": \"אביבים\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"61d68de5-f4f3-4d53-a67d-d2ce24ac9efe\",\"pubdate\": \"22:34\",\"title\": \"ברעם\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"61d68de5-f4f3-4d53-a67d-d2ce24ac9efe\",\"pubdate\": \"22:34\",\"title\": \"דוב''ב\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"61d68de5-f4f3-4d53-a67d-d2ce24ac9efe\",\"pubdate\": \"22:34\",\"title\": \"יראון\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"61d68de5-f4f3-4d53-a67d-d2ce24ac9efe\",\"pubdate\": \"22:34\",\"title\": \"מתת\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"61d68de5-f4f3-4d53-a67d-d2ce24ac9efe\",\"pubdate\": \"22:34\",\"title\": \"סאסא\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}}]}});"),
 			},
-			want: map[string][]district.ID{
-				"היכנסו למרחב המוגן": {
-					"7",
-					"262",
-					"364",
-					"540",
-					"838",
-					"936",
+			want: []bot.Message{
+				{
+					Instructions:  "instructions",
+					Category:      "",
+					SafetySeconds: 0,
+					Cities: []district.ID{
+						"7",
+						"262",
+						"364",
+						"540",
+						"838",
+						"936",
+					},
+					RocketIDs: map[string]bool{
+						"61d68de5-f4f3-4d53-a67d-d2ce24ac9efe": true,
+					},
 				},
 			},
 		},
@@ -291,9 +323,13 @@ func TestSourceYnet_Parse(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &SourceYnet{}
 			s.Register()
-			if got := s.Parse(tt.args.content); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Parse() = %v, want %v", got, tt.want)
+			got := s.Parse(tt.args.content)
+
+			diff := deep.Equal(got, tt.want)
+			if diff != nil {
+				t.Errorf("Render() = %v, want %v, diff: %v", got, tt.want, diff)
 			}
+
 		})
 	}
 }
@@ -306,7 +342,7 @@ func TestSourceYnet_Parse_Persistence(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want map[string][]district.ID
+		want []bot.Message
 	}{
 		{
 			name: "sanity",
@@ -350,12 +386,50 @@ func TestSourceYnet_Parse_Persistence(t *testing.T) {
 					},
 				}),
 			},
-			want: map[string][]district.ID{
-				"היכנסו למרחב המוגן": {
-					"1211",
-					"1289",
-					"1349",
-					"697",
+			want: []bot.Message{
+				{
+					Instructions:  "instructions",
+					Category:      "",
+					SafetySeconds: 15,
+					Cities: []district.ID{
+						"1211",
+					},
+					RocketIDs: map[string]bool{
+						"6c38fbbd-d8c0-40e4-bfe0-a17b1657203e": true,
+					},
+				},
+				{
+					Instructions:  "instructions",
+					Category:      "",
+					SafetySeconds: 15,
+					Cities: []district.ID{
+						"1289",
+					},
+					RocketIDs: map[string]bool{
+						"7c38fbbd-d8c0-40e4-bfe0-a17b1657203e": true,
+					},
+				},
+				{
+					Instructions:  "instructions",
+					Category:      "",
+					SafetySeconds: 15,
+					Cities: []district.ID{
+						"1349",
+					},
+					RocketIDs: map[string]bool{
+						"8c38fbbd-d8c0-40e4-bfe0-a17b1657203e": true,
+					},
+				},
+				{
+					Instructions:  "instructions",
+					Category:      "",
+					SafetySeconds: 15,
+					Cities: []district.ID{
+						"697",
+					},
+					RocketIDs: map[string]bool{
+						"9c38fbbd-d8c0-40e4-bfe0-a17b1657203e": true,
+					},
 				},
 			},
 		},
@@ -401,14 +475,14 @@ func TestSourceYnet_Parse_Persistence(t *testing.T) {
 					},
 				}),
 			},
-			want: map[string][]district.ID{},
+			want: nil,
 		},
 		{
 			name: "empty1",
 			args: args{
 				content: GenerateContent([]YnetMessageItem{}),
 			},
-			want: map[string][]district.ID{},
+			want: nil,
 		},
 		{
 			name: "first",
@@ -425,9 +499,17 @@ func TestSourceYnet_Parse_Persistence(t *testing.T) {
 					},
 				}),
 			},
-			want: map[string][]district.ID{
-				"היכנסו למרחב המוגן": {
-					"1211",
+			want: []bot.Message{
+				{
+					Instructions:  "instructions",
+					Category:      "",
+					SafetySeconds: 15,
+					Cities: []district.ID{
+						"1211",
+					},
+					RocketIDs: map[string]bool{
+						"6c38fbbd-d8c0-40e4-bfe0-a17b1657203e": true,
+					},
 				},
 			},
 		},
@@ -455,9 +537,17 @@ func TestSourceYnet_Parse_Persistence(t *testing.T) {
 					},
 				}),
 			},
-			want: map[string][]district.ID{
-				"היכנסו למרחב המוגן": {
-					"1289",
+			want: []bot.Message{
+				{
+					Instructions:  "instructions",
+					Category:      "",
+					SafetySeconds: 15,
+					Cities: []district.ID{
+						"1289",
+					},
+					RocketIDs: map[string]bool{
+						"7c38fbbd-d8c0-40e4-bfe0-a17b1657203e": true,
+					},
 				},
 			},
 		},
@@ -476,7 +566,7 @@ func TestSourceYnet_Parse_Persistence(t *testing.T) {
 					},
 				}),
 			},
-			want: map[string][]district.ID{},
+			want: nil,
 		},
 		{
 			name: "first and second again",
@@ -502,7 +592,7 @@ func TestSourceYnet_Parse_Persistence(t *testing.T) {
 					},
 				}),
 			},
-			want: map[string][]district.ID{},
+			want: nil,
 		},
 		{
 			name: "first second and third",
@@ -537,9 +627,17 @@ func TestSourceYnet_Parse_Persistence(t *testing.T) {
 					},
 				}),
 			},
-			want: map[string][]district.ID{
-				"היכנסו למרחב המוגן": {
-					"1349",
+			want: []bot.Message{
+				{
+					Instructions:  "instructions",
+					Category:      "",
+					SafetySeconds: 15,
+					Cities: []district.ID{
+						"1349",
+					},
+					RocketIDs: map[string]bool{
+						"8c38fbbd-d8c0-40e4-bfe0-a17b1657203e": true,
+					},
 				},
 			},
 		},
@@ -548,12 +646,30 @@ func TestSourceYnet_Parse_Persistence(t *testing.T) {
 			args: args{
 				content: []byte("jsonCallback({\"alerts\": {\"items\": [{\"item\": {\"guid\": \"27b246ea-a678-4e96-81bf-5ab905992cdc\",\"pubdate\": \"11:40\",\"title\": \"אזור תעשייה צפוני אשקלון\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"27b246ea-a678-4e96-81bf-5ab905992cdc\",\"pubdate\": \"11:40\",\"title\": \"בת הדר\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"c5ebbc91-51e0-46dd-80de-13618a459987\",\"pubdate\": \"11:40\",\"title\": \"אשקלון - דרום\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"c5ebbc91-51e0-46dd-80de-13618a459987\",\"pubdate\": \"11:40\",\"title\": \"אשקלון - צפון\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}}]}});"),
 			},
-			want: map[string][]district.ID{
-				"היכנסו למרחב המוגן": {
-					"68",
-					"267",
-					"6037",
-					"6039",
+			want: []bot.Message{
+				{
+					Instructions:  "instructions",
+					Category:      "",
+					SafetySeconds: 30,
+					Cities: []district.ID{
+						"68",
+						"267",
+					},
+					RocketIDs: map[string]bool{
+						"27b246ea-a678-4e96-81bf-5ab905992cdc": true,
+					},
+				},
+				{
+					Instructions:  "instructions",
+					Category:      "",
+					SafetySeconds: 30,
+					Cities: []district.ID{
+						"6037",
+						"6039",
+					},
+					RocketIDs: map[string]bool{
+						"c5ebbc91-51e0-46dd-80de-13618a459987": true,
+					},
 				},
 			},
 		},
@@ -562,22 +678,50 @@ func TestSourceYnet_Parse_Persistence(t *testing.T) {
 			args: args{
 				content: []byte("jsonCallback({\"alerts\": {\"items\": [{\"item\": {\"guid\": \"c5ebbc91-51e0-46dd-80de-13618a459987\",\"pubdate\": \"11:40\",\"title\": \"אשקלון - דרום\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"c5ebbc91-51e0-46dd-80de-13618a459987\",\"pubdate\": \"11:40\",\"title\": \"אשקלון - צפון\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}}]}});"),
 			},
-			want: map[string][]district.ID{},
+			want: nil,
 		},
 		{
 			name: "real 3",
 			args: args{
 				content: []byte("jsonCallback({\"alerts\": {\"items\": [{\"item\": {\"guid\": \"f038657b-99e1-48ec-b5c2-3e49c409b3bb\",\"pubdate\": \"11:40\",\"title\": \"בית שקמה\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"f038657b-99e1-48ec-b5c2-3e49c409b3bb\",\"pubdate\": \"11:40\",\"title\": \"גיאה\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"ce68fed6-5c8a-4795-8bce-5f20dcd42d58\",\"pubdate\": \"11:40\",\"title\": \"אזור תעשייה הדרומי אשקלון\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"ce68fed6-5c8a-4795-8bce-5f20dcd42d58\",\"pubdate\": \"11:40\",\"title\": \"זיקים\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"ce68fed6-5c8a-4795-8bce-5f20dcd42d58\",\"pubdate\": \"11:40\",\"title\": \"יד מרדכי\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"ce68fed6-5c8a-4795-8bce-5f20dcd42d58\",\"pubdate\": \"11:40\",\"title\": \"כרמיה\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"ce68fed6-5c8a-4795-8bce-5f20dcd42d58\",\"pubdate\": \"11:40\",\"title\": \"מבקיעים\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"27b246ea-a678-4e96-81bf-5ab905992cdc\",\"pubdate\": \"11:40\",\"title\": \"אזור תעשייה צפוני אשקלון\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"27b246ea-a678-4e96-81bf-5ab905992cdc\",\"pubdate\": \"11:40\",\"title\": \"בת הדר\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"c5ebbc91-51e0-46dd-80de-13618a459987\",\"pubdate\": \"11:40\",\"title\": \"אשקלון - דרום\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}},{\"item\": {\"guid\": \"c5ebbc91-51e0-46dd-80de-13618a459987\",\"pubdate\": \"11:40\",\"title\": \"אשקלון - צפון\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}}]}});"),
 			},
-			want: map[string][]district.ID{
-				"היכנסו למרחב המוגן": {
-					"230",
-					"321",
-					"50",
-					"414",
-					"505",
-					"666",
-					"698",
+			want: []bot.Message{
+				{
+					Instructions:  "instructions",
+					Category:      "",
+					SafetySeconds: 30,
+					Cities: []district.ID{
+						"230",
+						"321",
+					},
+					RocketIDs: map[string]bool{
+						"f038657b-99e1-48ec-b5c2-3e49c409b3bb": true,
+					},
+				},
+				{
+					Instructions:  "instructions",
+					Category:      "",
+					SafetySeconds: 30,
+					Cities: []district.ID{
+						"50",
+						"698",
+					},
+					RocketIDs: map[string]bool{
+						"ce68fed6-5c8a-4795-8bce-5f20dcd42d58": true,
+					},
+				},
+				{
+					Instructions:  "instructions",
+					Category:      "",
+					SafetySeconds: 15,
+					Cities: []district.ID{
+						"414",
+						"505",
+						"666",
+					},
+					RocketIDs: map[string]bool{
+						"ce68fed6-5c8a-4795-8bce-5f20dcd42d58": true,
+					},
 				},
 			},
 		},
@@ -586,7 +730,16 @@ func TestSourceYnet_Parse_Persistence(t *testing.T) {
 	s.Register()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := s.Parse(tt.args.content); !reflect.DeepEqual(got, tt.want) {
+			got := s.Parse(tt.args.content)
+			gotSet := make(map[string]bot.Message)
+			for _, message := range got {
+				gotSet[message.GetHash()] = message
+			}
+			wantSet := make(map[string]bot.Message)
+			for _, message := range tt.want {
+				wantSet[message.GetHash()] = message
+			}
+			if !reflect.DeepEqual(gotSet, wantSet) {
 				t.Errorf("Parse() = %v, want %v", got, tt.want)
 			}
 		})

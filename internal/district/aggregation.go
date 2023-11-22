@@ -51,10 +51,8 @@ func CitiesToHashtagsMentionsLegacy(cities []ID, lang config.Language) (map[stri
 	for _, city := range cities {
 		name := districts[lang][city].SettlementName
 		hashtags = append(hashtags, fmt.Sprintf("#%s", CityNameCleanFull(name)))
-		mentions = append(mentions, fmt.Sprintf("%s%s",
-			config.GetText("district.mention_prefix", lang),
-			CityNameCleanShort(name),
-		))
+		mentions = append(mentions, config.GetText("district.mention_prefix", lang)+CityNameCleanShort(name))
+		legacy = append(legacy, name)
 		cityName, subs := GetCity(city, lang)
 		if len(subs) == 0 {
 			subs = []string{cityName}

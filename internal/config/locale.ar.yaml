@@ -3,3 +3,16 @@ district:
 subdivision:
   industrial_zone: المنطقة الصناعية
   regional_center: المجلس الإقليمي
+message:
+  instructions: "المدة المتاحة للوصول الى المكان المحمي {1} {2} {3} ادخلوا فورا الى المكان المحمي وابقوا فيه عشر دقائق"
+  lockdown: أدخل المبنى وأغلق الأبواب وأغلق النوافذ
+  secondsPrefix: " "
+  secondsSuffix: ثواني
+  immediate: فورا
+  rockets: اطلاق قذائف وصواريخ
+  uav: اختراق طائرة معادية
+  infiltration: تسلل مخربين
+  earthquake: هزّة أرضية
+  tsunami: تحسبا للتسونامي
+  radiological: حدث إشعاعي
+  biohazard: حدث مواد خطرة

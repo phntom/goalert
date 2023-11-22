@@ -8,3 +8,16 @@ subdivision:
   industrial_zone_alt: промзона
   industrial_zone_alt2: Промзона
   regional_center: Местный совет
+message:
+  instructions: "{1} {2} {3} убежище и оставайтесь в нём 10 минут"
+  lockdown: Войдите в здание, заприте двери и закройте окна
+  secondsPrefix: У вас
+  secondsSuffix: секунд, чтобы найти
+  immediate: Немедленно найдите
+  rockets: Ракетный обстрел
+  uav: Нарушение воздушного пространства
+  infiltration: Проникновение террористов
+  earthquake: Землетрясение
+  tsunami: Угроза цунами
+  radiological: Радиоактивная опасность
+  biohazard: Утечка опасных веществ
