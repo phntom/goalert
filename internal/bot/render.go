@@ -20,15 +20,19 @@ func Render(msg *Message, lang config.Language) *model.Post {
 			title = fmt.Sprintf("%s (%d)", title, len(msg.RocketIDs))
 		}
 	}
-	secondsTag := "message.seconds"
-	if msg.SafetySeconds == 0 {
-		secondsTag = "message.immediate"
-	}
 	secondsReplacer := strings.NewReplacer(
-		"{1}", config.GetText(secondsTag+"Prefix", lang),
-		"{2}", strconv.Itoa(int(msg.SafetySeconds)),
-		"{3}", config.GetText(secondsTag+"Suffix", lang),
+		"{1}", "",
+		"{2}", "",
+		"{3}", config.GetText("message.immediate", lang),
 	)
+	if msg.SafetySeconds > 0 {
+		secondsTag := "message.seconds"
+		secondsReplacer = strings.NewReplacer(
+			"{1}", config.GetText(secondsTag+"Prefix", lang),
+			"{2}", strconv.Itoa(int(msg.SafetySeconds)),
+			"{3}", config.GetText(secondsTag+"Suffix", lang),
+		)
+	}
 	instructions := secondsReplacer.Replace(config.GetText(fmt.Sprintf("message.%s", msg.Instructions), lang))
 	fields := CitiesToFields(cities)
 	text := fmt.Sprintf("%s\n%s\n%s %s",

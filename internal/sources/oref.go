@@ -38,7 +38,7 @@ type OrefMessage struct {
 type SourceOref struct {
 	client *http.Client
 	seen   map[string]bool
-	Bot    bot.Bot
+	Bot    *bot.Bot
 }
 
 func (s *SourceOref) Register() {
@@ -98,7 +98,7 @@ func (s *SourceOref) Parse(content []byte) []bot.Message {
 			Instructions:  instructions,
 			Category:      category,
 			SafetySeconds: uint(cityObj.SafetyBufferSeconds),
-			Expire:        time.Now().Add(time.Second * time.Duration(cityObj.SafetyBufferSeconds)),
+			Expire:        time.Now().Add(time.Second * time.Duration(5+cityObj.SafetyBufferSeconds)),
 			Cities:        nil,
 			RocketIDs:     nil,
 		}
@@ -119,11 +119,12 @@ func (s *SourceOref) Parse(content []byte) []bot.Message {
 
 func (s *SourceOref) Run() {
 	failed := 0
-	delay := 250 * time.Millisecond
+	delay := 750 * time.Millisecond
 	for {
 		time.Sleep(delay)
 		content := s.Fetch()
 		//content := []byte("{\"id\": \"133449412450000000\",\"cat\": \"1\",\"title\": \"ירי רקטות וטילים\",\"data\": [\"בית שקמה\"],\"desc\": \"היכנסו למרחב המוגן ושהו בו 10 דקות\"}")
+		//content := []byte("{\n\t\t \"id\": \"133451945860000000\",\n\t\t \"cat\": \"1\",\n\t\t \"title\": \"ירי רקטות וטילים\",\n\t\t \"data\": [\n\t\t   \"ערב אל עראמשה\"\n\t\t ],\n\t\t \"desc\": \"היכנסו למרחב המוגן ושהו בו 10 דקות\"\n\t\t}")
 		if content == nil {
 			failed += 1
 			if failed > 30 {

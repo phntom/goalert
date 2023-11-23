@@ -14,12 +14,12 @@ func main() {
 
 	ynet := sources.SourceYnet{
 		URL: sources.YnetURL,
-		Bot: b,
+		Bot: &b,
 	}
 	ynet.Register()
 	go ynet.Run()
 	oref := sources.SourceOref{
-		Bot: b,
+		Bot: &b,
 	}
 	oref.Register()
 	go oref.Run()

@@ -42,7 +42,7 @@ type SourceYnet struct {
 	client *http.Client
 	URL    string
 	seen   map[string]bool
-	Bot    bot.Bot
+	Bot    *bot.Bot
 }
 
 func (s *SourceYnet) Register() {
@@ -111,7 +111,7 @@ func (s *SourceYnet) Parse(content []byte) []bot.Message {
 			Instructions:  instructions,
 			Category:      "",
 			SafetySeconds: uint(cityObj.SafetyBufferSeconds),
-			Expire:        time.Now().Add(time.Second * time.Duration(cityObj.SafetyBufferSeconds)),
+			Expire:        time.Now().Add(time.Second * time.Duration(5+cityObj.SafetyBufferSeconds)),
 			Cities:        nil,
 			RocketIDs:     map[string]bool{item.Item.Guid: true},
 		}
