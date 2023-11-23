@@ -12,12 +12,6 @@ import (
 	"time"
 )
 
-const (
-	//YnetURL = "https://source-alerts.ynet.co.il/alertsRss/YnetPicodeHaorefAlertFiles.js?callback=jsonCallback"
-	YnetURL      = "https://alerts.ynet.co.il/alertsRss/YnetPicodeHaorefAlertFiles.js?callback=jsonCallback"
-	YnetReferrer = "https://www.ynet.co.il/"
-)
-
 type YnetMessage struct {
 	Alerts YnetMessageItems `json:"alerts"`
 }
@@ -111,7 +105,7 @@ func (s *SourceYnet) Parse(content []byte) []bot.Message {
 			Instructions:  instructions,
 			Category:      "",
 			SafetySeconds: uint(cityObj.SafetyBufferSeconds),
-			Expire:        time.Now().Add(time.Second * time.Duration(5+cityObj.SafetyBufferSeconds)),
+			Expire:        time.Now().Add(time.Second * 10),
 			Cities:        nil,
 			RocketIDs:     map[string]bool{item.Item.Guid: true},
 		}

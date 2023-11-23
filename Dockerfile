@@ -7,7 +7,7 @@ COPY cmd /app/cmd/
 RUN go mod tidy
 RUN go build -o alert /app/cmd/goalert-bot
 ENV CGO_ENABLED 0
-#RUN go test ./...
+RUN go test ./...
 
 FROM alpine:3.14
 WORKDIR /app

@@ -12,11 +12,6 @@ import (
 	"time"
 )
 
-const (
-	OrefURL      = "https://www.oref.org.il/WarningMessages/alert/alerts.json"
-	OrefReferrer = "https://www.oref.org.il//12481-he/Pakar.aspx"
-)
-
 var categories = map[string]string{
 	"1":  "rockets",
 	"3":  "earthquake",
@@ -98,7 +93,7 @@ func (s *SourceOref) Parse(content []byte) []bot.Message {
 			Instructions:  instructions,
 			Category:      category,
 			SafetySeconds: uint(cityObj.SafetyBufferSeconds),
-			Expire:        time.Now().Add(time.Second * time.Duration(5+cityObj.SafetyBufferSeconds)),
+			Expire:        time.Now().Add(time.Second * 10),
 			Cities:        nil,
 			RocketIDs:     nil,
 		}

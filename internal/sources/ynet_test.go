@@ -8,6 +8,7 @@ import (
 	"github.com/phntom/goalert/internal/district"
 	"reflect"
 	"testing"
+	"time"
 )
 
 //func TestSourceYnet_Added(t *testing.T) {
@@ -323,8 +324,12 @@ func TestSourceYnet_Parse(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &SourceYnet{}
 			s.Register()
-			got := s.Parse(tt.args.content)
-
+			got1 := s.Parse(tt.args.content)
+			var got []bot.Message
+			for i, message := range got1 {
+				message.Expire = tt.want[i].Expire
+				got = append(got, message)
+			}
 			diff := deep.Equal(got, tt.want)
 			if diff != nil {
 				t.Errorf("Render() = %v, want %v, diff: %v", got, tt.want, diff)
@@ -728,15 +733,18 @@ func TestSourceYnet_Parse_Persistence(t *testing.T) {
 	}
 	s := &SourceYnet{}
 	s.Register()
+	now := time.Now()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := s.Parse(tt.args.content)
 			gotSet := make(map[string]bot.Message)
 			for _, message := range got {
+				message.Expire = now
 				gotSet[message.GetHash()] = message
 			}
 			wantSet := make(map[string]bot.Message)
 			for _, message := range tt.want {
+				message.Expire = now
 				wantSet[message.GetHash()] = message
 			}
 			if !reflect.DeepEqual(gotSet, wantSet) {
