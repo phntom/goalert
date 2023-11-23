@@ -49,8 +49,10 @@ func (s *SourceOref) Parse(content []byte) []bot.Message {
 	districts := district.GetDistricts()
 	start := strings.IndexByte(string(content), '{')
 	if start == -1 {
-		for s2 := range s.seen {
-			delete(s.seen, s2)
+		for s2, v2 := range s.seen {
+			if v2 {
+				delete(s.seen, s2)
+			}
 		}
 		return nil
 	}
@@ -66,6 +68,10 @@ func (s *SourceOref) Parse(content []byte) []bot.Message {
 		)
 		return nil
 	}
+	if _, ok := s.seen[alerts.ID]; ok {
+		return nil
+	}
+	s.seen[alerts.ID] = false
 	for _, city := range alerts.Cities {
 		if s.seen[city] {
 			continue
@@ -115,6 +121,7 @@ func (s *SourceOref) Parse(content []byte) []bot.Message {
 func (s *SourceOref) Run() {
 	failed := 0
 	delay := 750 * time.Millisecond
+	counter := 0
 	for {
 		time.Sleep(delay)
 		content := s.Fetch()
@@ -127,9 +134,18 @@ func (s *SourceOref) Run() {
 			}
 			continue
 		}
+		counter = counter + 1
 		for _, m := range s.Parse(content) {
 			mlog.Debug("oref", mlog.Any("content", string(content)))
 			s.Bot.SubmitMessage(&m)
+		}
+		if counter > 1000 {
+			for s2, v2 := range s.seen {
+				if v2 == false {
+					delete(s.seen, s2)
+				}
+			}
+			counter = 0
 		}
 	}
 }

@@ -127,12 +127,23 @@ func (b *Bot) AwaitMessage() {
 			mlog.Warn("invalid message no cities", mlog.Any("message", message))
 			continue
 		}
-		aCity := message.Cities[0]
+		prevMsgs := make(map[string]*Message)
 		b.dedupMutex.Lock()
-		prevMsg, ok := b.dedup[aCity]
+		for _, city := range message.Cities {
+			prevMsg, ok := b.dedup[city]
+			if ok {
+				if prevMsg.IsExpired() {
+					continue
+				}
+				prevMsgs[prevMsg.GetHash()] = prevMsg
+			}
+		}
 		b.dedupMutex.Unlock()
-		if ok {
-			if !prevMsg.IsExpired() && prevMsg.Patch(message) {
+		if len(prevMsgs) > 0 {
+			for _, prevMsg := range prevMsgs {
+				if !prevMsg.Patch(message) {
+					continue
+				}
 				for i, postID := range prevMsg.PostIDs {
 					channel := prevMsg.ChannelsPosted[i]
 					post := prevMsg.PostForChannel(channel)
@@ -152,10 +163,14 @@ func (b *Bot) AwaitMessage() {
 							mlog.Any("response", response),
 						)
 					}
-
 				}
 			}
 		} else {
+			b.dedupMutex.Lock()
+			for _, city := range message.Cities {
+				b.dedup[city] = message
+			}
+			b.dedupMutex.Unlock()
 			for _, channel := range b.channels {
 				post := message.PostForChannel(channel)
 				ctx, cancel := context.WithTimeout(context.Background(), postTimeout)
@@ -172,11 +187,6 @@ func (b *Bot) AwaitMessage() {
 				message.PostIDs = append(message.PostIDs, result.Id)
 				message.ChannelsPosted = append(message.ChannelsPosted, channel)
 			}
-			b.dedupMutex.Lock()
-			for _, city := range message.Cities {
-				b.dedup[city] = message
-			}
-			b.dedupMutex.Unlock()
 		}
 	}
 }
