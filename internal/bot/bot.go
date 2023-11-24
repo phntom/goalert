@@ -6,6 +6,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/phntom/goalert/internal/district"
+	"github.com/phntom/goalert/internal/monitoring"
 	"os"
 	"os/signal"
 	"reflect"
@@ -24,6 +25,7 @@ type Bot struct {
 	alertFeed       chan *Message
 	dedup           map[district.ID]*Message
 	dedupMutex      sync.Mutex
+	Monitoring      monitoring.Monitoring
 }
 
 const postTimeout = 10 * time.Second
@@ -40,6 +42,7 @@ func (b *Bot) Register() {
 			os.Exit(0)
 		}
 	}()
+	b.Monitoring.Setup()
 }
 
 func (b *Bot) Connect() {
@@ -122,6 +125,7 @@ func (b *Bot) FindBotChannel() {
 
 func (b *Bot) SubmitMessage(m *Message) {
 	b.alertFeed <- m
+	go b.UpdateMonitor(m)
 }
 
 func (b *Bot) AwaitMessage() {
@@ -176,6 +180,9 @@ func (b *Bot) AwaitMessage() {
 							mlog.Any("patch", patch),
 							mlog.Any("response", response),
 						)
+						b.Monitoring.FailedPatches.Inc()
+					} else {
+						b.Monitoring.SuccessfulPatches.Inc()
 					}
 				}
 			}
@@ -196,6 +203,7 @@ func (b *Bot) AwaitMessage() {
 				}
 				message.PostIDs = append(message.PostIDs, result.Id)
 				message.ChannelsPosted = append(message.ChannelsPosted, channel)
+				b.Monitoring.SuccessfulPosts.Inc()
 			}
 		}
 	}
@@ -212,4 +220,16 @@ func (b *Bot) Cleanup() {
 		}
 		b.dedupMutex.Unlock()
 	}
+}
+
+func (b *Bot) UpdateMonitor(m *Message) {
+	b.Monitoring.CitiesHistogram.Observe(float64(len(m.Cities)))
+	b.Monitoring.DayOfWeekHistogram.Observe(float64(time.Now().Weekday()))
+	b.Monitoring.TimeOfDayHistogram.Observe(float64(time.Now().Hour()))
+	regions := make(map[string]bool)
+	districts := district.GetDistricts()
+	for _, city := range m.Cities {
+		regions[districts["he"][city].AreaName] = true
+	}
+	b.Monitoring.RegionsHistogram.Observe(float64(len(districts)))
 }

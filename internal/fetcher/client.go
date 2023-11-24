@@ -2,6 +2,7 @@ package fetcher
 
 import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/phntom/goalert/internal/monitoring"
 	"io"
 	"net/http"
 	"time"
@@ -19,7 +20,7 @@ func CreateHTTPClient() *http.Client {
 	return client
 }
 
-func FetchSource(client *http.Client, url string, sourceName string, referrer string) []byte {
+func FetchSource(client *http.Client, url string, sourceName string, referrer string, monitor *monitoring.Monitoring) []byte {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		panic(err)
@@ -37,7 +38,10 @@ func FetchSource(client *http.Client, url string, sourceName string, referrer st
 	var res *http.Response
 	for i := 0; i < 5; i++ {
 		// Sending the request
+		startTime := time.Now()
 		res, err = client.Do(req)
+		duration := time.Since(startTime).Seconds()
+		monitor.HttpResponseTimeHistogram.WithLabelValues(sourceName).Observe(duration)
 
 		if err != nil {
 			mlog.Error("failed to fetch - client error",
@@ -46,6 +50,7 @@ func FetchSource(client *http.Client, url string, sourceName string, referrer st
 				mlog.Any("attempt", i),
 			)
 			client.CloseIdleConnections()
+			monitor.FailedSourceFetches.WithLabelValues(sourceName).Inc()
 			continue
 		}
 		break
@@ -65,7 +70,9 @@ func FetchSource(client *http.Client, url string, sourceName string, referrer st
 			mlog.Err(err),
 			mlog.Any("source", sourceName),
 		)
+		monitor.FailedSourceFetches.WithLabelValues(sourceName).Inc()
 		return nil
 	}
+	monitor.SuccessfulSourceFetches.WithLabelValues(sourceName).Inc()
 	return content
 }

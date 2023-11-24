@@ -14,5 +14,6 @@ WORKDIR /app
 COPY --from=builder /app/alert ./
 ENV AUTH_TOKEN=""
 ENV CHAT_DOMAIN="https://kix.co.il"
+EXPOSE 3000
 
 CMD ["/app/alert"]

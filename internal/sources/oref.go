@@ -42,7 +42,7 @@ func (s *SourceOref) Register() {
 }
 
 func (s *SourceOref) Fetch() []byte {
-	return fetcher.FetchSource(s.client, OrefURL, "oref", OrefReferrer)
+	return fetcher.FetchSource(s.client, OrefURL, "oref", OrefReferrer, &s.Bot.Monitoring)
 }
 
 func (s *SourceOref) Parse(content []byte) []bot.Message {
