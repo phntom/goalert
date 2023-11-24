@@ -105,7 +105,7 @@ func (s *SourceYnet) Parse(content []byte) []bot.Message {
 			Instructions:  instructions,
 			Category:      "",
 			SafetySeconds: uint(cityObj.SafetyBufferSeconds),
-			Expire:        time.Now().Add(time.Second * 10),
+			Expire:        time.Now().Add(time.Second * 90),
 			Cities:        nil,
 			RocketIDs:     map[string]bool{item.Item.Guid: true},
 		}
@@ -127,9 +127,15 @@ func (s *SourceYnet) Parse(content []byte) []bot.Message {
 
 func (s *SourceYnet) Run() {
 	failed := 0
-	delay := 250 * time.Millisecond
+	nextQuarterSecond := time.Now()
 	for {
-		time.Sleep(delay)
+		if nextQuarterSecond.After(time.Now()) {
+			// Calculate the duration until the next quarter second
+			durationUntilNextQuarter := time.Until(nextQuarterSecond)
+			// Sleep until the next quarter second
+			time.Sleep(durationUntilNextQuarter)
+		}
+
 		content := s.Fetch()
 		//content := []byte("jsonCallback({\"alerts\": {\"items\": [{\"item\": {\"guid\": \"f038657b-99e1-48ec-b5c2-3e49c409b3bb\",\"pubdate\": \"11:40\",\"title\": \"בית שקמה\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}}]}});")
 		if content == nil {
@@ -137,11 +143,16 @@ func (s *SourceYnet) Run() {
 			if failed > 30 {
 				os.Exit(4)
 			}
+			time.Sleep(200 * time.Millisecond)
 			continue
 		}
 		for _, m := range s.Parse(content) {
 			mlog.Debug("ynet", mlog.Any("content", string(content)))
 			s.Bot.SubmitMessage(&m)
 		}
+
+		// Calculate the next quarter-second boundary
+		// Add 250ms (a quarter second), then truncate to the nearest quarter second
+		nextQuarterSecond = time.Now().Add(250 * time.Millisecond).Truncate(250 * time.Millisecond)
 	}
 }

@@ -99,7 +99,7 @@ func (s *SourceOref) Parse(content []byte) []bot.Message {
 			Instructions:  instructions,
 			Category:      category,
 			SafetySeconds: uint(cityObj.SafetyBufferSeconds),
-			Expire:        time.Now().Add(time.Second * 10),
+			Expire:        time.Now().Add(time.Second * 90),
 			Cities:        nil,
 			RocketIDs:     nil,
 		}
@@ -120,10 +120,17 @@ func (s *SourceOref) Parse(content []byte) []bot.Message {
 
 func (s *SourceOref) Run() {
 	failed := 0
-	delay := 750 * time.Millisecond
 	counter := 0
 	for {
-		time.Sleep(delay)
+		// Get the current time
+		now := time.Now()
+		// Calculate the time until the next round second
+		untilNextSecond := time.Until(time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second()+1, 0, now.Location()))
+		// Add 200 milliseconds
+		sleepDuration := untilNextSecond + 200*time.Millisecond
+		// Sleep for the calculated duration
+		time.Sleep(sleepDuration)
+
 		content := s.Fetch()
 		//content := []byte("{\"id\": \"133449412450000000\",\"cat\": \"1\",\"title\": \"ירי רקטות וטילים\",\"data\": [\"בית שקמה\"],\"desc\": \"היכנסו למרחב המוגן ושהו בו 10 דקות\"}")
 		//content := []byte("{\n\t\t \"id\": \"133451945860000000\",\n\t\t \"cat\": \"1\",\n\t\t \"title\": \"ירי רקטות וטילים\",\n\t\t \"data\": [\n\t\t   \"ערב אל עראמשה\"\n\t\t ],\n\t\t \"desc\": \"היכנסו למרחב המוגן ושהו בו 10 דקות\"\n\t\t}")

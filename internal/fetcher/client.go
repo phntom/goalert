@@ -9,7 +9,7 @@ import (
 
 func CreateHTTPClient() *http.Client {
 	client := &http.Client{
-		Timeout: 500 * time.Millisecond,
+		Timeout: 1 * time.Second,
 	}
 
 	t := http.DefaultTransport.(*http.Transport).Clone()

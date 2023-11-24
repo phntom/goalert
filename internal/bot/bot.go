@@ -2,11 +2,13 @@ package bot
 
 import (
 	"context"
+	"fmt"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/phntom/goalert/internal/district"
 	"os"
 	"os/signal"
+	"reflect"
 	"sync"
 	"time"
 )
@@ -103,18 +105,19 @@ func (b *Bot) FindBotChannel() {
 			if channel.Name == "off-topic" || channel.Name == "town-square" {
 				continue
 			}
+			channel.AddProp("teamName", team.Name)
 			b.channels = append(b.channels, channel)
 		}
 		if b.channels == nil || len(b.channels) == 0 {
 			mlog.Fatal("Bot is not a member of any channel, invite him and try again")
 			os.Exit(2)
 		}
-		var channelNames []string
-		for _, channel := range b.channels {
-			channelNames = append(channelNames, channel.Name)
-		}
-		mlog.Info("Joined channels", mlog.Any("channels", channelNames))
 	}
+	var channelNames []string
+	for _, channel := range b.channels {
+		channelNames = append(channelNames, fmt.Sprintf("%s/%s", channel.Props["teamName"], channel.Name))
+	}
+	mlog.Info("Joined channels", mlog.Any("channels", channelNames))
 }
 
 func (b *Bot) SubmitMessage(m *Message) {
@@ -127,16 +130,27 @@ func (b *Bot) AwaitMessage() {
 			mlog.Warn("invalid message no cities", mlog.Any("message", message))
 			continue
 		}
+		citiesNotFound := make(map[district.ID]bool, len(message.Cities))
+		for _, city := range message.Cities {
+			citiesNotFound[city] = true
+		}
 		prevMsgs := make(map[string]*Message)
 		b.dedupMutex.Lock()
 		for _, city := range message.Cities {
 			prevMsg, ok := b.dedup[city]
-			if ok {
-				if prevMsg.IsExpired() {
-					continue
-				}
-				prevMsgs[prevMsg.GetHash()] = prevMsg
+			if !ok || prevMsg.IsExpired() {
+				continue
 			}
+			if len(message.RocketIDs) > 0 && reflect.DeepEqual(message.RocketIDs, prevMsg.RocketIDs) {
+				continue
+			}
+			if citiesNotFound[city] {
+				delete(citiesNotFound, city)
+			}
+			prevMsgs[prevMsg.GetHash()] = prevMsg
+		}
+		for city := range citiesNotFound {
+			b.dedup[city] = message
 		}
 		b.dedupMutex.Unlock()
 		if len(prevMsgs) > 0 {
@@ -165,12 +179,8 @@ func (b *Bot) AwaitMessage() {
 					}
 				}
 			}
-		} else {
-			b.dedupMutex.Lock()
-			for _, city := range message.Cities {
-				b.dedup[city] = message
-			}
-			b.dedupMutex.Unlock()
+		}
+		if len(citiesNotFound) > 0 {
 			for _, channel := range b.channels {
 				post := message.PostForChannel(channel)
 				ctx, cancel := context.WithTimeout(context.Background(), postTimeout)
