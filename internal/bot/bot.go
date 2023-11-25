@@ -9,7 +9,6 @@ import (
 	"github.com/phntom/goalert/internal/monitoring"
 	"os"
 	"os/signal"
-	"reflect"
 	"sync"
 	"time"
 )
@@ -134,56 +133,33 @@ func (b *Bot) AwaitMessage() {
 			mlog.Warn("invalid message no cities", mlog.Any("message", message))
 			continue
 		}
-		citiesNotFound := make(map[district.ID]bool, len(message.Cities))
-		for _, city := range message.Cities {
-			citiesNotFound[city] = true
-		}
-		prevMsgs := make(map[string]*Message)
-		b.dedupMutex.Lock()
-		for _, city := range message.Cities {
-			prevMsg, ok := b.dedup[city]
-			if !ok || prevMsg.IsExpired() {
+		msgsToPatch, citiesNotFound := b.GetPrevMsgs(message)
+		for _, prevMsg := range msgsToPatch {
+			if !prevMsg.PatchData(message) {
+				// no new data in patch message
 				continue
 			}
-			if len(message.RocketIDs) > 0 && reflect.DeepEqual(message.RocketIDs, prevMsg.RocketIDs) {
-				continue
-			}
-			if citiesNotFound[city] {
-				delete(citiesNotFound, city)
-			}
-			prevMsgs[prevMsg.GetHash()] = prevMsg
-		}
-		for city := range citiesNotFound {
-			b.dedup[city] = message
-		}
-		b.dedupMutex.Unlock()
-		if len(prevMsgs) > 0 {
-			for _, prevMsg := range prevMsgs {
-				if !prevMsg.Patch(message) {
-					continue
+			for i, postID := range prevMsg.PostIDs {
+				channel := prevMsg.ChannelsPosted[i]
+				post := prevMsg.PostForChannel(channel)
+				//goland:noinspection GoDeprecation
+				patch := model.PostPatch{
+					Message: model.NewString(""),
+					Props:   &post.Props,
 				}
-				for i, postID := range prevMsg.PostIDs {
-					channel := prevMsg.ChannelsPosted[i]
-					post := prevMsg.PostForChannel(channel)
-					//goland:noinspection GoDeprecation
-					patch := model.PostPatch{
-						Message: model.NewString(""),
-						Props:   &post.Props,
-					}
-					ctx, cancel := context.WithTimeout(context.Background(), postTimeout)
-					_, response, err := b.client.PatchPost(ctx, postID, &patch)
-					cancel()
-					if err != nil {
-						mlog.Error("failed patching post",
-							mlog.Err(err),
-							mlog.Any("postID", postID),
-							mlog.Any("patch", patch),
-							mlog.Any("response", response),
-						)
-						b.Monitoring.FailedPatches.Inc()
-					} else {
-						b.Monitoring.SuccessfulPatches.Inc()
-					}
+				ctx, cancel := context.WithTimeout(context.Background(), postTimeout)
+				_, response, err := b.client.PatchPost(ctx, postID, &patch)
+				cancel()
+				if err != nil {
+					mlog.Error("failed patching post",
+						mlog.Err(err),
+						mlog.Any("postID", postID),
+						mlog.Any("patch", patch),
+						mlog.Any("response", response),
+					)
+					b.Monitoring.FailedPatches.Inc()
+				} else {
+					b.Monitoring.SuccessfulPatches.Inc()
 				}
 			}
 		}

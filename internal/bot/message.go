@@ -54,21 +54,32 @@ func (m *Message) IsExpired() bool {
 	return time.Now().After(m.Expire)
 }
 
-func (m *Message) Patch(n *Message) bool {
+func (m *Message) PatchData(n *Message) bool {
+	foundChange := false
 	if m.Category == "" && n.Category != "" {
 		// m is ynet, n is oref, should patch title
 		m.Category = n.Category
 		m.Instructions = n.Instructions
-		if n.Expire.Before(m.Expire) {
-			m.Expire = n.Expire
-		}
-	} else if m.Category != "" && n.Category == "" {
-		// m is oref, n is ynet, should patch rocket count
-		m.RocketIDs = n.RocketIDs
-	} else {
-		// no change
-		return false
+		foundChange = true
 	}
-	m.Prerender()
-	return true
+	if m.RocketIDs == nil {
+		m.RocketIDs = make(map[string]bool)
+	}
+	if n.RocketIDs == nil {
+		n.RocketIDs = make(map[string]bool)
+	}
+	for rocketID := range n.RocketIDs {
+		if m.RocketIDs[rocketID] {
+			// no new information
+			continue
+		}
+		foundChange = true
+		m.RocketIDs[rocketID] = true
+	}
+	if foundChange {
+		m.Expire = time.Now().Add(5 * time.Second)
+		m.Prerender()
+		return true
+	}
+	return false
 }

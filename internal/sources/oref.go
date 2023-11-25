@@ -148,7 +148,7 @@ func (s *SourceOref) Run() {
 		}
 		if counter > 1000 {
 			for s2, v2 := range s.seen {
-				if v2 == false {
+				if !v2 {
 					delete(s.seen, s2)
 				}
 			}

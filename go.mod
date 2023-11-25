@@ -1,6 +1,6 @@
 module github.com/phntom/goalert
 
-go 1.21
+go 1.21.3
 
 require (
 	github.com/go-test/deep v1.1.0

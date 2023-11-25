@@ -136,8 +136,7 @@ func (s *SourceYnet) Run() {
 			time.Sleep(durationUntilNextQuarter)
 		}
 
-		var content []byte
-		content = s.Fetch()
+		content := s.Fetch()
 		//content := []byte("jsonCallback({\"alerts\": {\"items\": [{\"item\": {\"guid\": \"f038657b-99e1-48ec-b5c2-3e49c409b3bb\",\"pubdate\": \"11:40\",\"title\": \"בית שקמה\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}}]}});")
 		if content == nil {
 			failed += 1

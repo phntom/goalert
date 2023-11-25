@@ -91,5 +91,6 @@ func (m *Monitoring) Setup() {
 	)
 
 	http.Handle("/metrics", promhttp.Handler())
-	go http.ListenAndServe(":3000", nil)
+	//goland:noinspection GoUnhandledErrorResult
+	go http.ListenAndServe(":3000", nil) //nolint:errcheck
 }
