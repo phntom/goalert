@@ -38,6 +38,7 @@ type SourceOref struct {
 }
 
 func (s *SourceOref) Register() {
+	calculatePubTime("133448902120000000")
 	s.client = fetcher.CreateHTTPClient()
 	s.seen = make(map[string]bool)
 }
@@ -124,13 +125,12 @@ func calculatePubTime(id string) string {
 	}
 
 	// Remove 4 trailing zeros to get microseconds and convert to milliseconds
-	milliseconds := number / 10000
+	seconds := number / 10000000
 
 	// Create a time object from the milliseconds
-	t := time.Unix(0, milliseconds*int64(time.Millisecond))
+	t := time.Unix(seconds, 0)
 
-	// Convert to +02:00 timezone
-	location, _ := time.LoadLocation("EET") // Eastern European Time, which is UTC+2
+	location, _ := time.LoadLocation("Asia/Jerusalem")
 	tInTimeZone := t.In(location)
 
 	// Format the result to get hour and minute

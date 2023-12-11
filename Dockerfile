@@ -11,6 +11,7 @@ ENV CGO_ENABLED 0
 
 FROM alpine:3.14
 WORKDIR /app
+RUN apk --no-cache add tzdata
 COPY --from=builder /app/alert ./
 ENV AUTH_TOKEN=""
 ENV CHAT_DOMAIN="https://kix.co.il"
