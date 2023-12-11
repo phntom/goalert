@@ -60,8 +60,8 @@ package bot
 //	req.Header.Set("Content-Type", "application/json")
 //
 //	// Execute the HTTP request
-//	client := &http.Client{}
-//	resp, err := client.Do(req)
+//	Client := &http.Client{}
+//	resp, err := Client.Do(req)
 //	if err != nil {
 //		return fmt.Errorf("error sending HTTP request: %v", err)
 //	}

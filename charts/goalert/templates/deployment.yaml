@@ -33,15 +33,15 @@ spec:
           env:
             - name: CHAT_DOMAIN
               value: {{ .Values.config.domain }}
-            - name: TEAM_NAME
-              value: {{ .Values.config.team }}
-            - name: CHANNEL_NAME
-              value: {{ .Values.config.channel }}
             - name: AUTH_TOKEN
               valueFrom:
                 secretKeyRef:
                   name:  {{ template "goalert.fullname" . }}
                   key: AUTH_TOKEN
+            - name: APP_ID
+              value: {{ .Values.config.appID | quote }}
+            - name: APP_HASH
+              value: {{ .Values.config.appHash | quote }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           ports:

@@ -108,6 +108,8 @@ func (s *SourceYnet) Parse(content []byte) []bot.Message {
 			Expire:        time.Now().Add(time.Second * 90),
 			Cities:        nil,
 			RocketIDs:     map[string]bool{item.Item.Guid: true},
+			Changed:       true,
+			PubDate:       item.Item.Time,
 		}
 		hash := msg.GetHash()
 		if _, ok := dedup[hash]; !ok {
@@ -146,6 +148,7 @@ func (s *SourceYnet) Run() {
 			time.Sleep(200 * time.Millisecond)
 			continue
 		}
+		failed = 0
 		for _, m := range s.Parse(content) {
 			mlog.Debug("ynet", mlog.Any("content", string(content)))
 			s.Bot.SubmitMessage(&m)

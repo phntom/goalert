@@ -20,6 +20,8 @@ type Message struct {
 	Expire         time.Time
 	PostIDs        []string
 	ChannelsPosted []*model.Channel
+	Changed        bool
+	PubDate        string
 }
 
 func (m *Message) GetHash() string {
@@ -28,7 +30,7 @@ func (m *Message) GetHash() string {
 		rocketID = r
 		break
 	}
-	data := m.Instructions + m.Category + strconv.FormatUint(uint64(m.SafetySeconds), 10) + rocketID
+	data := m.Instructions + m.Category + strconv.FormatUint(uint64(m.SafetySeconds), 10) + rocketID + m.PubDate
 	hash := sha256.Sum256([]byte(data))
 	return hex.EncodeToString(hash[:])
 }
@@ -55,12 +57,11 @@ func (m *Message) IsExpired() bool {
 }
 
 func (m *Message) PatchData(n *Message) bool {
-	foundChange := false
 	if m.Category == "" && n.Category != "" {
 		// m is ynet, n is oref, should patch title
 		m.Category = n.Category
 		m.Instructions = n.Instructions
-		foundChange = true
+		m.Changed = true
 	}
 	if m.RocketIDs == nil {
 		m.RocketIDs = make(map[string]bool)
@@ -73,11 +74,12 @@ func (m *Message) PatchData(n *Message) bool {
 			// no new information
 			continue
 		}
-		foundChange = true
+		m.Changed = true
 		m.RocketIDs[rocketID] = true
 	}
-	if foundChange {
-		m.Expire = time.Now().Add(5 * time.Second)
+	if m.Changed {
+		//m.Expire = time.Now().Add(5 * time.Second)
+		m.Changed = false
 		m.Prerender()
 		return true
 	}

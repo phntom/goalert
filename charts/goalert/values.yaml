@@ -3,6 +3,8 @@ config:
   domain: http://mattermost-team-edition.chat.svc:8065
   team: nix
   channel: rockets
+  appID: "123"
+  appHash: xxx
 
 replicaCount: 1
 
@@ -10,8 +12,8 @@ image:
   repository: phntom/goalert
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "0.0.25"
-  hash: "sha256:b0d260b44be7ce1dea948839d57bce246bb78b1976abc50612063e617ac37b07"
+  tag: "0.0.26"
+  hash: "sha256:2261d4aaa3e05b93ef073e8c55e971f83e55ba4046a2aa179ac5d3be7d68b8b8"
 
 service:
   type: ClusterIP
@@ -23,21 +25,16 @@ ingress:
     nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/cors-allow-origin: https://kix.co.il
     nginx.ingress.kubernetes.io/cors-allow-methods: GET
-    acme.kubernetes.io/enable: "true"
-    acme.kubernetes.io/dns: "dns_cf"
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      more_set_headers "Referrer-Policy: same-origin";
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: $1
     nginx.ingress.kubernetes.io/server-snippet: |
       if ($http_cf_connecting_ip != $remote_addr) { return 403; }
   hosts:
-    - host: goalert.kix.co.il
+    - host: binaryvision.co.il
       paths:
-        - path: /
+        - path: /goalert(/.*)
           pathType: Prefix
-  tls:
-    - secretName: goalert-kix-tls
-      hosts:
-        - goalert.kix.co.il
+  tls: []
 
 imagePullSecrets: []
 nameOverride: ""

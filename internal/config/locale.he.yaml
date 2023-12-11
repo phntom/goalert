@@ -15,13 +15,13 @@ subdivision:
 ynet:
   drill: אזעקה במסגרת תרגיל
 message:
-  instructions: "{1}{2}{3} היכנסו למרחב המוגן ושהו בו 10 דקות"
+  instructions: "{1}{2}{3} היכנסו למרחב המוגן"
   lockdown: היכנסו למבנה, נעלו את הדלתות וסגרו את החלונות
   secondsPrefix: "תוך "
   secondsSuffix: " שניות"
   immediate: מיידית
   rockets: ירי רקטות וטילים
-  uav: חדירת כלי טיס  עוין
+  uav: חדירת כלי טיס עוין
   infiltration: חדירת מחבלים
   earthquake: רעידת אדמה
   tsunami: צונאמי

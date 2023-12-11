@@ -9,7 +9,7 @@ subdivision:
   industrial_zone_alt2: Промзона
   regional_center: Местный совет
 message:
-  instructions: "{1}{2}{3} убежище и оставайтесь в нём 10 минут"
+  instructions: "{1}{2}{3} убежище"
   lockdown: Войдите в здание, заприте двери и закройте окна
   secondsPrefix: "У вас "
   secondsSuffix: " секунд, чтобы найти"

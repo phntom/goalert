@@ -56,6 +56,11 @@ func FetchSource(client *http.Client, url string, sourceName string, referrer st
 		break
 	}
 
+	if err != nil {
+		mlog.Error("Failed fetching ynet", mlog.Err(err))
+		return nil
+	}
+
 	if res.StatusCode != 200 {
 		mlog.Warn("failed to fetch - wrong status code",
 			mlog.Any("status", res.StatusCode),

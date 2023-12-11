@@ -6,7 +6,7 @@ subdivision:
   industrial_zone: Industrial Zone
   regional_center: Regional Council
 message:
-  instructions: "{1}{2}{3} seek shelter and stay there for 10 minutes"
+  instructions: "{1}{2}{3} seek shelter"
   lockdown: Enter a building, lock the doors and close the windows
   secondsPrefix: "You have "
   secondsSuffix: " seconds to"

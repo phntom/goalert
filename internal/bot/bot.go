@@ -15,12 +15,13 @@ import (
 
 type Bot struct {
 	IsOnline        bool
-	client          *model.Client4
+	Client          *model.Client4
 	webSocketClient *model.WebSocketClient
 	serverVersion   string
 	username        string
 	userId          string
 	channels        []*model.Channel
+	ConfigChannel   *model.Channel
 	alertFeed       chan *Message
 	dedup           map[district.ID]*Message
 	dedupMutex      sync.Mutex
@@ -45,7 +46,7 @@ func (b *Bot) Register() {
 }
 
 func (b *Bot) Connect() {
-	b.client = model.NewAPIv4Client(os.Getenv("CHAT_DOMAIN"))
+	b.Client = model.NewAPIv4Client(os.Getenv("CHAT_DOMAIN"))
 	b.MakeSureServerIsRunning()
 	b.LoginAsTheBotUser()
 	b.IsOnline = true
@@ -61,7 +62,7 @@ func (b *Bot) Disconnect() {
 }
 
 func (b *Bot) MakeSureServerIsRunning() {
-	props, _, err := b.client.GetOldClientConfig(context.Background(), "")
+	props, _, err := b.Client.GetOldClientConfig(context.Background(), "")
 	if err != nil {
 		mlog.Error("There was a problem pinging the Mattermost server.  Are you sure it's running?", mlog.Err(err))
 		os.Exit(1)
@@ -71,8 +72,8 @@ func (b *Bot) MakeSureServerIsRunning() {
 }
 
 func (b *Bot) LoginAsTheBotUser() {
-	b.client.SetToken(os.Getenv("AUTH_TOKEN"))
-	user, _, err := b.client.GetMe(context.Background(), "")
+	b.Client.SetToken(os.Getenv("AUTH_TOKEN"))
+	user, _, err := b.Client.GetMe(context.Background(), "")
 	if err != nil {
 		mlog.Error("There was a problem logging into the Mattermost server", mlog.Err(err))
 		os.Exit(1)
@@ -83,7 +84,7 @@ func (b *Bot) LoginAsTheBotUser() {
 }
 
 func (b *Bot) FindBotChannel() {
-	teams, _, err := b.client.GetTeamsForUser(context.Background(), b.userId, "")
+	teams, _, err := b.Client.GetTeamsForUser(context.Background(), b.userId, "")
 	if err != nil {
 		mlog.Error("There was a problem fetching active teams for bot", mlog.Err(err))
 		os.Exit(1)
@@ -92,7 +93,7 @@ func (b *Bot) FindBotChannel() {
 		if team == nil {
 			continue
 		}
-		channels, _, err := b.client.GetChannelsForTeamForUser(context.Background(), team.Id, b.userId, false, "")
+		channels, _, err := b.Client.GetChannelsForTeamForUser(context.Background(), team.Id, b.userId, false, "")
 		if err != nil {
 			mlog.Error("There was a problem fetching channels for team", mlog.Any("teamId", team.Id), mlog.Err(err))
 			os.Exit(1)
@@ -107,13 +108,17 @@ func (b *Bot) FindBotChannel() {
 			if channel.Name == "off-topic" || channel.Name == "town-square" {
 				continue
 			}
+			if team.Name == "phantom" && channel.Name == "config" {
+				b.ConfigChannel = channel
+				continue
+			}
 			channel.AddProp("teamName", team.Name)
 			b.channels = append(b.channels, channel)
 		}
-		if b.channels == nil || len(b.channels) == 0 {
-			mlog.Fatal("Bot is not a member of any channel, invite him and try again")
-			os.Exit(2)
-		}
+	}
+	if b.channels == nil || len(b.channels) == 0 {
+		mlog.Fatal("Bot is not a member of any channel, invite him and try again")
+		os.Exit(2)
 	}
 	var channelNames []string
 	for _, channel := range b.channels {
@@ -148,7 +153,7 @@ func (b *Bot) AwaitMessage() {
 					Props:   &post.Props,
 				}
 				ctx, cancel := context.WithTimeout(context.Background(), postTimeout)
-				_, response, err := b.client.PatchPost(ctx, postID, &patch)
+				_, response, err := b.Client.PatchPost(ctx, postID, &patch)
 				cancel()
 				if err != nil {
 					mlog.Error("failed patching post",
@@ -167,7 +172,7 @@ func (b *Bot) AwaitMessage() {
 			for _, channel := range b.channels {
 				post := message.PostForChannel(channel)
 				ctx, cancel := context.WithTimeout(context.Background(), postTimeout)
-				result, response, err := b.client.CreatePost(ctx, post)
+				result, response, err := b.Client.CreatePost(ctx, post)
 				cancel()
 				if err != nil {
 					mlog.Error("failed creating post",
@@ -191,6 +196,9 @@ func (b *Bot) Cleanup() {
 		b.dedupMutex.Lock()
 		for id, message := range b.dedup {
 			if message.IsExpired() {
+				if message.Changed {
+					message.PatchData(&Message{})
+				}
 				delete(b.dedup, id)
 			}
 		}

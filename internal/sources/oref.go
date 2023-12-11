@@ -8,6 +8,7 @@ import (
 	"github.com/phntom/goalert/internal/fetcher"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -49,11 +50,6 @@ func (s *SourceOref) Parse(content []byte) []bot.Message {
 	districts := district.GetDistricts()
 	start := strings.IndexByte(string(content), '{')
 	if start == -1 {
-		for s2, v2 := range s.seen {
-			if v2 {
-				delete(s.seen, s2)
-			}
-		}
 		return nil
 	}
 	dedup := make(map[string]bot.Message)
@@ -102,6 +98,8 @@ func (s *SourceOref) Parse(content []byte) []bot.Message {
 			Expire:        time.Now().Add(time.Second * 90),
 			Cities:        nil,
 			RocketIDs:     nil,
+			Changed:       true,
+			PubDate:       calculatePubTime(alerts.ID),
 		}
 		hash := msg.GetHash()
 		if _, ok := dedup[hash]; !ok {
@@ -116,6 +114,27 @@ func (s *SourceOref) Parse(content []byte) []bot.Message {
 		result = append(result, message)
 	}
 	return result
+}
+
+func calculatePubTime(id string) string {
+	number, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		mlog.Error("failed to convert id to time", mlog.Any("id", id), mlog.Err(err))
+		return ""
+	}
+
+	// Remove 4 trailing zeros to get microseconds and convert to milliseconds
+	milliseconds := number / 10000
+
+	// Create a time object from the milliseconds
+	t := time.Unix(0, milliseconds*int64(time.Millisecond))
+
+	// Convert to +02:00 timezone
+	location, _ := time.LoadLocation("EET") // Eastern European Time, which is UTC+2
+	tInTimeZone := t.In(location)
+
+	// Format the result to get hour and minute
+	return tInTimeZone.Format("15:04")
 }
 
 func (s *SourceOref) Run() {
@@ -141,16 +160,21 @@ func (s *SourceOref) Run() {
 			}
 			continue
 		}
-		counter = counter + 1
+		failed = 0
+		empty := true
 		for _, m := range s.Parse(content) {
 			mlog.Debug("oref", mlog.Any("content", string(content)))
 			s.Bot.SubmitMessage(&m)
+			empty = false
 		}
-		if counter > 1000 {
-			for s2, v2 := range s.seen {
-				if !v2 {
-					delete(s.seen, s2)
-				}
+		if empty {
+			counter = counter + 100
+		} else {
+			counter = counter + 1
+		}
+		if counter > 9000 {
+			for s2 := range s.seen {
+				delete(s.seen, s2)
 			}
 			counter = 0
 		}

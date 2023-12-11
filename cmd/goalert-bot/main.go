@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/phntom/goalert/internal/bot"
 	"github.com/phntom/goalert/internal/sources"
+	"os"
 )
 
 func main() {
@@ -17,12 +18,22 @@ func main() {
 		Bot: &b,
 	}
 	ynet.Register()
-	go ynet.Run()
+	if os.Getenv("DISABLE_YNET") != "1" {
+		go ynet.Run()
+	}
 	oref := sources.SourceOref{
 		Bot: &b,
 	}
 	oref.Register()
-	go oref.Run()
-
+	if os.Getenv("DISABLE_OREF") != "1" {
+		go oref.Run()
+	}
+	telegram := sources.SourceTelegram{
+		Bot: &b,
+	}
+	telegram.Register()
+	if os.Getenv("DISABLE_TELEGRAM") != "1" {
+		go telegram.Run()
+	}
 	b.AwaitMessage()
 }
