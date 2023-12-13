@@ -7,6 +7,7 @@ import (
 	"github.com/phntom/goalert/internal/config"
 	"github.com/phntom/goalert/internal/district"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -18,6 +19,7 @@ type Message struct {
 	RocketIDs      map[string]bool
 	Rendered       map[config.Language]*model.Post
 	Expire         time.Time
+	PostMutex      sync.Mutex
 	PostIDs        []string
 	ChannelsPosted []*model.Channel
 	Changed        bool

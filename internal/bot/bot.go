@@ -9,6 +9,7 @@ import (
 	"github.com/phntom/goalert/internal/monitoring"
 	"os"
 	"os/signal"
+	"slices"
 	"sync"
 	"time"
 )
@@ -144,29 +145,7 @@ func (b *Bot) AwaitMessage() {
 				// no new data in patch message
 				continue
 			}
-			for i, postID := range prevMsg.PostIDs {
-				channel := prevMsg.ChannelsPosted[i]
-				post := prevMsg.PostForChannel(channel)
-				//goland:noinspection GoDeprecation
-				patch := model.PostPatch{
-					Message: model.NewString(""),
-					Props:   &post.Props,
-				}
-				ctx, cancel := context.WithTimeout(context.Background(), postTimeout)
-				_, response, err := b.Client.PatchPost(ctx, postID, &patch)
-				cancel()
-				if err != nil {
-					mlog.Error("failed patching post",
-						mlog.Err(err),
-						mlog.Any("postID", postID),
-						mlog.Any("patch", patch),
-						mlog.Any("response", response),
-					)
-					b.Monitoring.FailedPatches.Inc()
-				} else {
-					b.Monitoring.SuccessfulPatches.Inc()
-				}
-			}
+			prevMsg.PatchPosts(b)
 		}
 		if len(citiesNotFound) > 0 {
 			for _, channel := range b.channels {
@@ -182,10 +161,42 @@ func (b *Bot) AwaitMessage() {
 					)
 					return
 				}
+				message.PostMutex.Lock()
 				message.PostIDs = append(message.PostIDs, result.Id)
 				message.ChannelsPosted = append(message.ChannelsPosted, channel)
+				message.PostMutex.Unlock()
 				b.Monitoring.SuccessfulPosts.Inc()
 			}
+		}
+	}
+}
+
+func (m *Message) PatchPosts(b *Bot) {
+	m.PostMutex.Lock()
+	postIDsCpy := slices.Clone(m.PostIDs)
+	channelsPostsCpy := slices.Clone(m.ChannelsPosted)
+	m.PostMutex.Unlock()
+	for i, postID := range postIDsCpy {
+		channel := channelsPostsCpy[i]
+		post := m.PostForChannel(channel)
+		//goland:noinspection GoDeprecation
+		patch := model.PostPatch{
+			Message: model.NewString(""),
+			Props:   &post.Props,
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), postTimeout)
+		_, response, err := b.Client.PatchPost(ctx, postID, &patch)
+		cancel()
+		if err != nil {
+			mlog.Error("failed patching post",
+				mlog.Err(err),
+				mlog.Any("postID", postID),
+				mlog.Any("patch", patch),
+				mlog.Any("response", response),
+			)
+			b.Monitoring.FailedPatches.Inc()
+		} else {
+			b.Monitoring.SuccessfulPatches.Inc()
 		}
 	}
 }
@@ -197,7 +208,7 @@ func (b *Bot) Cleanup() {
 		for id, message := range b.dedup {
 			if message.IsExpired() {
 				if message.Changed {
-					message.PatchData(&Message{})
+					message.PatchPosts(b)
 				}
 				delete(b.dedup, id)
 			}
