@@ -7,6 +7,6 @@ import (
 type AlertSource interface {
 	Register()
 	Fetch() []byte
-	Parse(content []byte) []bot.Message
+	Parse(content []byte) []*bot.Message
 	Run()
 }

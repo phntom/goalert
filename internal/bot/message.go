@@ -26,6 +26,23 @@ type Message struct {
 	PubDate        string
 }
 
+func NewMessage(instructions string, category string, safetySeconds int, pubDate string) Message {
+	return Message{
+		Instructions:   instructions,
+		Category:       category,
+		SafetySeconds:  uint(safetySeconds),
+		Cities:         nil,
+		RocketIDs:      make(map[string]bool),
+		Rendered:       make(map[config.Language]*model.Post, len(config.Languages)),
+		Expire:         time.Now().Add(time.Second * 90),
+		PostMutex:      sync.Mutex{},
+		PostIDs:        nil,
+		ChannelsPosted: nil,
+		Changed:        true,
+		PubDate:        pubDate,
+	}
+}
+
 func (m *Message) GetHash() string {
 	var rocketID string
 	for r := range m.RocketIDs {
@@ -48,7 +65,6 @@ func (m *Message) PostForChannel(c *model.Channel) *model.Post {
 }
 
 func (m *Message) Prerender() {
-	m.Rendered = make(map[config.Language]*model.Post, len(config.Languages))
 	for _, lang := range config.Languages {
 		m.Rendered[lang] = Render(m, lang)
 	}
@@ -65,12 +81,6 @@ func (m *Message) PatchData(n *Message) bool {
 		m.Instructions = n.Instructions
 		m.Changed = true
 	}
-	if m.RocketIDs == nil {
-		m.RocketIDs = make(map[string]bool)
-	}
-	if n.RocketIDs == nil {
-		n.RocketIDs = make(map[string]bool)
-	}
 	for rocketID := range n.RocketIDs {
 		if m.RocketIDs[rocketID] {
 			// no new information
@@ -86,4 +96,8 @@ func (m *Message) PatchData(n *Message) bool {
 		return true
 	}
 	return false
+}
+
+func (m *Message) AppendDistrict(districtID district.ID) {
+	m.Cities = append(m.Cities, districtID)
 }

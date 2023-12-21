@@ -15,7 +15,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-	"time"
 )
 
 // Regular expression to match city names followed by duration in parentheses
@@ -71,7 +70,8 @@ func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update
 	if peer.(*tg.PeerChannel).ChannelID == 1441886157 {
 
 		text := m.(*tg.Message).GetMessage()
-		dedup := make(map[string]bot.Message)
+		dedup := make(map[string]*bot.Message)
+		var dedupOrder []string
 		cities := extractCityNames(text)
 		pubDate := extractPubTime(text)
 		mlog.Info("Channel message", mlog.Any("message", m.(*tg.Message)), mlog.Any("cities", cities))
@@ -90,26 +90,16 @@ func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update
 		for _, cityName := range cities {
 			districtID := district.GetDistrictByCity(cityName)
 			cityObj := districts["he"][districtID]
-			msg := bot.Message{
-				Instructions:  instructions,
-				Category:      category,
-				SafetySeconds: uint(cityObj.SafetyBufferSeconds),
-				Expire:        time.Now().Add(time.Second * 90),
-				Cities:        nil,
-				RocketIDs:     nil,
-				Changed:       true,
-				PubDate:       pubDate,
-			}
+			msg := bot.NewMessage(instructions, category, cityObj.SafetyBufferSeconds, pubDate)
 			hash := msg.GetHash()
 			if _, ok := dedup[hash]; !ok {
-				dedup[hash] = msg
+				dedup[hash] = &msg
+				dedupOrder = append(dedupOrder, hash)
 			}
-			msg = dedup[hash]
-			msg.Cities = append(msg.Cities, districtID)
-			dedup[hash] = msg
+			msg.AppendDistrict(districtID)
 		}
-		for _, message := range dedup {
-			s.Bot.SubmitMessage(&message)
+		for _, hash := range dedupOrder {
+			s.Bot.SubmitMessage(dedup[hash])
 		}
 		if len(dedup) > 0 {
 			s.Bot.Monitoring.SuccessfulSourceFetches.WithLabelValues("telegram").Inc()

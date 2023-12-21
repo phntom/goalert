@@ -45,7 +45,15 @@ func Init() {
 
 func GetText(id string, lang Language) string {
 	once.Do(Init)
-	return i18n.NewLocalizer(LanguageBundle, string(lang)).MustLocalize(&i18n.LocalizeConfig{MessageID: id})
+	result, err := i18n.NewLocalizer(LanguageBundle, string(lang)).Localize(&i18n.LocalizeConfig{MessageID: id})
+	if err != nil {
+		mlog.Error("GetText localizer error",
+			mlog.Any("id", id),
+			mlog.Any("lang", lang),
+			mlog.Err(err),
+		)
+	}
+	return result
 }
 
 func GetTextOptional(id string, lang Language, def string) string {

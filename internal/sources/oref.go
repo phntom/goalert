@@ -47,13 +47,14 @@ func (s *SourceOref) Fetch() []byte {
 	return fetcher.FetchSource(s.client, OrefURL, "oref", OrefReferrer, &s.Bot.Monitoring)
 }
 
-func (s *SourceOref) Parse(content []byte) []bot.Message {
+func (s *SourceOref) Parse(content []byte) []*bot.Message {
 	districts := district.GetDistricts()
 	start := strings.IndexByte(string(content), '{')
 	if start == -1 {
 		return nil
 	}
-	dedup := make(map[string]bot.Message)
+	dedup := make(map[string]*bot.Message)
+	var dedupOrder []string
 	var alerts OrefMessage
 	content = []byte(string(content)[start:])
 	err := json.Unmarshal(content, &alerts)
@@ -92,27 +93,17 @@ func (s *SourceOref) Parse(content []byte) []bot.Message {
 		if category == "infiltration" || category == "radiological" || category == "biohazard" {
 			instructions = "lockdown"
 		}
-		msg := bot.Message{
-			Instructions:  instructions,
-			Category:      category,
-			SafetySeconds: uint(cityObj.SafetyBufferSeconds),
-			Expire:        time.Now().Add(time.Second * 90),
-			Cities:        nil,
-			RocketIDs:     nil,
-			Changed:       true,
-			PubDate:       calculatePubTime(alerts.ID),
-		}
+		msg := bot.NewMessage(instructions, category, cityObj.SafetyBufferSeconds, calculatePubTime(alerts.ID))
 		hash := msg.GetHash()
 		if _, ok := dedup[hash]; !ok {
-			dedup[hash] = msg
+			dedup[hash] = &msg
+			dedupOrder = append(dedupOrder, hash)
 		}
-		msg = dedup[hash]
-		msg.Cities = append(msg.Cities, districtID)
-		dedup[hash] = msg
+		dedup[hash].AppendDistrict(districtID)
 	}
-	var result []bot.Message
-	for _, message := range dedup {
-		result = append(result, message)
+	var result []*bot.Message
+	for _, hash := range dedupOrder {
+		result = append(result, dedup[hash])
 	}
 	return result
 }
@@ -164,7 +155,7 @@ func (s *SourceOref) Run() {
 		empty := true
 		for _, m := range s.Parse(content) {
 			mlog.Debug("oref", mlog.Any("content", string(content)))
-			s.Bot.SubmitMessage(&m)
+			s.Bot.SubmitMessage(m)
 			empty = false
 		}
 		if empty {

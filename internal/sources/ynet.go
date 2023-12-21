@@ -48,7 +48,7 @@ func (s *SourceYnet) Fetch() []byte {
 	return fetcher.FetchSource(s.client, s.URL, "ynet", YnetReferrer, &s.Bot.Monitoring)
 }
 
-func (s *SourceYnet) Parse(content []byte) []bot.Message {
+func (s *SourceYnet) Parse(content []byte) []*bot.Message {
 	districts := district.GetDistricts()
 	lenAlertContent := len(content)
 	if lenAlertContent < 40 {
@@ -66,6 +66,7 @@ func (s *SourceYnet) Parse(content []byte) []bot.Message {
 		return nil
 	}
 	dedup := make(map[string]*bot.Message)
+	var dedupOrder []string
 	txtJson := content[13 : len(content)-2]
 	var alerts YnetMessage
 	err := json.Unmarshal(txtJson, &alerts)
@@ -101,25 +102,19 @@ func (s *SourceYnet) Parse(content []byte) []bot.Message {
 			continue
 		}
 		cityObj := districts["he"][districtID]
-		msg := bot.Message{
-			Instructions:  instructions,
-			Category:      "",
-			SafetySeconds: uint(cityObj.SafetyBufferSeconds),
-			Expire:        time.Now().Add(time.Second * 90),
-			Cities:        nil,
-			RocketIDs:     map[string]bool{item.Item.Guid: true},
-			Changed:       true,
-			PubDate:       item.Item.Time,
-		}
+		msg := bot.NewMessage(instructions, "", cityObj.SafetyBufferSeconds, item.Item.Time)
+		msg.RocketIDs[item.Item.Guid] = true
 		hash := msg.GetHash()
 		if _, ok := dedup[hash]; !ok {
 			dedup[hash] = &msg
+			dedupOrder = append(dedupOrder, hash)
 		}
-		dedup[hash].Cities = append(dedup[hash].Cities, districtID)
+		dedup[hash].AppendDistrict(districtID)
 	}
-	var result []bot.Message
-	for _, message := range dedup {
-		result = append(result, *message)
+	var result []*bot.Message
+	for _, hash := range dedupOrder {
+		message := dedup[hash]
+		result = append(result, message)
 		for rocketGuid := range message.RocketIDs {
 			s.seen[rocketGuid] = true
 		}
@@ -151,7 +146,7 @@ func (s *SourceYnet) Run() {
 		failed = 0
 		for _, m := range s.Parse(content) {
 			mlog.Debug("ynet", mlog.Any("content", string(content)))
-			s.Bot.SubmitMessage(&m)
+			s.Bot.SubmitMessage(m)
 		}
 
 		// Calculate the next quarter-second boundary
