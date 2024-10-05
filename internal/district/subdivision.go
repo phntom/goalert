@@ -112,6 +112,9 @@ func GetCity(id ID, lang config.Language) (string, []string) {
 	} else if strings.Contains(n1, config.GetText("subdivision.regional_center", lang)) {
 		n2 = config.GetText("subdivision.regional_center", lang)
 		n1 = strings.Trim(strings.Replace(n1, n2, "", 1), " ")
+	} else if strings.Contains(n1, config.GetText("subdivision.regional_council", lang)) {
+		n2 = config.GetText("subdivision.regional_council", lang)
+		n1 = strings.Trim(strings.Replace(n1, n2, "", 1), " ")
 	} else {
 		n2 = strings.Trim(strings.Replace(n2, n1, "", 1), " -")
 	}

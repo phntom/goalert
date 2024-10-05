@@ -8,6 +8,7 @@ subdivision:
   industrial_zone_alt: промзона
   industrial_zone_alt2: Промзона
   regional_center: Местный совет
+  regional_council: Местный совет
 message:
   instructions: "{1}{2}{3} убежище"
   lockdown: Войдите в здание, заприте двери и закройте окна

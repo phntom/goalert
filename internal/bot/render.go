@@ -76,42 +76,33 @@ func Render(msg *Message, lang config.Language) *model.Post {
 }
 
 func CitiesToFields(cities map[string][]string) []*model.SlackAttachmentField {
-	var fields []*model.SlackAttachmentField
+	fields := make([]*model.SlackAttachmentField, 0, len(cities))
 	for n1, n2 := range cities {
 		value := strings.Join(n2, "\n")
 		if len(n2) == 1 && n1 == n2[0] {
 			value = ""
-			fields = append(fields, &model.SlackAttachmentField{
-				Title: n1,
-				Value: value,
-				Short: true,
-			})
-		} else {
-			fields = append([]*model.SlackAttachmentField{{
-				Title: n1,
-				Value: value,
-				Short: true,
-			}}, fields...)
 		}
-
+		fields = append(fields, &model.SlackAttachmentField{
+			Title: n1,
+			Value: value,
+			Short: true,
+		})
 	}
 	return fields
 }
 
 func ChannelToLanguage(channel *model.Channel) config.Language {
-	displayName := channel.DisplayName
-	for _, r := range displayName {
-		// Check for Hebrew characters
-		if unicode.In(r, unicode.Hebrew) {
-			return "he"
-		}
-		// Check for Arabic characters
-		if unicode.In(r, unicode.Arabic) {
-			return "ar"
-		}
-		// Check for Cyrillic (Russian) characters
-		if unicode.In(r, unicode.Cyrillic) {
-			return "ru"
+	characterSets := map[config.Language]*unicode.RangeTable{
+		"he": unicode.Hebrew,
+		"ar": unicode.Arabic,
+		"ru": unicode.Cyrillic,
+	}
+
+	for _, r := range channel.DisplayName {
+		for lang, set := range characterSets {
+			if unicode.In(r, set) {
+				return lang
+			}
 		}
 	}
 	return "en"

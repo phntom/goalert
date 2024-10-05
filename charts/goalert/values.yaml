@@ -12,8 +12,8 @@ image:
   repository: phntom/goalert
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "0.0.29"
-  hash: "sha256:8ca4df55499b13e7f751c9548535951474cd803f61514dcf8223c948dd6461d5"
+  tag: "0.0.31"
+  hash: "sha256:6605c04d6a61d9cf6fbba8c2e9e2a9feec80d58ab5aad5913977266aaf2cdeea"
 
 service:
   type: ClusterIP

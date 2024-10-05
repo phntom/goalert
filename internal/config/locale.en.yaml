@@ -5,6 +5,7 @@ subdivision:
     "1017": Acre - Industrial Zone
   industrial_zone: Industrial Zone
   regional_center: Regional Council
+  regional_council: Regional Council
 message:
   instructions: "{1}{2}{3} seek shelter"
   lockdown: Enter a building, lock the doors and close the windows

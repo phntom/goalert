@@ -206,10 +206,10 @@ func (b *Bot) Cleanup() {
 		time.Sleep(1 * time.Second)
 		b.dedupMutex.Lock()
 		for id, message := range b.dedup {
+			if message.Changed {
+				message.PatchPosts(b)
+			}
 			if message.IsExpired() {
-				if message.Changed {
-					message.PatchPosts(b)
-				}
 				delete(b.dedup, id)
 			}
 		}

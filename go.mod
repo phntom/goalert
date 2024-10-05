@@ -5,7 +5,6 @@ go 1.21.3
 require (
 	github.com/go-faster/errors v0.7.0
 	github.com/go-test/deep v1.1.0
-	github.com/gotd/contrib v0.19.0
 	github.com/gotd/td v0.90.0
 	github.com/gotd/td/examples v0.0.0-20231207074905-84eb22499039
 	github.com/mattermost/mattermost/server/public v0.0.10

@@ -32,7 +32,7 @@ func TestRender(t *testing.T) {
 				lang: "he",
 			},
 			want: &model.Post{
-				Message: "עין חרוד\nתוך 90 שניות היכנסו למרחב המוגן ושהו בו 10 דקות\nצבעאדוםעיןחרוד #עין_חרוד",
+				Message: "עין חרוד מאוחד\nתוך 90 שניות היכנסו למרחב המוגן\nצבעאדוםעיןחרודמאוחד #עין_חרוד_מאוחד",
 				Metadata: &model.PostMetadata{
 					Priority: &model.PostPriority{
 						Priority:     model.NewString("urgent"),
@@ -55,7 +55,7 @@ func TestRender(t *testing.T) {
 				lang: "en",
 			},
 			want: &model.Post{
-				Message: "Ein Harod\nYou have 90 seconds to seek shelter and stay there for 10 minutes\nOrefAlarmEinHarod #Ein_Harod",
+				Message: "Ein Harod\nYou have 90 seconds to seek shelter\nOrefAlarmEinHarod #Ein_Harod",
 				Metadata: &model.PostMetadata{
 					Priority: &model.PostPriority{
 						Priority:     model.NewString("urgent"),
@@ -78,7 +78,7 @@ func TestRender(t *testing.T) {
 				lang: "ru",
 			},
 			want: &model.Post{
-				Message: "Эйн Харод\nУ вас 90 секунд, чтобы найти убежище и оставайтесь в нём 10 минут\nТревогаТылаЭйнХарод #Эйн_Харод",
+				Message: "Эйн Харод\nУ вас 90 секунд, чтобы найти убежище\nТревогаТылаЭйнХарод #Эйн_Харод",
 				Metadata: &model.PostMetadata{
 					Priority: &model.PostPriority{
 						Priority:     model.NewString("urgent"),
