@@ -225,21 +225,21 @@
     "migun_time": 180
   },
   {
-    "label": "Heftziba",
+    "label": "Beit Alfa and Heftziba",
     "value": "66C3E4B472B0C554BF510D38F86D72D0",
     "id": "1308",
     "areaid": 4,
     "areaname": "Beit She'an Valley",
-    "label_he": "חפציבה",
+    "label_he": "בית אלפא וחפציבה",
     "migun_time": 60
   },
   {
-    "label": "Beit Alfa ",
+    "label": "Beit Alfa and Heftziba",
     "value": "398AD1C0136C32C950101C24A4F9B6AB",
     "id": "178",
     "areaid": 4,
     "areaname": "Beit She'an Valley",
-    "label_he": "בית אלפא",
+    "label_he": "בית אלפא וחפציבה",
     "migun_time": 60
   },
   {
@@ -383,7 +383,7 @@
     "id": "858",
     "areaid": 4,
     "areaname": "Beit She'an Valley",
-    "label_he": "נווה איתן",
+    "label_he": "נוה איתן",
     "migun_time": 60
   },
   {
@@ -1215,12 +1215,12 @@
     "migun_time": 60
   },
   {
-    "label": "Beer Sheva",
+    "label": "Beer Sheva - South",
     "value": "B412D33709D091B52F7A3CD01F15A718",
     "id": "6004",
     "areaid": 25,
     "areaname": "Center Negev",
-    "label_he": "באר שבע",
+    "label_he": "באר שבע - דרום",
     "migun_time": 60
   },
   {
@@ -1350,12 +1350,12 @@
     "migun_time": 45
   },
   {
-    "label": "Lakiya ",
+    "label": "Lakiya",
     "value": "C046775B6AEA5F0F8C29338B5C75DD7E",
     "id": "687",
     "areaid": 25,
     "areaname": "Center Negev",
-    "label_he": "לקיה ",
+    "label_he": "לקיה",
     "migun_time": 60
   },
   {
@@ -1413,12 +1413,12 @@
     "migun_time": 60
   },
   {
-    "label": "Rahat ",
+    "label": "Rahat",
     "value": "3D27817036742BBBC45D7FF241C881BA",
     "id": "1148",
     "areaid": 25,
     "areaname": "Center Negev",
-    "label_he": "רהט ",
+    "label_he": "רהט",
     "migun_time": 45
   },
   {
@@ -1472,16 +1472,16 @@
     "id": "1305",
     "areaid": 25,
     "areaname": "Center Negev",
-    "label_he": "תראבין",
+    "label_he": "תארבין",
     "migun_time": 45
   },
   {
-    "label": "Umm Batin ",
+    "label": "Umm Batin",
     "value": "3DD6F59AB2EAABBE76F2C90BC374D3EF",
     "id": "29",
     "areaid": 25,
     "areaname": "Center Negev",
-    "label_he": "אום בטין ",
+    "label_he": "אום בטין",
     "migun_time": 90
   },
   {
@@ -1602,7 +1602,7 @@
     "migun_time": 0
   },
   {
-    "label": "Dan",
+    "label": "Dafna",
     "value": "381FD9B9308251654F96A0BEF8E2FAE8",
     "id": "378",
     "areaid": 30,
@@ -1625,7 +1625,7 @@
     "id": "377",
     "areaid": 30,
     "areaname": "Confrontation Line",
-    "label_he": "דן (קיבוץ)",
+    "label_he": "קיבוץ דן",
     "migun_time": 0
   },
   {
@@ -1715,7 +1715,7 @@
     "id": "958",
     "areaid": 30,
     "areaname": "Confrontation Line",
-    "label_he": "עג'ר",
+    "label_he": "ע'ג'ר",
     "migun_time": 0
   },
   {
@@ -1814,7 +1814,7 @@
     "id": "277",
     "areaid": 30,
     "areaname": "Confrontation Line",
-    "label_he": "ג'ש (גוש חלב)",
+    "label_he": "ג'ש - גוש חלב",
     "migun_time": 0
   },
   {
@@ -1863,12 +1863,12 @@
     "migun_time": 15
   },
   {
-    "label": "Yuval",
+    "label": "Kfar Yuval",
     "value": "3254273FA9B12FAABE9BD3860A687CBE",
     "id": "510",
     "areaid": 30,
     "areaname": "Confrontation Line",
-    "label_he": "יובל",
+    "label_he": "כפר יובל",
     "migun_time": 0
   },
   {
@@ -1877,7 +1877,7 @@
     "id": "1132",
     "areaid": 30,
     "areaname": "Confrontation Line",
-    "label_he": "קרית שמונה",
+    "label_he": "קריית שמונה",
     "migun_time": 0
   },
   {
@@ -1994,7 +1994,7 @@
     "id": "1355",
     "areaid": 30,
     "areaname": "Confrontation Line",
-    "label_he": "מועצה אזורית מבואות חרמון",
+    "label_he": "מרכז אזורי מבואות חרמון",
     "migun_time": 0
   },
   {
@@ -2273,7 +2273,7 @@
     "id": "266",
     "areaid": 8,
     "areaname": "Dan",
-    "label_he": "בת ים",
+    "label_he": "בת-ים",
     "migun_time": 90
   },
   {
@@ -2340,12 +2340,12 @@
     "migun_time": 90
   },
   {
-    "label": "Glil Yam",
+    "label": "Herzeliya - Center and Glil Yam",
     "value": "D3E1A4378D80F98689E7E82A4FF38532",
     "id": "1310",
     "areaid": 8,
     "areaname": "Dan",
-    "label_he": "גליל ים",
+    "label_he": "הרצליה - מרכז וגליל ים",
     "migun_time": 90
   },
   {
@@ -2358,12 +2358,12 @@
     "migun_time": 90
   },
   {
-    "label": "Herzeliya",
+    "label": "Herzeliya - West",
     "value": "F45AB2C88228D6CBBDF5D1BFD8F14FFA",
     "id": "6009",
     "areaid": 8,
     "areaname": "Dan",
-    "label_he": "הרצליה",
+    "label_he": "הרצליה - מערב",
     "migun_time": 90
   },
   {
@@ -2457,12 +2457,12 @@
     "migun_time": 90
   },
   {
-    "label": "Ramat Gan",
+    "label": "Ramat Gan - East",
     "value": "7C2F2A3FB518D22DE4A6337F8C442BE4",
     "id": "6027",
     "areaid": 8,
     "areaname": "Dan",
-    "label_he": "רמת גן",
+    "label_he": "רמת גן - מזרח",
     "migun_time": 90
   },
   {
@@ -2493,12 +2493,12 @@
     "migun_time": 90
   },
   {
-    "label": "Tel Aviv - Yafo",
+    "label": "Tel Aviv - Across the Yarkon",
     "value": "3896F8FD13C07F97F745FF1DA7509C39",
     "id": "6032",
     "areaid": 8,
     "areaname": "Dan",
-    "label_he": "תל אביב-יפו",
+    "label_he": "תל אביב - עבר הירקון",
     "migun_time": 90
   },
   {
@@ -2637,7 +2637,7 @@
     "migun_time": 90
   },
   {
-    "label": "Megilot Regional Cetner ",
+    "label": "Megilot Regional Cetner",
     "value": "93C741911A107D008CF35862098DB51C",
     "id": "1356",
     "areaid": 18,
@@ -2790,7 +2790,7 @@
     "migun_time": 15
   },
   {
-    "label": "Gavim",
+    "label": "Gavim, Sapir College",
     "value": "89679BD023B4DE666AD79E1470E20D83",
     "id": "283",
     "areaid": 26,
@@ -2844,21 +2844,21 @@
     "migun_time": 15
   },
   {
-    "label": "Tushia",
+    "label": "Kfar Maimon and Tushia",
     "value": "9FBB40A185AE882539A01A8F50CBD3BC",
     "id": "1336",
     "areaid": 26,
     "areaname": "Gaza Envelope",
-    "label_he": "תושיה",
+    "label_he": "כפר מימון ותושיה",
     "migun_time": 15
   },
   {
-    "label": "Kfar Maimon",
+    "label": "Kfar Maimon and Tushia",
     "value": "28B8EF868CEB1BBB6B6E846728A124F8",
     "id": "627",
     "areaid": 26,
     "areaname": "Gaza Envelope",
-    "label_he": "כפר מימון",
+    "label_he": "כפר מימון ותושיה",
     "migun_time": 15
   },
   {
@@ -2889,30 +2889,30 @@
     "migun_time": 15
   },
   {
-    "label": "Amioz ",
+    "label": "Mivtachim Amioz Yesha",
     "value": "EC92D45527006EC880C1FDD5EB5451DF",
     "id": "1315",
     "areaid": 26,
     "areaname": "Gaza Envelope",
-    "label_he": "עמיעוז",
+    "label_he": "מבטחים, עמיעוז, ישע",
     "migun_time": 15
   },
   {
-    "label": "Yesha",
+    "label": "Mivtachim Amioz Yesha",
     "value": "156415B0B1A37FAAE48D961A6D24FC01",
     "id": "1316",
     "areaid": 26,
     "areaname": "Gaza Envelope",
-    "label_he": "ישע",
+    "label_he": "מבטחים, עמיעוז, ישע",
     "migun_time": 15
   },
   {
-    "label": "Mivtachim",
+    "label": "Mivtachim Amioz Yesha",
     "value": "210032669909D9B678F1BF8119AEB7EB",
     "id": "697",
     "areaid": 26,
     "areaname": "Gaza Envelope",
-    "label_he": "מבטחים",
+    "label_he": "מבטחים, עמיעוז, ישע",
     "migun_time": 15
   },
   {
@@ -2961,7 +2961,7 @@
     "migun_time": 15
   },
   {
-    "label": "Nir Am Shooting Range",
+    "label": "Nir- Um shooting range",
     "value": "20C0B212CB4A85AB765743BB2A748106",
     "id": "1348",
     "areaid": 26,
@@ -3015,12 +3015,12 @@
     "migun_time": 15
   },
   {
-    "label": "Sdei Avraham",
+    "label": "Sdeh Avraham",
     "value": "921290164A6E502D3BBB2A9A514054FC",
     "id": "1198",
     "areaid": 26,
     "areaname": "Gaza Envelope",
-    "label_he": "שדי אברהם",
+    "label_he": "שדה אברהם",
     "migun_time": 15
   },
   {
@@ -3033,30 +3033,30 @@
     "migun_time": 15
   },
   {
-    "label": "Sderot",
+    "label": "Sderot, Ivim, Nir Am",
     "value": "3202695F8E2D49A4FCA18B95A88C0CA4",
     "id": "1221",
     "areaid": 26,
     "areaname": "Gaza Envelope",
-    "label_he": "שדרות",
+    "label_he": "שדרות, איבים, ניר עם",
     "migun_time": 15
   },
   {
-    "label": "Ibim",
+    "label": "Sderot, Ivim, Nir Am",
     "value": "F53EA9083272E342ADE0146DA1C25E59",
     "id": "1307",
     "areaid": 26,
     "areaname": "Gaza Envelope",
-    "label_he": "איבים",
+    "label_he": "שדרות, איבים, ניר עם",
     "migun_time": 15
   },
   {
-    "label": "Nir Am",
+    "label": "Sderot, Ivim, Nir Am",
     "value": "C5FD35F7510C4E1D535EDD8DE05A7961",
     "id": "909",
     "areaid": 26,
     "areaname": "Gaza Envelope",
-    "label_he": "ניר עם",
+    "label_he": "שדרות, איבים, ניר עם",
     "migun_time": 15
   },
   {
@@ -3114,30 +3114,30 @@
     "migun_time": 15
   },
   {
-    "label": "Havat Izra'am",
+    "label": "Tkuma and Havat Izra'am",
     "value": "60B01663557BC76330C4EE2CE033F791",
     "id": "1303",
     "areaid": 26,
     "areaname": "Gaza Envelope",
-    "label_he": "חוות יזרעם",
+    "label_he": "תקומה וחוות יזרעם",
     "migun_time": 15
   },
   {
-    "label": "Tzohar",
+    "label": "Tzohar and Ohad",
     "value": "E00EFE0CFD370C81A6FB80C6ADE84DA8",
     "id": "1076",
     "areaid": 26,
     "areaname": "Gaza Envelope",
-    "label_he": "צוחר",
+    "label_he": "צוחר, אוהד",
     "migun_time": 15
   },
   {
-    "label": "Ohad",
+    "label": "Tzohar and Ohad",
     "value": "2BA2CA7732A99E74B2DCA52180A5A188",
     "id": "1371",
     "areaid": 26,
     "areaname": "Gaza Envelope",
-    "label_he": "אוהד",
+    "label_he": "צוחר, אוהד",
     "migun_time": 15
   },
   {
@@ -3186,21 +3186,21 @@
     "migun_time": 15
   },
   {
-    "label": "Shuva",
+    "label": "Zimrat and Shuva",
     "value": "D204CAA64D7DDC65FADCDD3630417332",
     "id": "1311",
     "areaid": 26,
     "areaname": "Gaza Envelope",
-    "label_he": "שובה",
+    "label_he": "זמרת, שובה",
     "migun_time": 15
   },
   {
-    "label": "Zimrat",
+    "label": "Zimrat and Shuva",
     "value": "1645EB75A6FD4D2B795463CCFEA9631B",
     "id": "419",
     "areaid": 26,
     "areaname": "Gaza Envelope",
-    "label_he": "זמרת",
+    "label_he": "זמרת, שובה",
     "migun_time": 15
   },
   {
@@ -3272,7 +3272,7 @@
     "id": "546",
     "areaid": 34,
     "areaname": "HaAmakim",
-    "label_he": "ישובי אמן",
+    "label_he": "ישובי אומן",
     "migun_time": 60
   },
   {
@@ -3362,11 +3362,11 @@
     "id": "999",
     "areaid": 34,
     "areaname": "HaAmakim",
-    "label_he": "עין חרוד מאוחד",
+    "label_he": "עין חרוד",
     "migun_time": 60
   },
   {
-    "label": "Ein Harod Ihud | HaAmakim Area",
+    "label": "Ein Harod (Ihud)",
     "value": "FC5B1D507808CEAD71CFB549AF80FAFD",
     "id": "1333",
     "areaid": 34,
@@ -3492,34 +3492,34 @@
     "migun_time": 60
   },
   {
-    "label": "Barak | HaAmakim Area",
+    "label": "Hever Settlements",
     "value": "28D4EC56EFA2737EC99942FC44D33514",
     "id": "1326",
     "areaid": 34,
     "areaname": "HaAmakim",
-    "label_he": "ברק",
+    "label_he": "מרכז חבר",
     "migun_time": 60
   },
   {
-    "label": "Devora | HaAmakim Area",
+    "label": "Hever Settlements",
     "value": "B64368B0244BA16128C0BD6C33F9BC5A",
     "id": "1327",
     "areaid": 34,
     "areaname": "HaAmakim",
-    "label_he": "דבורה",
+    "label_he": "מרכז חבר",
     "migun_time": 60
   },
   {
-    "label": "Adirim | HaAmakim Area",
+    "label": "Hever Settlements",
     "value": "452D6B60FB9474C5BB529BF66EF15969",
     "id": "1328",
     "areaid": 34,
     "areaname": "HaAmakim",
-    "label_he": "אדירים",
+    "label_he": "מרכז חבר",
     "migun_time": 60
   },
   {
-    "label": "Merkaz Hever",
+    "label": "Hever Settlements",
     "value": "98429D016D349696FDB57C93FEF6ADE9",
     "id": "1342",
     "areaid": 34,
@@ -3740,7 +3740,7 @@
     "id": "1121",
     "areaid": 34,
     "areaname": "HaAmakim",
-    "label_he": "קריית טבעון - בית זייד",
+    "label_he": "קריית טבעון-בית זייד",
     "migun_time": 60
   },
   {
@@ -3839,7 +3839,7 @@
     "id": "728",
     "areaid": 34,
     "areaname": "HaAmakim",
-    "label_he": "מוקייבלה",
+    "label_he": "מוקיבלה",
     "migun_time": 60
   },
   {
@@ -3875,7 +3875,7 @@
     "id": "927",
     "areaid": 34,
     "areaname": "HaAmakim",
-    "label_he": "נצרת עילית (נוף הגליל)",
+    "label_he": "נוף הגליל",
     "migun_time": 60
   },
   {
@@ -4122,39 +4122,39 @@
     "migun_time": 60
   },
   {
-    "label": "Avital | HaAmakim Area",
+    "label": "Yael Settlements",
     "value": "B5E5B50106CA8C6BC80A0F0DC0DEB4FA",
     "id": "1323",
     "areaid": 34,
     "areaname": "HaAmakim",
-    "label_he": "אביטל",
+    "label_he": "ישובי יעל",
     "migun_time": 60
   },
   {
-    "label": "Metav | HaAmakim Area",
+    "label": "Yael Settlements",
     "value": "DDF990CB174151C0A05FF800C20B4357",
     "id": "1324",
     "areaid": 34,
     "areaname": "HaAmakim",
-    "label_he": "מיטב",
+    "label_he": "ישובי יעל",
     "migun_time": 60
   },
   {
-    "label": "Prazon | HaAmakim Area",
+    "label": "Yael Settlements",
     "value": "050351041FA0F285AAF889A0E8F48846",
     "id": "1325",
     "areaid": 34,
     "areaname": "HaAmakim",
-    "label_he": "פרזון",
+    "label_he": "ישובי יעל",
     "migun_time": 60
   },
   {
-    "label": "Yael | HaAmakim Area",
+    "label": "Yael Settlements",
     "value": "F6E3512DC2E3A9BB2DC55942867FD721",
     "id": "1340",
     "areaid": 34,
     "areaname": "HaAmakim",
-    "label_he": "יעל",
+    "label_he": "ישובי יעל",
     "migun_time": 60
   },
   {
@@ -4473,21 +4473,21 @@
     "migun_time": 60
   },
   {
-    "label": "Kfar Hassidim B",
+    "label": "Kfar Hassidim",
     "value": "AAB9FF61D530DFEB9B7BE2E62A34FB6D",
     "id": "1343",
     "areaid": 11,
     "areaname": "HaMifratz",
-    "label_he": "כפר חסידים ב'",
+    "label_he": "כפר חסידים",
     "migun_time": 60
   },
   {
-    "label": "Kfar Hassidim A",
+    "label": "Kfar Hassidim",
     "value": "F9617668F8868E62D31772617D536B9B",
     "id": "614",
     "areaid": 11,
     "areaname": "HaMifratz",
-    "label_he": "כפר חסידים א'",
+    "label_he": "כפר חסידים",
     "migun_time": 60
   },
   {
@@ -5031,12 +5031,12 @@
     "migun_time": 90
   },
   {
-    "label": "Rishon LeZion",
+    "label": "Rishon LeZion - West",
     "value": "AF03968847DDE999E86F2C64B0B7443C",
     "id": "6026",
     "areaid": 12,
     "areaname": "HaShfela",
-    "label_he": "ראשון לציון",
+    "label_he": "ראשון לציון - מערב",
     "migun_time": 90
   },
   {
@@ -5220,12 +5220,12 @@
     "migun_time": 90
   },
   {
-    "label": "Jerusalem",
+    "label": "Jerusalem - South",
     "value": "80ACCE46A448E7F5349E2AC1F05A1CAA",
     "id": "6018",
     "areaid": 20,
     "areaname": "Jerusalem",
-    "label_he": "ירושלים",
+    "label_he": "ירושלים - דרום",
     "migun_time": 90
   },
   {
@@ -5337,12 +5337,12 @@
     "migun_time": 45
   },
   {
-    "label": "Ashdod",
+    "label": "Ashdod - Alef, Bet, Dalet, Heh",
     "value": "361B3C17083DF8EA5728A5D899B4B5EC",
     "id": "6000",
     "areaid": 22,
     "areaname": "Lachish",
-    "label_he": "אשדוד",
+    "label_he": "אשדוד - א,ב,ד,ה",
     "migun_time": 45
   },
   {
@@ -6678,12 +6678,12 @@
     "migun_time": 90
   },
   {
-    "label": "Hadera",
+    "label": "Hadera - East",
     "value": "DFC0C698A54E2D452A14D1DEDBBCA9F0",
     "id": "6010",
     "areaid": 15,
     "areaname": "Menashe",
-    "label_he": "חדרה",
+    "label_he": "חדרה - מזרח",
     "migun_time": 90
   },
   {
@@ -6723,12 +6723,12 @@
     "migun_time": 60
   },
   {
-    "label": "Haifa",
+    "label": "Haifa - Carmel and Lower City",
     "value": "BB6FFE64EF1EB20509E4E4D5CA4E3718",
     "id": "6014",
     "areaid": 15,
     "areaname": "Menashe",
-    "label_he": "חיפה",
+    "label_he": "חיפה - כרמל ועיר תחתית",
     "migun_time": 60
   },
   {
@@ -7542,21 +7542,21 @@
     "migun_time": 90
   },
   {
-    "label": "Tzukei Yam",
+    "label": "Havatzelet HaSharon and Tzukei Yam",
     "value": "1601110AB9BBE29EE8320CAD797DCBD4",
     "id": "1312",
     "areaid": 27,
     "areaname": "Sharon",
-    "label_he": "צוקי ים",
+    "label_he": "חבצלת השרון וצוקי ים",
     "migun_time": 90
   },
   {
-    "label": "Havatzelet HaSharon ",
+    "label": "Havatzelet HaSharon and Tzukei Yam",
     "value": "CA76FB8192DDC4683A4DCF3DD4AE3577",
     "id": "426",
     "areaid": 27,
     "areaname": "Sharon",
-    "label_he": "חבצלת השרון",
+    "label_he": "חבצלת השרון וצוקי ים",
     "migun_time": 90
   },
   {
@@ -7632,7 +7632,7 @@
     "migun_time": 90
   },
   {
-    "label": "Kadima - Zoran ",
+    "label": "Kadima - Zoran",
     "value": "07361CA5B75BB12192E6B2A3C05A5EB5",
     "id": "1097",
     "areaid": 27,
@@ -7821,12 +7821,12 @@
     "migun_time": 90
   },
   {
-    "label": "Netanya",
+    "label": "Netanya - East",
     "value": "12803225EFB3E1C3CC33DC2FA02A00A3",
     "id": "6023",
     "areaid": 27,
     "areaname": "Sharon",
-    "label_he": "נתניה",
+    "label_he": "נתניה - מזרח",
     "migun_time": 90
   },
   {
@@ -8069,7 +8069,7 @@
     "id": "1350",
     "areaid": 27,
     "areaname": "Sharon",
-    "label_he": "מועצה אזורית דרום השרון",
+    "label_he": "מרכז אזורי דרום השרון",
     "migun_time": 90
   },
   {
@@ -8258,7 +8258,7 @@
     "id": "1",
     "areaid": 24,
     "areaname": "Shfelat Yehuda",
-    "label_he": "אבו גוש",
+    "label_he": "אבו-גוש",
     "migun_time": 90
   },
   {
@@ -8357,7 +8357,7 @@
     "id": "48",
     "areaid": 24,
     "areaname": "Shfelat Yehuda",
-    "label_he": "אזור תעשיה ברוש",
+    "label_he": "אזור תעשייה ברוש",
     "migun_time": 90
   },
   {
@@ -8910,12 +8910,12 @@
     "migun_time": 90
   },
   {
-    "label": "Beit Arie-Ofarim",
+    "label": "Beit Arie",
     "value": "D851F9189D63447E70EC19C0D30E2F99",
     "id": "179",
     "areaid": 10,
     "areaname": "Shomron",
-    "label_he": "בית אריה-עופרים",
+    "label_he": "בית אריה",
     "migun_time": 90
   },
   {
@@ -9018,12 +9018,12 @@
     "migun_time": 90
   },
   {
-    "label": "Halamish(Neveh Tzuf)",
+    "label": "Halamish",
     "value": "5DC15356BB6334EBE9A206B479F1CDD8",
     "id": "453",
     "areaid": 10,
     "areaname": "Shomron",
-    "label_he": "חלמיש (נווה צוף)",
+    "label_he": "חלמיש",
     "migun_time": 90
   },
   {
@@ -9468,7 +9468,7 @@
     "migun_time": 15
   },
   {
-    "label": "Ashdot Yacov Ichud",
+    "label": "Ashdod Yacov Ichud",
     "value": "89601E7DA41A75433A555746E146DB10",
     "id": "146",
     "areaid": 5,
@@ -9495,21 +9495,21 @@
     "migun_time": 0
   },
   {
-    "label": "Givat Yoav",
+    "label": "Bnei Yehuda and Givat Yoav",
     "value": "331AC4CA2C7F055F5103EA09B065A1DD",
     "id": "1309",
     "areaid": 5,
     "areaname": "South Golan",
-    "label_he": "גבעת יואב",
+    "label_he": "בני יהודה וגבעת יואב",
     "migun_time": 15
   },
   {
-    "label": "Bnei Yehuda",
+    "label": "Bnei Yehuda and Givat Yoav",
     "value": "2B0ED588DCF5379058E287A6893BB12C",
     "id": "241",
     "areaid": 5,
     "areaname": "South Golan",
-    "label_he": "בני יהודה",
+    "label_he": "בני יהודה וגבעת יואב",
     "migun_time": 15
   },
   {
@@ -9765,12 +9765,12 @@
     "migun_time": 90
   },
   {
-    "label": "Abu Talul ",
+    "label": "Abu Talul",
     "value": "7166DF97A597F58D459167E92D64422E",
     "id": "2",
     "areaid": 9,
     "areaname": "South Negev",
-    "label_he": "אבו-תלול ",
+    "label_he": "אבו תלול",
     "migun_time": 90
   },
   {
@@ -9788,7 +9788,7 @@
     "id": "1041",
     "areaid": 9,
     "areaname": "South Negev",
-    "label_he": "ערוער - ערערה בנגב",
+    "label_he": "ערערה בנגב",
     "migun_time": 90
   },
   {
@@ -9833,7 +9833,7 @@
     "id": "173",
     "areaid": 9,
     "areaname": "South Negev",
-    "label_he": "ביר הדאג' ",
+    "label_he": "ביר הדאג'",
     "migun_time": 90
   },
   {
@@ -9855,7 +9855,7 @@
     "migun_time": 90
   },
   {
-    "label": "El Pura\r",
+    "label": "El Pura",
     "value": "CB143013C0E42931F55062AADEF4CB01",
     "id": "380",
     "areaid": 9,
@@ -9954,12 +9954,12 @@
     "migun_time": 90
   },
   {
-    "label": "Sa'wa",
+    "label": "Mulada - Sa'wa",
     "value": "C509DA69B9D830D8AD3E9CB1F22F6FB1",
     "id": "720",
     "areaid": 9,
     "areaname": "South Negev",
-    "label_he": "סעווה",
+    "label_he": "סעייה-מולדה",
     "migun_time": 90
   },
   {
@@ -10004,7 +10004,7 @@
     "id": "1115",
     "areaid": 9,
     "areaname": "South Negev",
-    "label_he": "קצר-א-סיר ",
+    "label_he": "קצר-א-סיר",
     "migun_time": 90
   },
   {
@@ -10076,7 +10076,7 @@
     "id": "409",
     "areaid": 9,
     "areaname": "South Negev",
-    "label_he": "ואדי אל נעם",
+    "label_he": "ואדי אל נעם דרום",
     "migun_time": 60
   },
   {
@@ -10116,7 +10116,7 @@
     "migun_time": 60
   },
   {
-    "label": "Acco",
+    "label": "Acre",
     "value": "8C5ECA7B23172B2F438594E3487F8035",
     "id": "1016",
     "areaid": 6,
@@ -10422,7 +10422,7 @@
     "migun_time": 60
   },
   {
-    "label": "Kamon ",
+    "label": "Kamon",
     "value": "68924CAF60CE0D7CE0B369ED061CF32D",
     "id": "402",
     "areaid": 6,
@@ -10584,7 +10584,7 @@
     "migun_time": 30
   },
   {
-    "label": "Merom Hagalil Regional Center",
+    "label": "Merom Hagalil Regional Council",
     "value": "071AA5A81E1DB4B3B853C167B95A1159",
     "id": "1354",
     "areaid": 6,
@@ -10836,21 +10836,21 @@
     "migun_time": 30
   },
   {
-    "label": "Tzurit",
+    "label": "Tzurit Gilon",
     "value": "6628CF609CBF152EB83C334DE8A7A2DC",
     "id": "1086",
     "areaid": 6,
     "areaname": "Upper Galilee",
-    "label_he": "צורית",
+    "label_he": "צורית גילון",
     "migun_time": 30
   },
   {
-    "label": "Gilon | Upper Gallilee Area",
+    "label": "Tzurit Gilon",
     "value": "354B22FBD281ED5ADA8A53E66200AAC5",
     "id": "1320",
     "areaid": 6,
     "areaname": "Upper Galilee",
-    "label_he": "גילון",
+    "label_he": "צורית גילון",
     "migun_time": 30
   },
   {
@@ -11214,21 +11214,21 @@
     "migun_time": 90
   },
   {
-    "label": "HaZoreah",
+    "label": "Yokneam Moshava and HaZoreah",
     "value": "ECD77C1C0E926392241F379ED59D65CC",
     "id": "1313",
     "areaid": 13,
     "areaname": "Wadi Ara",
-    "label_he": "הזורע",
+    "label_he": "יקנעם המושבה והזורע",
     "migun_time": 90
   },
   {
-    "label": "Yokneam Moshava",
+    "label": "Yokneam Moshava and HaZoreah",
     "value": "63AA76472D335C7DC2ED5002CB41B5BE",
     "id": "538",
     "areaid": 13,
     "areaname": "Wadi Ara",
-    "label_he": "יקנעם המושבה",
+    "label_he": "יקנעם המושבה והזורע",
     "migun_time": 90
   },
   {
@@ -11241,12 +11241,12 @@
     "migun_time": 30
   },
   {
-    "label": "Ashkelon",
+    "label": "Ashkelon - South",
     "value": "5EE52B3D54A820F423AADF7B0A8BD0E4",
     "id": "6037",
     "areaid": 19,
     "areaname": "West Lachish",
-    "label_he": "אשקלון",
+    "label_he": "אשקלון - דרום",
     "migun_time": 30
   },
   {
@@ -11376,12 +11376,12 @@
     "migun_time": 30
   },
   {
-    "label": "Nitzan B",
+    "label": "Nitzan",
     "value": "806276AE3D2AAFAC619D6813292F577D",
     "id": "1344",
     "areaid": 19,
     "areaname": "West Lachish",
-    "label_he": "ניצן ב'",
+    "label_he": "ניצן",
     "migun_time": 45
   },
   {
@@ -11529,30 +11529,30 @@
     "migun_time": 30
   },
   {
-    "label": "Givolim ",
+    "label": "Maagalim, Givolim, Melilot",
     "value": "F196E1DEEBAD43C9B69B30EE87B0ED53",
     "id": "1317",
     "areaid": 16,
     "areaname": "West Negev",
-    "label_he": "גבעולים",
+    "label_he": "מעגלים, גבעולים, מלילות",
     "migun_time": 30
   },
   {
-    "label": "Melilot",
+    "label": "Maagalim, Givolim, Melilot",
     "value": "375B9B4012E960032FC9C023396A458B",
     "id": "1318",
     "areaid": 16,
     "areaname": "West Negev",
-    "label_he": "מלילות",
+    "label_he": "מעגלים, גבעולים, מלילות",
     "migun_time": 30
   },
   {
-    "label": "Maagalim",
+    "label": "Maagalim, Givolim, Melilot",
     "value": "6C0D7DEB957864C8F1AC348A094880B7",
     "id": "768",
     "areaid": 16,
     "areaname": "West Negev",
-    "label_he": "מעגלים",
+    "label_he": "מעגלים, גבעולים, מלילות",
     "migun_time": 30
   },
   {
@@ -11579,11 +11579,11 @@
     "id": "1131",
     "areaid": 16,
     "areaname": "West Negev",
-    "label_he": "קרית חינוך מרחבים",
+    "label_he": "קריית חינוך מרחבים",
     "migun_time": 45
   },
   {
-    "label": "NAM Industrial Zone ",
+    "label": "NAM Industrial Zone",
     "value": "95D7DD28EB1FB1F17CCF858931744959",
     "id": "1385",
     "areaid": 16,
@@ -11997,12 +11997,12 @@
     "migun_time": 90
   },
   {
-    "label": "Modi'in Maccabim Re'ut",
+    "label": "Modi'in",
     "value": "854B6FF5F9CD6AB2C8BD2D3657305E48",
     "id": "716",
     "areaid": 21,
     "areaname": "Yarkon",
-    "label_he": "מודיעין-מכבים-רעות",
+    "label_he": "מודיעין",
     "migun_time": 90
   },
   {
@@ -12182,7 +12182,7 @@
     "id": "1364",
     "areaid": 17,
     "areaname": "Yehuda",
-    "label_he": "עשהאל",
+    "label_he": "עשאהל",
     "migun_time": 90
   },
   {
@@ -12294,21 +12294,21 @@
     "migun_time": 90
   },
   {
-    "label": "Sdeh Bar",
+    "label": "Havat Sdeh Bar",
     "value": "8561E26B02A76311887D4A2C15EADAF0",
     "id": "436",
     "areaid": 17,
     "areaname": "Yehuda",
-    "label_he": "שדה בר",
+    "label_he": "חוות שדה בר",
     "migun_time": 90
   },
   {
-    "label": "Hevron Jewish Settlement",
+    "label": "Hebron",
     "value": "D5FE970E31BEB935BB340E0EBD2B42FB",
     "id": "427",
     "areaid": 17,
     "areaname": "Yehuda",
-    "label_he": "היישוב היהודי חברון",
+    "label_he": "חברון",
     "migun_time": 90
   },
   {
@@ -12380,7 +12380,7 @@
     "id": "1129",
     "areaid": 17,
     "areaname": "Yehuda",
-    "label_he": "קריית ארבע",
+    "label_he": "קרית ארבע",
     "migun_time": 90
   },
   {
@@ -12606,447 +12606,6 @@
     "areaid": 17,
     "areaname": "Yehuda",
     "label_he": "תקוע",
-    "migun_time": 90
-  },
-  {
-    "label": "Ganey Hugga",
-    "label_he": "גני חוגה",
-    "value": "3B5E099BF462E1CB7A424B6EAEE011F3",
-    "id": "1414",
-    "areaid": 4,
-    "areaname": "Beit She'an Valley",
-    "migun_time": 60
-  },
-  {
-    "label": "Tamra Industiral Park",
-    "label_he": "אזור תעשייה טמרה",
-    "value": "304D3A4358A8CF2A2FBB0ADFAE5A6FEB",
-    "id": "1404",
-    "areaid": 23,
-    "areaname": "Center Galilee",
-    "migun_time": 60
-  },
-  {
-    "label": "Dvira Junction",
-    "label_he": "צומת דבירה",
-    "value": "CB2A6FD232DC8A0B3E8BAD487458C980",
-    "id": "1442",
-    "areaid": 25,
-    "areaname": "Center Negev",
-    "migun_time": 90
-  },
-  {
-    "label": "Betzet Beach",
-    "label_he": "חוף בצת",
-    "value": "759071CEE33650CB9123E38727B1793D",
-    "id": "1418",
-    "areaid": 30,
-    "areaname": "Confrontation Line",
-    "migun_time": 0
-  },
-  {
-    "label": "Goren Farm Guesthouse",
-    "label_he": "חוות אירוח גורן",
-    "value": "8E6E0FA44B437F79BC6835DAC2BD1086",
-    "id": "1416",
-    "areaid": 30,
-    "areaname": "Confrontation Line",
-    "migun_time": 0
-  },
-  {
-    "label": "Lev Ha-Hula",
-    "label_he": "לב החולה",
-    "value": "E266C4DC24913FA074D1AAF61AFC31C2",
-    "id": "1433",
-    "areaid": 30,
-    "areaname": "Confrontation Line",
-    "migun_time": 0
-  },
-  {
-    "label": "Nahariya Cemetery",
-    "label_he": "בית העלמין החדש נהריה",
-    "value": "CC98AFF4916AE8D71DDAB3A082D0836C",
-    "id": "1411",
-    "areaid": 30,
-    "areaname": "Confrontation Line",
-    "migun_time": 0
-  },
-  {
-    "label": "Morasha Cemetery",
-    "label_he": "בית עלמין מורשה",
-    "value": "EF38DCD2EB562C39A716986F6175BC9D",
-    "id": "1413",
-    "areaid": 8,
-    "areaname": "Dan",
-    "migun_time": 90
-  },
-  {
-    "label": "Kalia Beach",
-    "label_he": "חוף קליה",
-    "value": "97A1A40D02F8C282A42F3AE60DE940DE",
-    "id": "1426",
-    "areaid": 18,
-    "areaname": "Dead Sea",
-    "migun_time": 90
-  },
-  {
-    "label": "Zikim Beach",
-    "label_he": "חוף זיקים",
-    "value": "F67E825F7EC8AC28CAE393D02341321E",
-    "id": "1421",
-    "areaid": 26,
-    "areaname": "Gaza Envelope",
-    "migun_time": 15
-  },
-  {
-    "label": "Kfar Baruch train station",
-    "label_he": "תחנת רכבת כפר ברוך",
-    "value": "30ACE62C51E72D14A86BAE5C29B8B62A",
-    "id": "1447",
-    "areaid": 34,
-    "areaname": "HaAmakim",
-    "migun_time": 60
-  },
-  {
-    "label": "Khawaled",
-    "label_he": "חוואלד",
-    "value": "B9EE89EBEBB0B0F4CDD207F7C1EEBA0E",
-    "id": "1415",
-    "areaid": 34,
-    "areaname": "HaAmakim",
-    "migun_time": 60
-  },
-  {
-    "label": "Na'ura",
-    "label_he": "נאעורה",
-    "value": "6495F3C9E43D06BD28EA7CBABE6E2C2B",
-    "id": "1438",
-    "areaid": 34,
-    "areaname": "HaAmakim",
-    "migun_time": 60
-  },
-  {
-    "label": "Ramla",
-    "label_he": "חניון הנתיב מהיר",
-    "value": "7CAE6C128EDC5B5659DCC7B0F99EA4E9",
-    "id": "1427",
-    "areaid": 12,
-    "areaname": "HaShfela",
-    "migun_time": 90
-  },
-  {
-    "label": "Ramla, Regional Council Gezer, Regional Council Hevel Modi'in Industrial Park",
-    "label_he": "אזור תעשייה רגמ",
-    "value": "FF4F391EBCA091B06BB9449CE51AB3E0",
-    "id": "1408",
-    "areaid": 12,
-    "areaname": "HaShfela",
-    "migun_time": 90
-  },
-  {
-    "label": "Agrigada Factory",
-    "label_he": "מפעל אגריגדה",
-    "value": "111530DF075926880C25AB59C3618664",
-    "id": "1434",
-    "areaid": 22,
-    "areaname": "Lachish",
-    "migun_time": 45
-  },
-  {
-    "label": "Gedera Industrial Area",
-    "label_he": "אזור תעשייה גדרה",
-    "value": "DD3C6A9DE86C871A6B9FF6E126514585",
-    "id": "1403",
-    "areaid": 22,
-    "areaname": "Lachish",
-    "migun_time": 45
-  },
-  {
-    "label": "Kiryat Mal'akhi-Yoav train station",
-    "label_he": "תחנת רכבת קריית מלאכי - יואב",
-    "value": "A6AB97B7BD0B56F82CDC7BF7215A58E4",
-    "id": "1448",
-    "areaid": 22,
-    "areaname": "Lachish",
-    "migun_time": 45
-  },
-  {
-    "label": "Revadim Industrial Area",
-    "label_he": "אזור תעשייה רבדים",
-    "value": "99A9BD732A4FA1F87AC299A1D7A329F5",
-    "id": "1407",
-    "areaid": 22,
-    "areaname": "Lachish",
-    "migun_time": 45
-  },
-  {
-    "label": "Nabi Shu'ayb",
-    "label_he": "נבי שועייב",
-    "value": "893872467557DD72181556E8C2C5D948",
-    "id": "1439",
-    "areaid": 7,
-    "areaname": "Lower Galilee",
-    "migun_time": 60
-  },
-  {
-    "label": "Binyamina Junction",
-    "label_he": "צומת בנימינה",
-    "value": "5175838EE24D9D17B48D1FC82CF8D150",
-    "id": "1441",
-    "areaid": 15,
-    "areaname": "Menashe",
-    "migun_time": 90
-  },
-  {
-    "label": "Matzok Orvim",
-    "label_he": "מצוק עורבים (קלע אלון)",
-    "value": "67CFEF849E7A9C1F02EA78668ADF1FF4",
-    "id": "1435",
-    "areaid": 2,
-    "areaname": "North Golan",
-    "migun_time": 15
-  },
-  {
-    "label": "Ramat Trump",
-    "label_he": "רמת טראמפ",
-    "value": "6940330DC793904CCAACC08587979308",
-    "id": "1449",
-    "areaid": 2,
-    "areaname": "North Golan",
-    "migun_time": 15
-  },
-  {
-    "label": "Kfar Yona Industrial Zone",
-    "label_he": "אזור תעשייה כפר יונה",
-    "value": "04C7BE45BA1A5DB3DD73494C0CE088C9",
-    "id": "1405",
-    "areaid": 27,
-    "areaname": "Sharon",
-    "migun_time": 90
-  },
-  {
-    "label": "Shfayim \"Haneh Ve'sa\" Compound",
-    "label_he": "מתחם \"חנה וסע\" שפיים",
-    "value": "D9229676FBC37FC1A23B0D11A967FA84",
-    "id": "1436",
-    "areaid": 27,
-    "areaname": "Sharon",
-    "migun_time": 90
-  },
-  {
-    "label": "Ha'Ela Junction",
-    "label_he": "צומת האלה",
-    "value": "5F8183931364990983EA688E40B1F75D",
-    "id": "1443",
-    "areaid": 24,
-    "areaname": "Shfelat Yehuda",
-    "migun_time": 60
-  },
-  {
-    "label": "Kiryat Ye'arim Youth Village",
-    "label_he": "כפר הנוער קריית יערים",
-    "value": "ABEBB46C079E8A240B700A143CBBBDAC",
-    "id": "1429",
-    "areaid": 24,
-    "areaname": "Shfelat Yehuda",
-    "migun_time": 60
-  },
-  {
-    "label": "Sha’ar HaGai",
-    "label_he": "שער הגיא",
-    "value": "4DB23D15473AF03A44A6CFF9FBDE632D",
-    "id": "1446",
-    "areaid": 24,
-    "areaname": "Shfelat Yehuda",
-    "migun_time": 60
-  },
-  {
-    "label": "Ariel Industrial Park",
-    "label_he": "אזור תעשייה אריאל",
-    "value": "BA5FF47904CE2F8AD5216026342559FF",
-    "id": "1401",
-    "areaid": 10,
-    "areaname": "Shomron",
-    "migun_time": 90
-  },
-  {
-    "label": "Barkan Industrial Park",
-    "label_he": "אזור תעשייה ברקן",
-    "value": "C9099FE87CF474729A00C8606FF998A9",
-    "id": "1402",
-    "areaid": 10,
-    "areaname": "Shomron",
-    "migun_time": 90
-  },
-  {
-    "label": "Kerem Reim",
-    "label_he": "כרם רעים",
-    "value": "1170C92BB70232DFD0FD246DE849739D",
-    "id": "1432",
-    "areaid": 10,
-    "areaname": "Shomron",
-    "migun_time": 90
-  },
-  {
-    "label": "Shahak Industrial Park",
-    "label_he": "אזור תעשייה שחק",
-    "value": "D6992CDA2B23BFFA9238B05C1546495D",
-    "id": "1409",
-    "areaid": 10,
-    "areaname": "Shomron",
-    "migun_time": 90
-  },
-  {
-    "label": "Gofra Beach",
-    "label_he": "חוף גופרה",
-    "value": "7A9B46147156B8E5D1E9B3DD3ABFF4A9",
-    "id": "1420",
-    "areaid": 5,
-    "areaname": "South Golan",
-    "migun_time": 0
-  },
-  {
-    "label": "Golan, Tzeelon Beach",
-    "label_he": "חוף גולן, צאלון",
-    "value": "9EF76FEF2D7C7C31B5C316D09EF52620",
-    "id": "1419",
-    "areaid": 5,
-    "areaname": "South Golan",
-    "migun_time": 0
-  },
-  {
-    "label": "Kinar, Duga, Dugit Beach",
-    "label_he": "חוף כינר, דוגה, דוגית",
-    "value": "F1F34279EFB248EE2662FEDAB66AB076",
-    "id": "1423",
-    "areaid": 5,
-    "areaname": "South Golan",
-    "migun_time": 0
-  },
-  {
-    "label": "Kursi, Lavnun, Halukim Beach",
-    "label_he": "חוף כורסי, לבנון, חלוקים",
-    "value": "C0C3B6615141C558EF0C1667A1DEA392",
-    "id": "1422",
-    "areaid": 5,
-    "areaname": "South Golan",
-    "migun_time": 0
-  },
-  {
-    "label": "Susita Beach",
-    "label_he": "חוף סוסיתא",
-    "value": "14D44A45A93E28FF8C387DCFEF5B6374",
-    "id": "1425",
-    "areaid": 5,
-    "areaname": "South Golan",
-    "migun_time": 0
-  },
-  {
-    "label": "Tsemach",
-    "label_he": "צמח",
-    "value": "C5AD72CC83BBFB663D4829BF9FD5A750",
-    "id": "1445",
-    "areaid": 5,
-    "areaname": "South Golan",
-    "migun_time": 0
-  },
-  {
-    "label": "Kfar HaNokdim",
-    "label_he": "כפר הנוקדים",
-    "value": "5F30FA91CB34AD14BE5F96FD544E3B71",
-    "id": "1430",
-    "areaid": 9,
-    "areaname": "South Negev",
-    "migun_time": 90
-  },
-  {
-    "label": "Amnon Beach",
-    "label_he": "חוף אמנון",
-    "value": "2D591CB21D33C3DE9F30C1A84EB50AD3",
-    "id": "1417",
-    "areaid": 6,
-    "areaname": "Upper Galilee",
-    "migun_time": 30
-  },
-  {
-    "label": "Kfar Nahum",
-    "label_he": "כפר נחום",
-    "value": "8F7D01264E8F6AB43218DBCA7F982E00",
-    "id": "1431",
-    "areaid": 6,
-    "areaname": "Upper Galilee",
-    "migun_time": 30
-  },
-  {
-    "label": "Safed",
-    "label_he": "צפת",
-    "value": "338C321A340340DD3E702340D479FF4C",
-    "id": "6101",
-    "areaid": 6,
-    "areaname": "Upper Galilee",
-    "migun_time": 30
-  },
-  {
-    "label": "Tabgha",
-    "label_he": "טבחה",
-    "value": "76009953DAA6D190E649C55D4E67BD3B",
-    "id": "1428",
-    "areaid": 6,
-    "areaname": "Upper Galilee",
-    "migun_time": 30
-  },
-  {
-    "label": "Nitzanim Beach",
-    "label_he": "חוף ניצנים",
-    "value": "7E75A56BF09EB5CD969F32D79455B74C",
-    "id": "1424",
-    "areaid": 19,
-    "areaname": "West Lachish",
-    "migun_time": 30
-  },
-  {
-    "label": "Airport City",
-    "label_he": "איירפורט סיטי",
-    "value": "F20B3373C49F004EDBA8BCE4C65EAC32",
-    "id": "1410",
-    "areaid": 21,
-    "areaname": "Yarkon",
-    "migun_time": 90
-  },
-  {
-    "label": "Neot Kedumim",
-    "label_he": "נאות קדומים",
-    "value": "F68AB4F258065E53B6435730614F340E",
-    "id": "1437",
-    "areaid": 21,
-    "areaname": "Yarkon",
-    "migun_time": 90
-  },
-  {
-    "label": "Abu-Nuwar",
-    "label_he": "אבו נוור",
-    "value": "97C5E0EC3970CB5413173E201664D9C3",
-    "id": "1400",
-    "areaid": 17,
-    "areaname": "Yehuda",
-    "migun_time": 90
-  },
-  {
-    "label": "Gush Etzion Junction",
-    "label_he": "צומת הגוש",
-    "value": "068CB277F9021CAC25D53BBEF9C6544C",
-    "id": "1444",
-    "areaid": 17,
-    "areaname": "Yehuda",
-    "migun_time": 90
-  },
-  {
-    "label": "Industrial Park Migdal Oz",
-    "label_he": "פארק תעשיות מגדל עוז",
-    "value": "A8A6C87EDFAEF23E23BBA50C0F09178E",
-    "id": "1440",
-    "areaid": 17,
-    "areaname": "Yehuda",
     "migun_time": 90
   }
 ]
