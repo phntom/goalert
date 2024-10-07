@@ -13750,5 +13750,59 @@
     "areaid": 27,
     "areaname": "שרון",
     "migun_time": 90
+  },
+  {
+    "label": "שוהם",
+    "value": "0973F5E49F48416DF841DC8BC067306A",
+    "id": "1222",
+    "areaid": 21,
+    "areaname": "ירקון",
+    "label_he": "שהם",
+    "migun_time": 90
+  },
+  {
+    "label": "מיני ישראל - נחשון",
+    "value": "28A1B9D02F83A6EFDF139DE2837AF3FC",
+    "id": "887",
+    "areaid": 24,
+    "areaname": "שפלת יהודה",
+    "label_he": "נחשון",
+    "migun_time": 90
+  },
+  {
+    "label": "מודיעין מכבים רעות",
+    "label_he": "מודיעין מכבים רעות",
+    "value": "854B6FF5F9CD6AB2C8BD2D3657305E48",
+    "id": "716",
+    "areaid": 21,
+    "areaname": "ירקון",
+    "migun_time": 90
+  },
+  {
+    "label": "יהוד מונוסון",
+    "value": "CC8B89BA156F8C749E03A4472A829E99",
+    "id": "508",
+    "areaid": 8,
+    "areaname": "דן",
+    "label_he": "יהוד מונוסון",
+    "migun_time": 90
+  },
+  {
+    "label": "נילי",
+    "value": "7677E72FD44969AE3230A80191960607",
+    "id": "894",
+    "areaid": 10,
+    "areaname": "שומרון",
+    "label_he": "ניל''י",
+    "migun_time": 90
+  },
+  {
+    "label": "אזור תעשייה קריית ביאליק",
+    "value": "37A3C1FCFE9CF8B657802E98399B29E5",
+    "id": "1119",
+    "areaid": 11,
+    "areaname": "המפרץ",
+    "label_he": "אזור תעשייה קריית ביאליק",
+    "migun_time": 60
   }
 ]
