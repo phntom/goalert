@@ -106,7 +106,7 @@ func TestGetCity(t *testing.T) {
 				lang: "he",
 			},
 			want:  "מבואות חרמון",
-			want1: "מועצה אזורית",
+			want1: "מרכז אזורי",
 		},
 		{
 			name: "סינמה סיטי גלילות",

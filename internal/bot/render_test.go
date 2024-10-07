@@ -32,7 +32,7 @@ func TestRender(t *testing.T) {
 				lang: "he",
 			},
 			want: &model.Post{
-				Message: "עין חרוד מאוחד\nתוך 90 שניות היכנסו למרחב המוגן\nצבעאדוםעיןחרודמאוחד #עין_חרוד_מאוחד",
+				Message: "עין חרוד\nתוך 90 שניות היכנסו למרחב המוגן\nצבעאדוםעיןחרוד #עין_חרוד",
 				Metadata: &model.PostMetadata{
 					Priority: &model.PostPriority{
 						Priority:     model.NewString("urgent"),

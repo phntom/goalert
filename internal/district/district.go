@@ -92,14 +92,29 @@ func initDistricts() {
 			)
 			return
 		}
+
 		d := make(map[ID]District, len(districtList))
 		if districtLookup == nil {
-			districtLookup = make(map[string]ID, numberOfLanguages*len(districtList))
+			districtLookup = make(map[string]ID)
 		}
+
 		for _, district := range districtList {
+			if _, exists := d[district.ID]; exists {
+				i := 2
+				for {
+					newID := ID(fmt.Sprintf("%s_%d", district.ID, i))
+					if _, exists := d[newID]; !exists {
+						district.ID = newID
+						break
+					}
+					i++
+				}
+				mlog.Warn("Duplicate district ID", mlog.Any("district", district))
+			}
 			d[district.ID] = district
 			districtLookup[district.SettlementName] = district.ID
 		}
+
 		districts[lang] = d
 	}
 }

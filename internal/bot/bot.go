@@ -166,6 +166,18 @@ func (b *Bot) AwaitMessage() {
 				message.ChannelsPosted = append(message.ChannelsPosted, channel)
 				message.PostMutex.Unlock()
 				b.Monitoring.SuccessfulPosts.Inc()
+
+				// add a thumbs up reaction to the message
+				if message.Category != "" && message.Category != "rockets" {
+					emoji := message.Category + "-alert"
+					ctx, cancel = context.WithTimeout(context.Background(), postTimeout)
+					_, response, err = b.Client.SaveReaction(ctx, &model.Reaction{
+						UserId:    b.userId,
+						PostId:    result.Id,
+						EmojiName: emoji,
+					})
+					cancel()
+				}
 			}
 		}
 	}

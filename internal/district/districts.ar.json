@@ -12607,5 +12607,986 @@
     "areaname": "يهودا",
     "label_he": "הר עמשא",
     "migun_time": 90
+  },
+  {
+    "label": "القدس",
+    "label_he": "ירושלים",
+    "value": "80ACCE46A448E7F5349E2AC1F05A1CAA",
+    "id": "6018",
+    "areaid": 20,
+    "areaname": "أورشليمالقدس",
+    "migun_time": 90
+  },
+  {
+    "label": "تسوريت",
+    "label_he": "צורית",
+    "value": "6628CF609CBF152EB83C334DE8A7A2DC",
+    "id": "1086",
+    "areaid": 6,
+    "areaname": "الجليل الأعلى",
+    "migun_time": 30
+  },
+  {
+    "label": "جيلون",
+    "label_he": "גילון",
+    "value": "354B22FBD281ED5ADA8A53E66200AAC5",
+    "id": "1320",
+    "areaid": 6,
+    "areaname": "الجليل الأعلى",
+    "migun_time": 30
+  },
+  {
+    "label": "جفعات يوآب",
+    "label_he": "גבעת יואב",
+    "value": "331AC4CA2C7F055F5103EA09B065A1DD",
+    "id": "1309",
+    "areaid": 5,
+    "areaname": "الجولان الجنوبي",
+    "migun_time": 15
+  },
+  {
+    "label": "كاتسرين المنطقة الصناعية",
+    "label_he": "קצרין - אזור תעשייה",
+    "value": "D3F5D9EE4B55AC933B3E6D1114B4A2AC",
+    "id": "1117",
+    "areaid": 5,
+    "areaname": "الجولان الجنوبي",
+    "migun_time": 30
+  },
+  {
+    "label": "بيت أريه-عوفريم",
+    "label_he": "בית אריה-עופרים",
+    "value": "D851F9189D63447E70EC19C0D30E2F99",
+    "id": "179",
+    "areaid": 10,
+    "areaname": "السامرة",
+    "migun_time": 90
+  },
+  {
+    "label": "حلميش (نفي تسوف)",
+    "label_he": "חלמיש (נווה צוף)",
+    "value": "5DC15356BB6334EBE9A206B479F1CDD8",
+    "id": "453",
+    "areaid": 10,
+    "areaname": "السامرة",
+    "migun_time": 90
+  },
+  {
+    "label": "حايي بار يوتفاتا",
+    "label_he": "חי-בר יטבתה",
+    "value": "888DF27F938DD5071A634FDB1531313E",
+    "id": "450",
+    "areaid": 29,
+    "areaname": "العرباه",
+    "migun_time": 180
+  },
+  {
+    "label": "جفعوليم،",
+    "label_he": "גבעולים",
+    "value": "F196E1DEEBAD43C9B69B30EE87B0ED53",
+    "id": "1317",
+    "areaid": 16,
+    "areaname": "النقب الغربي",
+    "migun_time": 30
+  },
+  {
+    "label": "مليلوت",
+    "label_he": "מלילות",
+    "value": "375B9B4012E960032FC9C023396A458B",
+    "id": "1318",
+    "areaid": 16,
+    "areaname": "النقب الغربي",
+    "migun_time": 30
+  },
+  {
+    "label": "معجاليم،",
+    "label_he": "מעגלים",
+    "value": "6C0D7DEB957864C8F1AC348A094880B7",
+    "id": "768",
+    "areaid": 16,
+    "areaname": "النقب الغربي",
+    "migun_time": 30
+  },
+  {
+    "label": "موديعين مكابيم رعوت",
+    "label_he": "מודיעין-מכבים-רעות",
+    "value": "854B6FF5F9CD6AB2C8BD2D3657305E48",
+    "id": "716",
+    "areaid": 21,
+    "areaname": "اليركون",
+    "migun_time": 90
+  },
+  {
+    "label": "حفتسفا",
+    "label_he": "חפציבה",
+    "value": "66C3E4B472B0C554BF510D38F86D72D0",
+    "id": "1308",
+    "areaid": 4,
+    "areaname": "بيكعات بيت شان",
+    "migun_time": 60
+  },
+  {
+    "label": "بيت ألفا",
+    "label_he": "בית אלפא",
+    "value": "398AD1C0136C32C950101C24A4F9B6AB",
+    "id": "178",
+    "areaid": 4,
+    "areaname": "بيكعات بيت شان",
+    "migun_time": 60
+  },
+  {
+    "label": "سعواه",
+    "label_he": "סעווה",
+    "value": "C509DA69B9D830D8AD3E9CB1F22F6FB1",
+    "id": "720",
+    "areaid": 9,
+    "areaname": "جنوب النقب",
+    "migun_time": 90
+  },
+  {
+    "label": "يوفل",
+    "label_he": "יובל",
+    "value": "3254273FA9B12FAABE9BD3860A687CBE",
+    "id": "510",
+    "areaid": 30,
+    "areaname": "خط المواجهة",
+    "migun_time": 0
+  },
+  {
+    "label": "تل أبيب - يافا",
+    "label_he": "תל אביב-יפו",
+    "value": "3896F8FD13C07F97F745FF1DA7509C39",
+    "id": "6032",
+    "areaid": 8,
+    "areaname": "دان",
+    "migun_time": 90
+  },
+  {
+    "label": "رمات غان",
+    "label_he": "רמת גן",
+    "value": "7C2F2A3FB518D22DE4A6337F8C442BE4",
+    "id": "6027",
+    "areaid": 8,
+    "areaname": "دان",
+    "migun_time": 90
+  },
+  {
+    "label": "هرتسليا",
+    "label_he": "הרצליה",
+    "value": "F45AB2C88228D6CBBDF5D1BFD8F14FFA",
+    "id": "6009",
+    "areaid": 8,
+    "areaname": "دان",
+    "migun_time": 90
+  },
+  {
+    "label": "وجليل يام",
+    "label_he": "גליל ים",
+    "value": "D3E1A4378D80F98689E7E82A4FF38532",
+    "id": "1310",
+    "areaid": 8,
+    "areaname": "دان",
+    "migun_time": 90
+  },
+  {
+    "label": "نتانيا",
+    "label_he": "נתניה",
+    "value": "12803225EFB3E1C3CC33DC2FA02A00A3",
+    "id": "6023",
+    "areaid": 27,
+    "areaname": "شارون",
+    "migun_time": 90
+  },
+  {
+    "label": "هشارون",
+    "label_he": "צוקי ים",
+    "value": "1601110AB9BBE29EE8320CAD797DCBD4",
+    "id": "1312",
+    "areaid": 27,
+    "areaname": "شارون",
+    "migun_time": 90
+  },
+  {
+    "label": "هفاتسيليت",
+    "label_he": "חבצלת השרון",
+    "value": "CA76FB8192DDC4683A4DCF3DD4AE3577",
+    "id": "426",
+    "areaid": 27,
+    "areaname": "شارون",
+    "migun_time": 90
+  },
+  {
+    "label": "أشكلون",
+    "label_he": "אשקלון",
+    "value": "5EE52B3D54A820F423AADF7B0A8BD0E4",
+    "id": "6037",
+    "areaid": 19,
+    "areaname": "غرب لخيش",
+    "migun_time": 30
+  },
+  {
+    "label": "نيتسان ب",
+    "label_he": "ניצן ב'",
+    "value": "806276AE3D2AAFAC619D6813292F577D",
+    "id": "1344",
+    "areaid": 19,
+    "areaname": "غرب لخيش",
+    "migun_time": 45
+  },
+  {
+    "label": "تسوحار",
+    "label_he": "צוחר",
+    "value": "E00EFE0CFD370C81A6FB80C6ADE84DA8",
+    "id": "1076",
+    "areaid": 26,
+    "areaname": "غلاف غزة",
+    "migun_time": 15
+  },
+  {
+    "label": "اوهاد",
+    "label_he": "אוהד",
+    "value": "2BA2CA7732A99E74B2DCA52180A5A188",
+    "id": "1371",
+    "areaid": 26,
+    "areaname": "غلاف غزة",
+    "migun_time": 15
+  },
+  {
+    "label": "تكوما",
+    "label_he": "תקומה",
+    "value": "0890A684C4F7B203BDFE1DA42BB5C54B",
+    "id": "1349",
+    "areaid": 26,
+    "areaname": "غلاف غزة",
+    "migun_time": 15
+  },
+  {
+    "label": "مزرعة يزراعم",
+    "label_he": "חוות יזרעם",
+    "value": "60B01663557BC76330C4EE2CE033F791",
+    "id": "1303",
+    "areaid": 26,
+    "areaname": "غلاف غزة",
+    "migun_time": 15
+  },
+  {
+    "label": "شوفا",
+    "label_he": "שובה",
+    "value": "D204CAA64D7DDC65FADCDD3630417332",
+    "id": "1311",
+    "areaid": 26,
+    "areaname": "غلاف غزة",
+    "migun_time": 15
+  },
+  {
+    "label": "زيمرات",
+    "label_he": "זמרת",
+    "value": "1645EB75A6FD4D2B795463CCFEA9631B",
+    "id": "419",
+    "areaid": 26,
+    "areaname": "غلاف غزة",
+    "migun_time": 15
+  },
+  {
+    "label": "شدموت،",
+    "label_he": "שדרות",
+    "value": "3202695F8E2D49A4FCA18B95A88C0CA4",
+    "id": "1221",
+    "areaid": 26,
+    "areaname": "غلاف غزة",
+    "migun_time": 15
+  },
+  {
+    "label": "إيفيم،",
+    "label_he": "איבים",
+    "value": "F53EA9083272E342ADE0146DA1C25E59",
+    "id": "1307",
+    "areaid": 26,
+    "areaname": "غلاف غزة",
+    "migun_time": 15
+  },
+  {
+    "label": "نير عام",
+    "label_he": "ניר עם",
+    "value": "C5FD35F7510C4E1D535EDD8DE05A7961",
+    "id": "909",
+    "areaid": 26,
+    "areaname": "غلاف غزة",
+    "migun_time": 15
+  },
+  {
+    "label": "وتوشيا",
+    "label_he": "תושיה",
+    "value": "9FBB40A185AE882539A01A8F50CBD3BC",
+    "id": "1336",
+    "areaid": 26,
+    "areaname": "غلاف غزة",
+    "migun_time": 15
+  },
+  {
+    "label": "كفار ميمون",
+    "label_he": "כפר מימון",
+    "value": "28B8EF868CEB1BBB6B6E846728A124F8",
+    "id": "627",
+    "areaid": 26,
+    "areaname": "غلاف غزة",
+    "migun_time": 15
+  },
+  {
+    "label": "عاميعوز",
+    "label_he": "עמיעוז",
+    "value": "EC92D45527006EC880C1FDD5EB5451DF",
+    "id": "1315",
+    "areaid": 26,
+    "areaname": "غلاف غزة",
+    "migun_time": 15
+  },
+  {
+    "label": "ييشع",
+    "label_he": "ישע",
+    "value": "156415B0B1A37FAAE48D961A6D24FC01",
+    "id": "1316",
+    "areaid": 26,
+    "areaname": "غلاف غزة",
+    "migun_time": 15
+  },
+  {
+    "label": "مفتاحيم،",
+    "label_he": "מבטחים",
+    "value": "210032669909D9B678F1BF8119AEB7EB",
+    "id": "697",
+    "areaid": 26,
+    "areaname": "غلاف غزة",
+    "migun_time": 15
+  },
+  {
+    "label": "أشدود",
+    "label_he": "אשדוד",
+    "value": "361B3C17083DF8EA5728A5D899B4B5EC",
+    "id": "6000",
+    "areaid": 22,
+    "areaname": "لخيش",
+    "migun_time": 45
+  },
+  {
+    "label": "بئر السبع",
+    "label_he": "באר שבע",
+    "value": "B412D33709D091B52F7A3CD01F15A718",
+    "id": "6004",
+    "areaid": 25,
+    "areaname": "مركز النقب",
+    "migun_time": 60
+  },
+  {
+    "label": "الخضيرة",
+    "label_he": "חדרה",
+    "value": "DFC0C698A54E2D452A14D1DEDBBCA9F0",
+    "id": "6010",
+    "areaid": 15,
+    "areaname": "مناشيه",
+    "migun_time": 90
+  },
+  {
+    "label": "حيفا",
+    "label_he": "חיפה",
+    "value": "BB6FFE64EF1EB20509E4E4D5CA4E3718",
+    "id": "6014",
+    "areaid": 15,
+    "areaname": "مناشيه",
+    "migun_time": 60
+  },
+  {
+    "label": "ريشون لتسيون",
+    "label_he": "ראשון לציון",
+    "value": "AF03968847DDE999E86F2C64B0B7443C",
+    "id": "6026",
+    "areaid": 12,
+    "areaname": "هشفيلاه",
+    "migun_time": 90
+  },
+  {
+    "label": "أبيطال",
+    "label_he": "אביטל",
+    "value": "B5E5B50106CA8C6BC80A0F0DC0DEB4FA",
+    "id": "1323",
+    "areaid": 34,
+    "areaname": "هعماكيم",
+    "migun_time": 60
+  },
+  {
+    "label": "ميطاف",
+    "label_he": "מיטב",
+    "value": "DDF990CB174151C0A05FF800C20B4357",
+    "id": "1324",
+    "areaid": 34,
+    "areaname": "هعماكيم",
+    "migun_time": 60
+  },
+  {
+    "label": "فرزون",
+    "label_he": "פרזון",
+    "value": "050351041FA0F285AAF889A0E8F48846",
+    "id": "1325",
+    "areaid": 34,
+    "areaname": "هعماكيم",
+    "migun_time": 60
+  },
+  {
+    "label": "ياعيل",
+    "label_he": "יעל",
+    "value": "F6E3512DC2E3A9BB2DC55942867FD721",
+    "id": "1340",
+    "areaid": 34,
+    "areaname": "هعماكيم",
+    "migun_time": 60
+  },
+  {
+    "label": "عين حارود",
+    "label_he": "עין חרוד איחוד",
+    "value": "FC5B1D507808CEAD71CFB549AF80FAFD",
+    "id": "1333",
+    "areaid": 34,
+    "areaname": "هعماكيم",
+    "migun_time": 60
+  },
+  {
+    "label": "باراك",
+    "label_he": "ברק",
+    "value": "28D4EC56EFA2737EC99942FC44D33514",
+    "id": "1326",
+    "areaid": 34,
+    "areaname": "هعماكيم",
+    "migun_time": 60
+  },
+  {
+    "label": "دبوراه",
+    "label_he": "דבורה",
+    "value": "B64368B0244BA16128C0BD6C33F9BC5A",
+    "id": "1327",
+    "areaid": 34,
+    "areaname": "هعماكيم",
+    "migun_time": 60
+  },
+  {
+    "label": "أديريم",
+    "label_he": "אדירים",
+    "value": "452D6B60FB9474C5BB529BF66EF15969",
+    "id": "1328",
+    "areaid": 34,
+    "areaname": "هعماكيم",
+    "migun_time": 60
+  },
+  {
+    "label": "مركاز حيبر",
+    "label_he": "מרכז חבר",
+    "value": "98429D016D349696FDB57C93FEF6ADE9",
+    "id": "1342",
+    "areaid": 34,
+    "areaname": "هعماكيم",
+    "migun_time": 60
+  },
+  {
+    "label": "كفار حسيديم ب",
+    "label_he": "כפר חסידים ב'",
+    "value": "AAB9FF61D530DFEB9B7BE2E62A34FB6D",
+    "id": "1343",
+    "areaid": 11,
+    "areaname": "همفراتس",
+    "migun_time": 60
+  },
+  {
+    "label": "كفار حسيديم أ",
+    "label_he": "כפר חסידים א'",
+    "value": "F9617668F8868E62D31772617D536B9B",
+    "id": "614",
+    "areaid": 11,
+    "areaname": "همفراتس",
+    "migun_time": 60
+  },
+  {
+    "label": "مقبرة تل ريجيف",
+    "label_he": "בית עלמין תל רגב",
+    "value": "FC1A6EEF8CD1EA0FF81CC281967CDCD7",
+    "id": "221",
+    "areaid": 11,
+    "areaname": "همفراتس",
+    "migun_time": 60
+  },
+  {
+    "label": "هزورع",
+    "label_he": "הזורע",
+    "value": "ECD77C1C0E926392241F379ED59D65CC",
+    "id": "1313",
+    "areaid": 13,
+    "areaname": "وادي عارة",
+    "migun_time": 90
+  },
+  {
+    "label": "يوكنعام هموشافه",
+    "label_he": "יקנעם המושבה",
+    "value": "63AA76472D335C7DC2ED5002CB41B5BE",
+    "id": "538",
+    "areaid": 13,
+    "areaname": "وادي عارة",
+    "migun_time": 90
+  },
+  {
+    "label": "البلدة اليهودية حبرون",
+    "label_he": "היישוב היהודי חברון",
+    "value": "D5FE970E31BEB935BB340E0EBD2B42FB",
+    "id": "427",
+    "areaid": 17,
+    "areaname": "يهودا",
+    "migun_time": 90
+  },
+  {
+    "label": "ساديه بار",
+    "label_he": "שדה בר",
+    "value": "8561E26B02A76311887D4A2C15EADAF0",
+    "id": "436",
+    "areaid": 17,
+    "areaname": "يهودا",
+    "migun_time": 90
+  },
+  {
+    "label": "شاطئ قاليا",
+    "label_he": "חוף קליה",
+    "value": "97A1A40D02F8C282A42F3AE60DE940DE",
+    "id": "1426",
+    "areaid": 18,
+    "areaname": "البحر الميت",
+    "migun_time": 90
+  },
+  {
+    "label": "النبي شعيب",
+    "label_he": "נבי שועייב",
+    "value": "893872467557DD72181556E8C2C5D948",
+    "id": "1439",
+    "areaid": 7,
+    "areaname": "الجليل الأسفل",
+    "migun_time": 60
+  },
+  {
+    "label": "شاطئ أمنون",
+    "label_he": "חוף אמנון",
+    "value": "2D591CB21D33C3DE9F30C1A84EB50AD3",
+    "id": "1417",
+    "areaid": 6,
+    "areaname": "الجليل الأعلى",
+    "migun_time": 30
+  },
+  {
+    "label": "صفد",
+    "label_he": "צפת",
+    "value": "338C321A340340DD3E702340D479FF4C",
+    "id": "6101",
+    "areaid": 6,
+    "areaname": "الجليل الأعلى",
+    "migun_time": 30
+  },
+  {
+    "label": "طابغا",
+    "label_he": "טבחה",
+    "value": "76009953DAA6D190E649C55D4E67BD3B",
+    "id": "1428",
+    "areaid": 6,
+    "areaname": "الجليل الأعلى",
+    "migun_time": 30
+  },
+  {
+    "label": "كفار ناحوم",
+    "label_he": "כפר נחום",
+    "value": "8F7D01264E8F6AB43218DBCA7F982E00",
+    "id": "1431",
+    "areaid": 6,
+    "areaname": "الجليل الأعلى",
+    "migun_time": 30
+  },
+  {
+    "label": "تسيمح",
+    "label_he": "צמח",
+    "value": "C5AD72CC83BBFB663D4829BF9FD5A750",
+    "id": "1445",
+    "areaid": 5,
+    "areaname": "الجولان الجنوبي",
+    "migun_time": 0
+  },
+  {
+    "label": "شاطئ جوفراه",
+    "label_he": "חוף גופרה",
+    "value": "7A9B46147156B8E5D1E9B3DD3ABFF4A9",
+    "id": "1420",
+    "areaid": 5,
+    "areaname": "الجولان الجنوبي",
+    "migun_time": 0
+  },
+  {
+    "label": "شاطئ جولان، تسيألون",
+    "label_he": "חוף גולן, צאלון",
+    "value": "9EF76FEF2D7C7C31B5C316D09EF52620",
+    "id": "1419",
+    "areaid": 5,
+    "areaname": "الجولان الجنوبي",
+    "migun_time": 0
+  },
+  {
+    "label": "شاطئ سوسيتا",
+    "label_he": "חוף סוסיתא",
+    "value": "14D44A45A93E28FF8C387DCFEF5B6374",
+    "id": "1425",
+    "areaid": 5,
+    "areaname": "الجولان الجنوبي",
+    "migun_time": 0
+  },
+  {
+    "label": "شاطئ كرسي، نيبانون، حالوكيم",
+    "label_he": "חוף כורסי, לבנון, חלוקים",
+    "value": "C0C3B6615141C558EF0C1667A1DEA392",
+    "id": "1422",
+    "areaid": 5,
+    "areaname": "الجولان الجنوبي",
+    "migun_time": 0
+  },
+  {
+    "label": "شاطئ كينار، دوجا، دوجيت",
+    "label_he": "חוף כינר, דוגה, דוגית",
+    "value": "F1F34279EFB248EE2662FEDAB66AB076",
+    "id": "1423",
+    "areaid": 5,
+    "areaname": "الجولان الجنوبي",
+    "migun_time": 0
+  },
+  {
+    "label": "رمات ترامب",
+    "label_he": "רמת טראמפ",
+    "value": "6940330DC793904CCAACC08587979308",
+    "id": "1449",
+    "areaid": 2,
+    "areaname": "الجولان الشمالي",
+    "migun_time": 0
+  },
+  {
+    "label": "منحدر عورڤيم",
+    "label_he": "מצוק עורבים (קלע אלון)",
+    "value": "67CFEF849E7A9C1F02EA78668ADF1FF4",
+    "id": "1435",
+    "areaid": 2,
+    "areaname": "الجولان الشمالي",
+    "migun_time": 0
+  },
+  {
+    "label": "المطقة الصناعية شاحاك",
+    "label_he": "אזור תעשייה שחק",
+    "value": "D6992CDA2B23BFFA9238B05C1546495D",
+    "id": "1409",
+    "areaid": 10,
+    "areaname": "السامرة",
+    "migun_time": 90
+  },
+  {
+    "label": "المنطقة الصناعية اريئيل",
+    "label_he": "אזור תעשייה אריאל",
+    "value": "BA5FF47904CE2F8AD5216026342559FF",
+    "id": "1401",
+    "areaid": 10,
+    "areaname": "السامرة",
+    "migun_time": 90
+  },
+  {
+    "label": "المنطقة الصناعية بركان",
+    "label_he": "אזור תעשייה ברקן",
+    "value": "C9099FE87CF474729A00C8606FF998A9",
+    "id": "1402",
+    "areaid": 10,
+    "areaname": "السامرة",
+    "migun_time": 90
+  },
+  {
+    "label": "كيرم رعيم",
+    "label_he": "כרם רעים",
+    "value": "1170C92BB70232DFD0FD246DE849739D",
+    "id": "1432",
+    "areaid": 10,
+    "areaname": "السامرة",
+    "migun_time": 90
+  },
+  {
+    "label": "أيرفوفط سيتي",
+    "label_he": "איירפורט סיטי",
+    "value": "F20B3373C49F004EDBA8BCE4C65EAC32",
+    "id": "1410",
+    "areaid": 21,
+    "areaname": "اليركون",
+    "migun_time": 90
+  },
+  {
+    "label": "ناؤوت كدوميم",
+    "label_he": "נאות קדומים",
+    "value": "F68AB4F258065E53B6435730614F340E",
+    "id": "1437",
+    "areaid": 21,
+    "areaname": "اليركون",
+    "migun_time": 90
+  },
+  {
+    "label": "جاني حوجاه",
+    "label_he": "גני חוגה",
+    "value": "3B5E099BF462E1CB7A424B6EAEE011F3",
+    "id": "1414",
+    "areaid": 4,
+    "areaname": "بيكعات بيت شان",
+    "migun_time": 60
+  },
+  {
+    "label": "كفار هنوكديم",
+    "label_he": "כפר הנוקדים",
+    "value": "5F30FA91CB34AD14BE5F96FD544E3B71",
+    "id": "1430",
+    "areaid": 9,
+    "areaname": "جنوب النقب",
+    "migun_time": 90
+  },
+  {
+    "label": "شاطئ بتست",
+    "label_he": "חוף בצת",
+    "value": "759071CEE33650CB9123E38727B1793D",
+    "id": "1418",
+    "areaid": 30,
+    "areaname": "خط المواجهة",
+    "migun_time": 0
+  },
+  {
+    "label": "ليب الحولة",
+    "label_he": "לב החולה",
+    "value": "E266C4DC24913FA074D1AAF61AFC31C2",
+    "id": "1433",
+    "areaid": 30,
+    "areaname": "خط المواجهة",
+    "migun_time": 0
+  },
+  {
+    "label": "مركز استضافة جورن",
+    "label_he": "חוות אירוח גורן",
+    "value": "8E6E0FA44B437F79BC6835DAC2BD1086",
+    "id": "1416",
+    "areaid": 30,
+    "areaname": "خط المواجهة",
+    "migun_time": 0
+  },
+  {
+    "label": "مقبرة نهريا",
+    "label_he": "בית העלמין החדש נהריה",
+    "value": "CC98AFF4916AE8D71DDAB3A082D0836C",
+    "id": "1411",
+    "areaid": 30,
+    "areaname": "خط المواجهة",
+    "migun_time": 0
+  },
+  {
+    "label": "مقبرة موراشاه",
+    "label_he": "בית עלמין מורשה",
+    "value": "EF38DCD2EB562C39A716986F6175BC9D",
+    "id": "1413",
+    "areaid": 8,
+    "areaname": "دان",
+    "migun_time": 90
+  },
+  {
+    "label": "المنطقة الصناعية كفر يونه",
+    "label_he": "אזור תעשייה כפר יונה",
+    "value": "04C7BE45BA1A5DB3DD73494C0CE088C9",
+    "id": "1405",
+    "areaid": 27,
+    "areaname": "شارون",
+    "migun_time": 90
+  },
+  {
+    "label": "موقع، \"أوقف وسافر\" شفاييم",
+    "label_he": "מתחם \"חנה וסע\" שפיים",
+    "value": "D9229676FBC37FC1A23B0D11A967FA84",
+    "id": "1436",
+    "areaid": 27,
+    "areaname": "شارون",
+    "migun_time": 90
+  },
+  {
+    "label": "شاعر هجاي",
+    "label_he": "שער הגיא",
+    "value": "4DB23D15473AF03A44A6CFF9FBDE632D",
+    "id": "1446",
+    "areaid": 24,
+    "areaname": "شيفلات يهودا",
+    "migun_time": 90
+  },
+  {
+    "label": "كفار هنوعر كريات يعاريم",
+    "label_he": "כפר הנוער קריית יערים",
+    "value": "ABEBB46C079E8A240B700A143CBBBDAC",
+    "id": "1429",
+    "areaid": 24,
+    "areaname": "شيفلات يهودا",
+    "migun_time": 90
+  },
+  {
+    "label": "مفترق هائيلاه",
+    "label_he": "צומת האלה",
+    "value": "5F8183931364990983EA688E40B1F75D",
+    "id": "1443",
+    "areaid": 24,
+    "areaname": "شيفلات يهودا",
+    "migun_time": 90
+  },
+  {
+    "label": "شاطئ نيتسانيم",
+    "label_he": "חוף ניצנים",
+    "value": "7E75A56BF09EB5CD969F32D79455B74C",
+    "id": "1424",
+    "areaid": 19,
+    "areaname": "غرب لخيش",
+    "migun_time": 30
+  },
+  {
+    "label": "شاطئ زيكيم",
+    "label_he": "חוף זיקים",
+    "value": "F67E825F7EC8AC28CAE393D02341321E",
+    "id": "1421",
+    "areaid": 26,
+    "areaname": "غلاف غزة",
+    "migun_time": 15
+  },
+  {
+    "label": "المنطقة الصناعية جديرا",
+    "label_he": "אזור תעשייה גדרה",
+    "value": "DD3C6A9DE86C871A6B9FF6E126514585",
+    "id": "1403",
+    "areaid": 22,
+    "areaname": "لخيش",
+    "migun_time": 60
+  },
+  {
+    "label": "لمنطقة الصناعية رفاديم",
+    "label_he": "אזור תעשייה רבדים",
+    "value": "99A9BD732A4FA1F87AC299A1D7A329F5",
+    "id": "1407",
+    "areaid": 22,
+    "areaname": "لخيش",
+    "migun_time": 60
+  },
+  {
+    "label": "محطة قطار كريات ملآخي - يوآڤ",
+    "label_he": "תחנת רכבת קריית מלאכי - יואב",
+    "value": "A6AB97B7BD0B56F82CDC7BF7215A58E4",
+    "id": "1448",
+    "areaid": 22,
+    "areaname": "لخيش",
+    "migun_time": 60
+  },
+  {
+    "label": "مصنع اجريجاده",
+    "label_he": "מפעל אגריגדה",
+    "value": "111530DF075926880C25AB59C3618664",
+    "id": "1434",
+    "areaid": 22,
+    "areaname": "لخيش",
+    "migun_time": 60
+  },
+  {
+    "label": "المنطقة الصناعية طمرة",
+    "label_he": "אזור תעשייה טמרה",
+    "value": "304D3A4358A8CF2A2FBB0ADFAE5A6FEB",
+    "id": "1404",
+    "areaid": 23,
+    "areaname": "مركز الجليل",
+    "migun_time": 60
+  },
+  {
+    "label": "مفرق دبيراه",
+    "label_he": "צומת דבירה",
+    "value": "CB2A6FD232DC8A0B3E8BAD487458C980",
+    "id": "1442",
+    "areaid": 25,
+    "areaname": "مركز النقب",
+    "migun_time": 60
+  },
+  {
+    "label": "مفرق بنيامينا",
+    "label_he": "צומת בנימינה",
+    "value": "5175838EE24D9D17B48D1FC82CF8D150",
+    "id": "1441",
+    "areaid": 15,
+    "areaname": "مناشيه",
+    "migun_time": 60
+  },
+  {
+    "label": "المنطقة الصناعية رجم",
+    "label_he": "אזור תעשייה רגמ",
+    "value": "FF4F391EBCA091B06BB9449CE51AB3E0",
+    "id": "1408",
+    "areaid": 12,
+    "areaname": "هشفيلاه",
+    "migun_time": 90
+  },
+  {
+    "label": "موقف المسار السريع",
+    "label_he": "חניון הנתיב מהיר",
+    "value": "7CAE6C128EDC5B5659DCC7B0F99EA4E9",
+    "id": "1427",
+    "areaid": 12,
+    "areaname": "هشفيلاه",
+    "migun_time": 90
+  },
+  {
+    "label": "خوالد",
+    "label_he": "חוואלד",
+    "value": "B9EE89EBEBB0B0F4CDD207F7C1EEBA0E",
+    "id": "1415",
+    "areaid": 34,
+    "areaname": "هعماكيم",
+    "migun_time": 60
+  },
+  {
+    "label": "محطة القطار كفارباروخ",
+    "label_he": "תחנת רכבת כפר ברוך",
+    "value": "30ACE62C51E72D14A86BAE5C29B8B62A",
+    "id": "1447",
+    "areaid": 34,
+    "areaname": "هعماكيم",
+    "migun_time": 60
+  },
+  {
+    "label": "ناعورة",
+    "label_he": "נאעורה",
+    "value": "6495F3C9E43D06BD28EA7CBABE6E2C2B",
+    "id": "1438",
+    "areaid": 34,
+    "areaname": "هعماكيم",
+    "migun_time": 60
+  },
+  {
+    "label": "أبو نور",
+    "label_he": "אבו נוור",
+    "value": "97C5E0EC3970CB5413173E201664D9C3",
+    "id": "1400",
+    "areaid": 17,
+    "areaname": "يهودا",
+    "migun_time": 90
+  },
+  {
+    "label": "البارك الصناعي ميجدال عوز",
+    "label_he": "פארק תעשיות מגדל עוז",
+    "value": "A8A6C87EDFAEF23E23BBA50C0F09178E",
+    "id": "1440",
+    "areaid": 17,
+    "areaname": "يهودا",
+    "migun_time": 90
+  },
+  {
+    "label": "مفترق هاچوش",
+    "label_he": "צומת הגוש",
+    "value": "068CB277F9021CAC25D53BBEF9C6544C",
+    "id": "1444",
+    "areaid": 17,
+    "areaname": "يهودا",
+    "migun_time": 90
   }
 ]
