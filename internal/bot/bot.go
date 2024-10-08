@@ -219,6 +219,7 @@ func (b *Bot) Cleanup() {
 		b.dedupMutex.Lock()
 		for id, message := range b.dedup {
 			if message.Changed {
+				message.Prerender()
 				message.PatchPosts(b)
 			}
 			if message.IsExpired() {

@@ -13804,5 +13804,86 @@
     "areaname": "המפרץ",
     "label_he": "אזור תעשייה קריית ביאליק",
     "migun_time": 60
+  },
+  {
+    "label": "כפר יאסיף",
+    "value": "165CFB5E40474F7BBE3AD0FAC22331A0",
+    "id": "622",
+    "areaid": 6,
+    "areaname": "גליל עליון",
+    "label_he": "כפר יאסיף",
+    "migun_time": 30
+  },
+  {
+    "label": "טל - אל",
+    "value": "BEA75111D41FD1A25A343C9C4B0C0F01",
+    "id": "487",
+    "areaid": 6,
+    "areaname": "גליל עליון",
+    "label_he": "טל - אל",
+    "migun_time": 30
+  },
+  {
+    "label": "חיפה - מפרץ",
+    "value": "BB6FFE64EF1EB20509E4E4D5CA4E3718",
+    "id": "6016",
+    "areaid": 15,
+    "areaname": "מנשה",
+    "label_he": "חיפה - מפרץ",
+    "migun_time": 60
+  },
+  {
+    "label": "הר - חלוץ",
+    "value": "BE623FA5A62E2F43D863B0A19138CBA5",
+    "id": "398",
+    "areaid": 6,
+    "areaname": "גליל עליון",
+    "label_he": "הר - חלוץ",
+    "migun_time": 30
+  },
+  {
+    "label": "ינוח - ג'ת",
+    "value": "3010D8E01009E5DE3AC1E9079208A452",
+    "id": "521",
+    "areaid": 6,
+    "areaname": "גליל עליון",
+    "label_he": "ינוח - ג'ת",
+    "migun_time": 30
+  },
+  {
+    "label": "בת - ים",
+    "value": "D31C673C002642E5AFF253BD5ECCB95A",
+    "id": "266",
+    "areaid": 8,
+    "areaname": "דן",
+    "label_he": "בת - ים",
+    "migun_time": 90
+  },
+  {
+    "label": "יהוד - מונוסון",
+    "value": "CC8B89BA156F8C749E03A4472A829E99",
+    "id": "508",
+    "areaid": 8,
+    "areaname": "דן",
+    "label_he": "יהוד - מונוסון",
+    "migun_time": 90
+  },
+  {
+    "label": "סעייה - מולדה",
+    "value": "C509DA69B9D830D8AD3E9CB1F22F6FB1",
+    "id": "720",
+    "areaid": 9,
+    "areaname": "דרום הנגב",
+    "label_he": "סעייה - מולדה",
+    "migun_time": 90
+  },
+  {
+    "label": "בועיינה - נוג'ידאת",
+    "value": "597459A20EDFB1CA847EF1E39DBA79A5",
+    "id": "166",
+    "areaid": 23,
+    "areaname": "מרכז הגליל",
+    "label_he": "בועיינה - נוג'ידאת",
+    "migun_time": 60
   }
 ]
