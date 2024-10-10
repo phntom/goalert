@@ -80,7 +80,7 @@ func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update
 		text := m.(*tg.Message).GetMessage()
 		mlog.Info("IDF message", mlog.String("text", text))
 	} else {
-		mlog.Info("Unknown channel id", mlog.Any("channelId", channelId))
+		mlog.Debug("Unknown channel id", mlog.Any("channelId", channelId))
 	}
 	return nil
 }
