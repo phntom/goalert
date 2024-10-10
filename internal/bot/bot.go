@@ -150,34 +150,19 @@ func (b *Bot) AwaitMessage() {
 		if len(citiesNotFound) > 0 {
 			for _, channel := range b.channels {
 				post := message.PostForChannel(channel)
-				ctx, cancel := context.WithTimeout(context.Background(), postTimeout)
-				result, response, err := b.Client.CreatePost(ctx, post)
-				cancel()
+				result, err := executeSubmitPost(b, post, message, channel)
 				if err != nil {
-					mlog.Error("failed creating post",
-						mlog.Err(err),
-						mlog.Any("post", post),
-						mlog.Any("response", response),
-					)
 					return
 				}
-				message.PostMutex.Lock()
-				message.PostIDs = append(message.PostIDs, result.Id)
-				message.ChannelsPosted = append(message.ChannelsPosted, channel)
-				message.PostMutex.Unlock()
-				b.Monitoring.SuccessfulPosts.Inc()
 
-				// add a thumbs up reaction to the message
-				if message.Category != "" && message.Category != "rockets" {
-					emoji := message.Category + "-alert"
-					ctx, cancel = context.WithTimeout(context.Background(), postTimeout)
-					_, response, err = b.Client.SaveReaction(ctx, &model.Reaction{
-						UserId:    b.userId,
-						PostId:    result.Id,
-						EmojiName: emoji,
-					})
-					cancel()
-				}
+				go func() {
+					if message.Category != "" && message.Category != "rockets" {
+						emoji := message.Category + "-alert"
+						executeAddReaction(b, result, emoji)
+					}
+					time.Sleep(200 * time.Millisecond)
+					executePatchPost(b, post, result.Id)
+				}()
 			}
 		}
 	}
@@ -191,25 +176,7 @@ func (m *Message) PatchPosts(b *Bot) {
 	for i, postID := range postIDsCpy {
 		channel := channelsPostsCpy[i]
 		post := m.PostForChannel(channel)
-		//goland:noinspection GoDeprecation
-		patch := model.PostPatch{
-			Message: model.NewString(""),
-			Props:   &post.Props,
-		}
-		ctx, cancel := context.WithTimeout(context.Background(), postTimeout)
-		_, response, err := b.Client.PatchPost(ctx, postID, &patch)
-		cancel()
-		if err != nil {
-			mlog.Error("failed patching post",
-				mlog.Err(err),
-				mlog.Any("postID", postID),
-				mlog.Any("patch", patch),
-				mlog.Any("response", response),
-			)
-			b.Monitoring.FailedPatches.Inc()
-		} else {
-			b.Monitoring.SuccessfulPatches.Inc()
-		}
+		executePatchPost(b, post, postID)
 	}
 }
 
@@ -219,7 +186,7 @@ func (b *Bot) Cleanup() {
 		b.dedupMutex.Lock()
 		for id, message := range b.dedup {
 			if message.Changed {
-				message.Prerender()
+				message.Changed = false
 				message.PatchPosts(b)
 			}
 			if message.IsExpired() {

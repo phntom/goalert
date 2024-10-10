@@ -34,7 +34,7 @@ func NewMessage(instructions string, category string, safetySeconds int, pubDate
 		Cities:         nil,
 		RocketIDs:      make(map[string]bool),
 		Rendered:       make(map[config.Language]*model.Post, len(config.Languages)),
-		Expire:         time.Now().Add(time.Second * 90),
+		Expire:         time.Now().Add(max(time.Second*30, time.Duration(safetySeconds))),
 		PostMutex:      sync.Mutex{},
 		PostIDs:        nil,
 		ChannelsPosted: nil,

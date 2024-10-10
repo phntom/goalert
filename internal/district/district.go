@@ -109,7 +109,7 @@ func initDistricts() {
 					}
 					i++
 				}
-				mlog.Warn("Duplicate district ID", mlog.Any("district", district))
+				mlog.Warn("Duplicate district ID", mlog.Any("district", district), mlog.String("newID", string(district.ID)))
 			}
 			d[district.ID] = district
 			districtLookup[district.SettlementName] = district.ID
