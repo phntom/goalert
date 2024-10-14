@@ -13419,8 +13419,8 @@
     "migun_time": 30
   },
   {
-    "label": "צפת",
-    "label_he": "צפת",
+    "label": "צפת - עיר",
+    "label_he": "צפת - עיר",
     "value": "338C321A340340DD3E702340D479FF4C",
     "id": "6101",
     "areaid": 6,
@@ -13912,5 +13912,41 @@
     "areaname": "גליל עליון",
     "label_he": "ינוח ג'ת",
     "migun_time": 30
+  },
+  {
+    "label": "הר חלוץ",
+    "value": "BE623FA5A62E2F43D863B0A19138CBA5",
+    "id": "398",
+    "areaid": 6,
+    "areaname": "גליל עליון",
+    "label_he": "הר חלוץ",
+    "migun_time": 30
+  },
+  {
+    "label": "ערב אל נעים",
+    "value": "DA1FD18AB6E95FD8D287187097390E2A",
+    "id": "1037",
+    "areaid": 23,
+    "areaname": "מרכז הגליל",
+    "label_he": "ערב אל נעים",
+    "migun_time": 30
+  },
+  {
+    "label": "מצוק עורבים",
+    "label_he": "מצוק עורבים",
+    "value": "67CFEF849E7A9C1F02EA78668ADF1FF4",
+    "id": "1435",
+    "areaid": 2,
+    "areaname": "גולן צפון",
+    "migun_time": 15
+  },
+  {
+    "label": "שדרות, איבים",
+    "value": "C5FD35F7510C4E1D535EDD8DE05A7961",
+    "id": "909",
+    "areaid": 26,
+    "areaname": "עוטף עזה",
+    "label_he": "שדרות, איבים",
+    "migun_time": 15
   }
 ]
