@@ -13885,5 +13885,32 @@
     "areaname": "מרכז הגליל",
     "label_he": "בועיינה - נוג'ידאת",
     "migun_time": 60
+  },
+  {
+    "label": "קדימה צורן",
+    "value": "07361CA5B75BB12192E6B2A3C05A5EB5",
+    "id": "1097",
+    "areaid": 27,
+    "areaname": "שרון",
+    "label_he": "קדימה צורן",
+    "migun_time": 90
+  },
+  {
+    "label": "חיפה - כרמל, הדר ועיר תחתית",
+    "value": "BB6FFE64EF1EB20509E4E4D5CA4E3718",
+    "id": "6014",
+    "areaid": 15,
+    "areaname": "מנשה",
+    "label_he": "חיפה - כרמל, הדר ועיר תחתית",
+    "migun_time": 60
+  },
+  {
+    "label": "ינוח ג'ת",
+    "value": "3010D8E01009E5DE3AC1E9079208A452",
+    "id": "521",
+    "areaid": 6,
+    "areaname": "גליל עליון",
+    "label_he": "ינוח ג'ת",
+    "migun_time": 30
   }
 ]

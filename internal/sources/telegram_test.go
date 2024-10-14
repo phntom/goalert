@@ -23,7 +23,7 @@ func Test_processMessage(t *testing.T) {
 	}{
 		{
 			name: "Valid message",
-			now:  time.Date(2024, 10, 10, 8, 19, 0, 0, time.UTC),
+			now:  time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 8, 19, 0, 0, time.UTC),
 			text: `🚨 ירי רקטות וטילים [10/10/2024] 11:19
 
 אזור קו העימות
@@ -35,7 +35,7 @@ func Test_processMessage(t *testing.T) {
 		},
 		{
 			name: "Expired message",
-			now:  time.Date(2024, 10, 10, 8, 22, 0, 0, time.UTC),
+			now:  time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 8, 22, 0, 0, time.UTC),
 			text: `🚨 ירי רקטות וטילים [10/10/2024] 11:19
 
 אזור קו העימות
