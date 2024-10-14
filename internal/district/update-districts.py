@@ -120,5 +120,11 @@ for lang in ('he', 'en', 'ru', 'ar'):
                 print(json.dumps(version2, ensure_ascii=False, indent=2))
         check_dups[check] = district
 
+    fix_data_dedup = set()
+    for district in fix_data:
+        fix_data_dedup.add(json.dumps(district, ensure_ascii=False, sort_keys=True, indent=2))
+
+    fix_data = [json.loads(district) for district in fix_data_dedup]
+
     with open(f"districts.{lang}.json", 'w', encoding='utf-8') as file:
         json.dump(fix_data, file, ensure_ascii=False, indent=2)
