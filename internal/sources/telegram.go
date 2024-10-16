@@ -93,7 +93,12 @@ func processMessage(text string, districts district.Districts, now time.Time, b 
 
 	err := checkExpired(pubDate, text, now)
 	if err != nil {
-		return err
+		if strings.Contains(text, "האירוע הסתיים") {
+			msg := bot.NewMessage("uav_event_over", "", 0, "")
+			b.SubmitMessage(&msg)
+		} else {
+			return err
+		}
 	}
 
 	mlog.Info("Channel message", mlog.String("text", text), mlog.Any("cities", cities))

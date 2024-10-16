@@ -90,9 +90,16 @@ func (s *SourceYnet) Parse(content []byte) []*bot.Message {
 			)
 			continue
 		}
+		category := ""
+		if strings.Contains(item.Item.Description, "אלא אם ניתנה התרעה נוספת") {
+			category = "uav"
+		} else if item.Item.Description == "היכנסו למרחב המוגן ושהו בו 10 דקות" {
+			category = "rockets"
+		}
 		instructions := "instructions"
 		if strings.Contains(item.Item.Description, "נעלו") {
 			instructions = "lockdown"
+			category = "infiltration"
 		} else if strings.Contains(item.Item.Description, "תרגיל") {
 			mlog.Warn("drill",
 				mlog.Any("item", item),
@@ -102,7 +109,7 @@ func (s *SourceYnet) Parse(content []byte) []*bot.Message {
 			continue
 		}
 		cityObj := districts["he"][districtID]
-		msg := bot.NewMessage(instructions, "", cityObj.SafetyBufferSeconds, item.Item.Time)
+		msg := bot.NewMessage(instructions, category, cityObj.SafetyBufferSeconds, item.Item.Time)
 		msg.RocketIDs[item.Item.Guid] = true
 		hash := msg.GetHash()
 		if _, ok := dedup[hash]; !ok {

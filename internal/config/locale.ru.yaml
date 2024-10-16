@@ -12,6 +12,7 @@ subdivision:
 message:
   instructions: "{1}{2}{3} убежище"
   lockdown: Войдите в здание, заприте двери и закройте окна
+  uav_event_over: Завершение инцидента нарушения воздушного пространства
   secondsPrefix: "У вас "
   secondsSuffix: " секунд, чтобы найти"
   immediate: Немедленно найдите

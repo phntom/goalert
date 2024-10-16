@@ -156,9 +156,12 @@ func (b *Bot) AwaitMessage() {
 				}
 
 				go func() {
-					if message.Category != "" && message.Category != "rockets" {
+					if message.Category == "uav" || message.Category == "infiltration" {
 						emoji := message.Category + "-alert"
 						executeAddReaction(b, result, emoji)
+					}
+					if message.Category != "" && message.Category != "rockets" {
+
 					}
 					time.Sleep(200 * time.Millisecond)
 					executePatchPost(b, post, result.Id)

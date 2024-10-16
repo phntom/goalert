@@ -75,9 +75,11 @@ func (m *Message) IsExpired() bool {
 }
 
 func (m *Message) PatchData(n *Message) bool {
-	if m.Category == "" && n.Category != "" {
-		// m is ynet, n is oref, should patch title
+	if n.Category != "" && m.Category != n.Category {
 		m.Category = n.Category
+		m.Changed = true
+	}
+	if n.Instructions != "" && m.Instructions != n.Instructions {
 		m.Instructions = n.Instructions
 		m.Changed = true
 	}

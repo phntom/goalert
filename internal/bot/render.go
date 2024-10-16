@@ -50,6 +50,8 @@ func Render(msg *Message, lang config.Language) *model.Post {
 	urgent := "urgent"
 	if msg.Category == "lockdown" || msg.Category == "biohazard" {
 		urgent = "important"
+	} else if msg.Instructions == "uav_event_over" {
+		urgent = ""
 	}
 	//goland:noinspection GoDeprecation
 	return &model.Post{

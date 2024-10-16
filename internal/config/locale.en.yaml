@@ -9,6 +9,7 @@ subdivision:
 message:
   instructions: "{1}{2}{3} seek shelter"
   lockdown: Enter a building, lock the doors and close the windows
+  uav_event_over: Hostile aircraft incursion event over
   secondsPrefix: "You have "
   secondsSuffix: " seconds to"
   immediate: Immediately
