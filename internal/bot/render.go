@@ -52,6 +52,7 @@ func Render(msg *Message, lang config.Language) *model.Post {
 		urgent = "important"
 	} else if msg.Instructions == "uav_event_over" {
 		urgent = ""
+		text = ""
 	}
 	//goland:noinspection GoDeprecation
 	return &model.Post{

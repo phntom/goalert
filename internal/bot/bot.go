@@ -136,7 +136,14 @@ func (b *Bot) SubmitMessage(m *Message) {
 func (b *Bot) AwaitMessage() {
 	for message := range b.alertFeed {
 		if len(message.Cities) == 0 {
-			mlog.Warn("invalid message no cities", mlog.Any("message", message))
+			mlog.Warn("no cities", mlog.Any("message", message))
+			for _, channel := range b.channels {
+				post := message.PostForChannel(channel)
+				_, err := executeSubmitPost(b, post, message, channel)
+				if err != nil {
+					return
+				}
+			}
 			continue
 		}
 		msgsToPatch, citiesNotFound := b.GetPrevMsgs(message)
