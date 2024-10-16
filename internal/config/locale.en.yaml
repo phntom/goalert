@@ -9,6 +9,7 @@ subdivision:
 message:
   instructions: "{1}{2}{3} seek shelter"
   lockdown: Enter a building, lock the doors and close the windows
+  uav_instructions: Following the entry of a suspicious aircraft, you must enter the protected space and remain there until the event is over
   uav_event_over: Hostile aircraft incursion event over
   secondsPrefix: "You have "
   secondsSuffix: " seconds to"

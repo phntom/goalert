@@ -92,6 +92,8 @@ func (s *SourceOref) Parse(content []byte) []*bot.Message {
 		instructions := "instructions"
 		if category == "infiltration" || category == "radiological" || category == "biohazard" {
 			instructions = "lockdown"
+		} else if category == "uav" {
+			instructions = "uav_instructions"
 		}
 		msg := bot.NewMessage(instructions, category, cityObj.SafetyBufferSeconds, calculatePubTime(alerts.ID))
 		hash := msg.GetHash()

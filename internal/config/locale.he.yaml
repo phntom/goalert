@@ -18,6 +18,7 @@ ynet:
 message:
   instructions: "{1}{2}{3} היכנסו למרחב המוגן"
   lockdown: היכנסו למבנה, נעלו את הדלתות וסגרו את החלונות
+  uav_instructions: בעקבות כניסת כלי טיס החשוד כעוין יש להיכנס למרחב המוגן ולהישאר בו עד סיום האירוע
   uav_event_over: סיום אירוע חדירת כלי טיס עוין
   secondsPrefix: "תוך "
   secondsSuffix: " שניות"

@@ -113,6 +113,8 @@ func processMessage(text string, districts district.Districts, now time.Time, b 
 	instructions := "instructions"
 	if category == "infiltration" || category == "radiological" || category == "biohazard" {
 		instructions = "lockdown"
+	} else if category == "uav" {
+		instructions = "uav_instructions"
 	}
 	for _, cityName := range cities {
 		districtID := district.GetDistrictByCity(cityName)

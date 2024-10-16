@@ -91,13 +91,13 @@ func (s *SourceYnet) Parse(content []byte) []*bot.Message {
 			continue
 		}
 		category := ""
+		instructions := "instructions"
 		if strings.Contains(item.Item.Description, "אלא אם ניתנה התרעה נוספת") {
 			category = "uav"
+			instructions = "uav_instructions"
 		} else if item.Item.Description == "היכנסו למרחב המוגן ושהו בו 10 דקות" {
 			category = "rockets"
-		}
-		instructions := "instructions"
-		if strings.Contains(item.Item.Description, "נעלו") {
+		} else if strings.Contains(item.Item.Description, "נעלו") {
 			instructions = "lockdown"
 			category = "infiltration"
 		} else if strings.Contains(item.Item.Description, "תרגיל") {
