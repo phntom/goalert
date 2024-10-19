@@ -57,7 +57,7 @@ func FetchSource(client *http.Client, url string, sourceName string, referrer st
 	}
 
 	if err != nil {
-		mlog.Error("Failed fetching ynet", mlog.Err(err))
+		mlog.Error("Failed fetching "+sourceName, mlog.Err(err))
 		return nil
 	}
 

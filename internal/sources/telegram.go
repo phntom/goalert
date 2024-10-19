@@ -9,6 +9,7 @@ import (
 	"github.com/gotd/td/telegram/updates"
 	updhook "github.com/gotd/td/telegram/updates/hook"
 	"github.com/gotd/td/tg"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/phntom/goalert/internal/bot"
 	"github.com/phntom/goalert/internal/district"
@@ -78,7 +79,18 @@ func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update
 		}
 	} else if channelId == 1155294424 { // idf_telegram
 		text := m.(*tg.Message).GetMessage()
-		mlog.Info("IDF message", mlog.String("text", text))
+		important := false
+		if strings.Contains(text, "התרע") || strings.Contains(text, "פיגוע") {
+			important = true
+		}
+		mlog.Info("IDF message", mlog.String("text", text), mlog.Bool("important", important))
+		post := model.Post{
+			Message: text,
+		}
+		if important {
+			post.Metadata.Priority.Priority = model.NewString("important")
+		}
+		s.Bot.DirectMessage(&post, "he")
 	} else {
 		mlog.Debug("Unknown channel id", mlog.Any("channelId", channelId))
 	}

@@ -18,10 +18,12 @@ func executeSubmitPost(b *Bot, post *model.Post, message *Message, channel *mode
 		)
 		return nil, err
 	}
-	message.PostMutex.Lock()
-	message.PostIDs = append(message.PostIDs, result.Id)
-	message.ChannelsPosted = append(message.ChannelsPosted, channel)
-	message.PostMutex.Unlock()
+	if message != nil {
+		message.PostMutex.Lock()
+		message.PostIDs = append(message.PostIDs, result.Id)
+		message.ChannelsPosted = append(message.ChannelsPosted, channel)
+		message.PostMutex.Unlock()
+	}
 	b.Monitoring.SuccessfulPosts.Inc()
 	return result, err
 }

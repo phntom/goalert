@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/phntom/goalert/internal/config"
 	"github.com/phntom/goalert/internal/district"
 	"github.com/phntom/goalert/internal/monitoring"
 	"os"
@@ -217,4 +218,15 @@ func (b *Bot) UpdateMonitor(m *Message) {
 		regions[districts["he"][city].AreaName] = true
 	}
 	b.Monitoring.RegionsHistogram.Observe(float64(len(districts)))
+}
+
+func (b *Bot) DirectMessage(post *model.Post, language config.Language) {
+	for _, channel := range b.channels {
+		if ChannelToLanguage(channel) == language {
+			_, err := executeSubmitPost(b, post, nil, channel)
+			if err != nil {
+				return
+			}
+		}
+	}
 }
