@@ -221,11 +221,18 @@ func (b *Bot) UpdateMonitor(m *Message) {
 }
 
 func (b *Bot) DirectMessage(post *model.Post, language config.Language) {
+	if b.channels == nil {
+		mlog.Error("No channels available for direct messaging")
+		return
+	}
+
 	for _, channel := range b.channels {
 		if ChannelToLanguage(channel) == language {
+			post.ChannelId = channel.Id
 			_, err := executeSubmitPost(b, post, nil, channel)
 			if err != nil {
-				return
+				mlog.Error("Failed to submit post", mlog.Err(err))
+				continue
 			}
 		}
 	}

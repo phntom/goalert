@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/phntom/goalert/internal/bot"
 	"github.com/phntom/goalert/internal/district"
+	"log"
 	"os"
 	"regexp"
 	"strings"
@@ -63,22 +64,47 @@ func (s *SourceTelegram) Parse(content []byte) []bot.Message {
 }
 
 func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update *tg.UpdateNewChannelMessage) error {
-	districts := district.GetDistricts()
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("Recovered from panic: %v", r)
+		}
+	}()
+
+	if update == nil {
+		log.Println("Update is nil")
+		return nil
+	}
+
 	m, ok := update.Message.AsNotEmpty()
 	if !ok {
 		return nil
 	}
+
 	peer := m.GetPeerID()
-	channelId := peer.(*tg.PeerChannel).ChannelID
-	if channelId == 1441886157 { // pikudhaoref_all
-		text := m.(*tg.Message).GetMessage()
+	if peer == nil {
+		log.Println("Peer is nil")
+		return nil
+	}
+
+	channelId, ok := peer.(*tg.PeerChannel)
+	if !ok {
+		log.Println("Peer is not a channel")
+		return nil
+	}
+
+	text := m.(*tg.Message).GetMessage()
+	text = strings.Trim(text, " \n\t")
+	if text == "" {
+		return nil
+	}
+
+	if channelId.ChannelID == 1441886157 { // pikudhaoref_all
 		now := time.Now()
-		err := processMessage(text, districts, now, s.Bot)
+		err := processMessage(text, district.GetDistricts(), now, s.Bot)
 		if err != nil {
 			return err
 		}
-	} else if channelId == 1155294424 { // idf_telegram
-		text := m.(*tg.Message).GetMessage()
+	} else if channelId.ChannelID == 1155294424 { // idf_telegram
 		important := false
 		if strings.Contains(text, "התרע") || strings.Contains(text, "פיגוע") {
 			important = true
@@ -88,11 +114,11 @@ func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update
 			Message: text,
 		}
 		if important {
-			post.Metadata.Priority.Priority = model.NewString("important")
+			// post.Metadata.Priority.Priority = model.NewString("important")
+			s.Bot.DirectMessage(&post, "he")
 		}
-		s.Bot.DirectMessage(&post, "he")
 	} else {
-		mlog.Debug("Unknown channel id", mlog.Any("channelId", channelId))
+		mlog.Debug("Unknown channel id", mlog.Any("channelId", channelId.ChannelID))
 	}
 	return nil
 }
