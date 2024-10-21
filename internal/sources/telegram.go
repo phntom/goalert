@@ -106,7 +106,7 @@ func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update
 		}
 	} else if channelId.ChannelID == 1155294424 { // idf_telegram
 		important := false
-		if strings.Contains(text, "התרע") || strings.Contains(text, "פיגוע") {
+		if strings.Contains(text, "התרע") || strings.Contains(text, "פיגוע") || strings.Contains(text, "יירט") || strings.Contains(text, "מדיניות") || strings.Contains(text, "הנחיות") {
 			important = true
 		}
 		mlog.Info("IDF message", mlog.String("text", text), mlog.Bool("important", important))
