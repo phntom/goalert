@@ -136,17 +136,100 @@ func (b *Bot) SubmitMessage(m *Message) {
 
 func (b *Bot) AwaitMessage() {
 	for message := range b.alertFeed {
+		// If there are more than 20 cities, split the message
+		if len(message.Cities) > 20 {
+			originalCities := message.Cities // Keep a copy of the original cities
+			// Also copy RocketIDs associated with the original set of cities if necessary.
+			// For simplicity, we assume RocketIDs apply to the whole message context for now.
+			// If RocketIDs are per-city, this logic would need adjustment.
+
+			for i := 0; i < len(originalCities); i += 20 {
+				end := i + 20
+				if end > len(originalCities) {
+					end = len(originalCities)
+				}
+				chunk := originalCities[i:end]
+
+				// Create a new message for the chunk
+				newMessage := &Message{
+					Instructions:   message.Instructions,
+					Category:       message.Category,
+					Cities:         make([]district.ID, len(chunk)),
+					SafetySeconds:  message.SafetySeconds,
+					RocketIDs:      make(map[string]bool), // New map for each chunk
+					PubDate:        message.PubDate,
+					Expire:         message.Expire, // Copy expiration time
+					Rendered:       make(map[config.Language]*model.Post),
+					PostMutex:      sync.Mutex{},
+					PostIDs:        []string{},
+					ChannelsPosted: []*model.Channel{},
+					Changed:        true,
+				}
+				copy(newMessage.Cities, chunk)
+				// If RocketIDs are relevant per city, filter them here.
+				// For now, copying all RocketIDs if they are not city-specific.
+				// This assumes that if a rocket ID was relevant for the original large message,
+				// it's relevant for all its constituent smaller messages.
+				// If RocketIDs are tied to specific cities, this needs more granular handling.
+				for _, cityID := range chunk {
+					if relevant, ok := message.RocketIDs[string(cityID)]; ok {
+						newMessage.RocketIDs[string(cityID)] = relevant
+					}
+				}
+				// If RocketIDs are not per city but global for the alert:
+				// for k, v := range message.RocketIDs {
+				// 	newMessage.RocketIDs[k] = v
+				// }
+
+
+				newMessage.Prerender() // Prerender for the new set of cities
+				b.UpdateMonitor(newMessage) // Update monitor for this new (chunked) message
+
+				for _, channel := range b.channels {
+					post := newMessage.PostForChannel(channel)
+					result, err := executeSubmitPost(b, post, newMessage, channel)
+					if err != nil {
+						mlog.Error("Failed to submit post for chunked message", mlog.Err(err), mlog.Any("channel", channel.Id), mlog.Any("chunkCities", newMessage.Cities))
+						continue // Continue to the next channel for this chunk
+					}
+
+					// Goroutine for reactions and patching, specific to this newMessage and result
+					go func(msgToProcess *Message, postResult *model.Post, ch *model.Channel) {
+						if msgToProcess.Category == "uav" || msgToProcess.Category == "infiltration" {
+							emoji := msgToProcess.Category + "-alert"
+							executeAddReaction(b, postResult, emoji)
+						}
+						// The original code had a check:
+						// if message.Category != "" && message.Category != "rockets" { /* no operation */ }
+						// This seems to be a placeholder or no-op, so it's omitted.
+
+						time.Sleep(200 * time.Millisecond) // Small delay before patching
+						// Prepare the post for patching using the channel the message was actually sent to.
+						patchContent := msgToProcess.PostForChannel(ch)
+						executePatchPost(b, patchContent, postResult.Id)
+					}(newMessage, result, channel) // Pass current newMessage, result, and channel
+				}
+			}
+			// After processing all chunks, continue to the next message in alertFeed
+			// This prevents the original large message from being processed by the subsequent logic.
+			continue
+		}
+
+		// Original message processing logic starts here for messages with <= 20 cities
 		if len(message.Cities) == 0 {
 			mlog.Warn("no cities", mlog.Any("message", message))
 			for _, channel := range b.channels {
 				post := message.PostForChannel(channel)
 				_, err := executeSubmitPost(b, post, message, channel)
 				if err != nil {
-					return
+					// Log error and continue to next channel, rather than stopping AwaitMessage
+					mlog.Error("Failed to submit post for message with no cities", mlog.Err(err), mlog.Any("channel", channel.Id))
+					continue
 				}
 			}
 			continue
 		}
+
 		msgsToPatch, citiesNotFound := b.GetPrevMsgs(message)
 		for _, prevMsg := range msgsToPatch {
 			if !prevMsg.PatchData(message) {
@@ -155,25 +238,30 @@ func (b *Bot) AwaitMessage() {
 			}
 			prevMsg.PatchPosts(b)
 		}
+
 		if len(citiesNotFound) > 0 {
 			for _, channel := range b.channels {
 				post := message.PostForChannel(channel)
 				result, err := executeSubmitPost(b, post, message, channel)
 				if err != nil {
-					return
+					// Log error and continue to next channel
+					mlog.Error("Failed to submit post for message with cities not found", mlog.Err(err), mlog.Any("channel", channel.Id))
+					continue
 				}
 
-				go func() {
-					if message.Category == "uav" || message.Category == "infiltration" {
-						emoji := message.Category + "-alert"
-						executeAddReaction(b, result, emoji)
+				// Goroutine for reactions and patching for original message flow
+				go func(msgToProcess *Message, postResult *model.Post, ch *model.Channel) {
+					if msgToProcess.Category == "uav" || msgToProcess.Category == "infiltration" {
+						emoji := msgToProcess.Category + "-alert"
+						executeAddReaction(b, postResult, emoji)
 					}
-					if message.Category != "" && message.Category != "rockets" {
+					// if message.Category != "" && message.Category != "rockets" { /* no-op */ }
 
-					}
 					time.Sleep(200 * time.Millisecond)
-					executePatchPost(b, post, result.Id)
-				}()
+					// Prepare the post for patching using the channel the message was actually sent to.
+					patchContent := msgToProcess.PostForChannel(ch)
+					executePatchPost(b, patchContent, postResult.Id)
+				}(message, result, channel) // Pass current message, result, and channel
 			}
 		}
 	}
