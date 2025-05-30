@@ -18,11 +18,12 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"fmt" // Added for formatting
 )
 
 // Regular expression to match city names followed by duration in parentheses
 var extractCityNamesRe = regexp.MustCompile(`\n(.*?) *\((\d+ שניות|מיידי)\)`)
-var extractPubTimeRe = regexp.MustCompile(`\[[^\]]+\] (\d{1,2}:\d{2})`)
+var extractPubTimeRe = regexp.MustCompile(`\((\d{1,2}/\d{1,2}/\d{4})\) (\d{1,2}:\d{2})`)
 
 type SourceTelegram struct {
 	Bot    *bot.Bot
@@ -178,10 +179,10 @@ func processMessage(text string, districts district.Districts, now time.Time, b 
 
 func checkExpired(pubDate string, text string, now time.Time) error {
 	location, _ := time.LoadLocation("Asia/Jerusalem")
-	currentDate := time.Now().In(location).Format("2006-01-02")
-	parsedPubDate, err := time.ParseInLocation("2006-01-02 15:04", currentDate+" "+pubDate, location)
+	// currentDate := time.Now().In(location).Format("2006-01-02") // Not needed anymore as date is in pubDate
+	parsedPubDate, err := time.ParseInLocation("02/01/2006 15:04", pubDate, location)
 	if err != nil {
-		mlog.Error("Error parsing pubDate", mlog.Any("Message", text), mlog.Err(err))
+		mlog.Error("Error parsing pubDate", mlog.Any("Message", text), mlog.String("pubDate", pubDate), mlog.Err(err))
 		return err
 	}
 
@@ -233,8 +234,22 @@ func extractCityNames(text string) []string {
 
 func extractPubTime(text string) string {
 	res := extractPubTimeRe.FindStringSubmatch(text)
-	if len(res) == 2 {
-		return res[1]
+	if len(res) == 3 { // Expect 3 parts: full match, date (DD/MM/YYYY), and time (HH:MM)
+		dateParts := strings.Split(res[1], "/")
+		if len(dateParts) == 3 {
+			day := dateParts[0]
+			month := dateParts[1]
+			year := dateParts[2]
+
+			if len(day) == 1 {
+				day = "0" + day
+			}
+			if len(month) == 1 {
+				month = "0" + month
+			}
+			formattedDate := fmt.Sprintf("%s/%s/%s", day, month, year)
+			return formattedDate + " " + res[2] // Combine formatted date and time
+		}
 	}
 	return ""
 }
