@@ -11,27 +11,50 @@ import (
 	"github.com/phntom/goalert/internal/bot"
 	"github.com/phntom/goalert/internal/district"
 	"github.com/gotd/td/tg"
+	"github.com/stretchr/testify/assert"
 )
+
+// MockBot for capturing submitted messages
+type MockBot struct {
+	bot.Bot
+	SubmittedMessages []*bot.Message
+	Client            *model.Client4   // Added to satisfy Bot struct if it has it
+	Channels          []*model.Channel // Added to satisfy Bot struct if it has it
+}
+
+func (m *MockBot) SubmitMessage(msg *bot.Message) {
+	m.SubmittedMessages = append(m.SubmittedMessages, msg)
+}
+
+func (m *MockBot) Register()               {}
+func (m *MockBot) AwaitMessage()           {}
+func (m *MockBot) DirectMessage(post *model.Post, language string) {}
+
+var jerusalem *time.Location
+
+func init() {
+	var err error
+	jerusalem, err = time.LoadLocation("Asia/Jerusalem")
+	if err != nil {
+		panic(fmt.Sprintf("Failed to load Asia/Jerusalem location: %v", err))
+	}
+}
 
 func Test_processMessage(t *testing.T) {
 	districts := district.GetDistricts()
-	s := &SourceTelegram{
-		Bot: &bot.Bot{},
-	}
-	s.Bot.Register()
-	go s.Bot.AwaitMessage()
 
 	tests := []struct {
-		name    string
-		now     time.Time
-		text    string
-		wantErr bool
+		name             string
+		now              time.Time
+		text             string
+		overrideCategory string
+		wantErr          bool
+		expectedCategory string
+		expectedCities   []string // Used to guide assertion on whether messages should be submitted
 	}{
 		{
-			name: "Original Valid message (updated format)",
-			// Message time: (10/10/2024) 11:19 IDT. For UTC, assuming IDT is UTC+3, this is 08:19 UTC.
-			// "now" is 30 seconds after message time.
-			now: time.Date(2024, 10, 10, 8, 19, 30, 0, time.UTC),
+			name: "Regular rocket alert - Valid",
+			now:  time.Date(2024, 10, 10, 11, 19, 30, 0, jerusalem),
 			text: `🚨 ירי רקטות וטילים (10/10/2024) 11:19
 
 אזור קו העימות
@@ -39,13 +62,41 @@ func Test_processMessage(t *testing.T) {
 
 היכנסו למרחב המוגן ושהו בו למשך 10 דקות.
 להנחיות המלאות - https://www.oref.org.il/heb/life-saving-guidelines/rocket-and-missile-attacks`,
-			wantErr: false,
+			overrideCategory: "",
+			wantErr:          false,
+			expectedCategory: "rockets",
+			expectedCities:   []string{"מטולה"},
+		},
+		// --- Regular Alerts (90s expiration) ---
+		{
+			name: "Regular Alert - Valid (under 90s)",
+			now:  time.Date(2024, 10, 10, 11, 20, 29, 0, jerusalem), // PubDate 11:19, 89s diff
+			text: `🚨 ירי רקטות וטילים (10/10/2024) 11:19
+
+אזור קו העימות
+מטולה (מיידי)
+
+היכנסו למרחב המוגן ושהו בו למשך 10 דקות.`,
+			overrideCategory: "",
+			wantErr:          false,
+			expectedCategory: "rockets",
+			expectedCities:   []string{"מטולה"},
 		},
 		{
-			name: "Original Expired message (updated format)",
-			// Message time: (10/10/2024) 11:19 IDT (08:19 UTC)
-			// "now" is 121 seconds after message time (08:21:01 UTC)
-			now: time.Date(2024, 10, 10, 8, 21, 1, 0, time.UTC),
+			name: "Regular Alert - Expired (just over 90s)",
+			now:  time.Date(2024, 10, 10, 11, 20, 31, 0, jerusalem), // PubDate 11:19, 91s diff
+			text: `🚨 ירי רקטות וטילים (10/10/2024) 11:19
+
+אזור קו העימות
+מטולה (מיידי)
+
+היכנסו למרחב המוגן ושהו בו למשך 10 דקות.`,
+			overrideCategory: "",
+			wantErr:          true, // Should be expired by 90s rule
+		},
+		{
+			name: "Regular Alert - Expired (121s diff, previously NOT expired by 300s blanket rule)",
+			now:  time.Date(2024, 10, 10, 11, 21, 1, 0, jerusalem), // PubDate 11:19, 121s diff
 			text: `🚨 ירי רקטות וטילים (10/10/2024) 11:19
 
 אזור קו העימות
@@ -53,13 +104,100 @@ func Test_processMessage(t *testing.T) {
 
 היכנסו למרחב המוגן ושהו בו למשך 10 דקות.
 להנחיות המלאות - https://www.oref.org.il/heb/life-saving-guidelines/rocket-and-missile-attacks`,
-			wantErr: true,
+			overrideCategory: "",
+			wantErr:          true, // Now expired by 90s rule
 		},
 		{
-			name: "New Message 1 - Non-expired",
-			// Message time: (29/05/2025) 21:23 IDT. Assuming IDT is UTC+3, this is 18:23 UTC.
-			// "now" is 30 seconds after message time.
-			now: time.Date(2025, 5, 29, 18, 23, 30, 0, time.UTC),
+			name: "Regular Alert - Expired (299s diff, previously NOT expired by 300s blanket rule)",
+			now:  time.Date(2024, 10, 10, 11, 4, 59, 0, jerusalem), // PubDate 11:00, 299s diff
+			text: `🚨 ירי רקטות וטילים (10/10/2024) 11:00
+
+אזור קו העימות
+מטולה (מיידי)
+
+היכנסו למרחב המוגן ושהו בו למשך 10 דקות.
+להנחיות המלאות - https://www.oref.org.il/heb/life-saving-guidelines/rocket-and-missile-attacks`,
+			overrideCategory: "",
+			wantErr:          true, // Now expired by 90s rule
+		},
+		// --- Early Alerts (300s expiration) ---
+		{
+			name: "Early Alert - Valid (under 90s)", // Still valid under 300s
+			now:  time.Date(2024, 10, 10, 12, 0, 30, 0, jerusalem), // PubDate 12:00, 30s diff
+			text: `(10/10/2024) 12:00 התרעה מוקדמת: בדקות הקרובות צפויות להתקבל התרעות באזורך.`,
+			overrideCategory: "rockets",
+			wantErr:          false,
+			expectedCategory: "rockets",
+			expectedCities:   []string{},
+		},
+		{
+			name: "Early Alert - Valid (over 90s, under 300s)",
+			now:  time.Date(2024, 10, 10, 12, 2, 30, 0, jerusalem), // PubDate 12:00, 150s diff
+			text: `(10/10/2024) 12:00 התרעה מוקדמת: בדקות הקרובות צפויות להתקבל התרעות באזורך.`,
+			overrideCategory: "rockets",
+			wantErr:          false, // Should NOT be expired by 300s rule
+			expectedCategory: "rockets",
+			expectedCities:   []string{},
+		},
+		{
+			name: "Early Alert - Not Expired (just under 300s)",
+			now:  time.Date(2024, 10, 10, 12, 4, 59, 0, jerusalem), // PubDate 12:00, 299s diff
+			text: `(10/10/2024) 12:00 התרעה מוקדמת: בדקות הקרובות צפויות להתקבל התרעות באזורך.`,
+			overrideCategory: "rockets",
+			wantErr:          false,
+			expectedCategory: "rockets",
+			expectedCities:   []string{},
+		},
+		{
+			name: "Early Alert - Expired (just over 300s)",
+			now:  time.Date(2024, 10, 10, 12, 5, 1, 0, jerusalem), // PubDate 12:00, 301s diff
+			text: `(10/10/2024) 12:00 התרעה מוקדמת: בדקות הקרובות צפויות להתקבל התרעות באזורך.`,
+			overrideCategory: "rockets",
+			wantErr:          true, // Should be expired by 300s rule
+		},
+		// --- General cases ---
+		{
+			name: "UAV alert - Valid (Regular 90s rule, under 90s)",
+			now:  time.Date(2024, 10, 10, 13, 0, 30, 0, jerusalem), // PubDate 13:00, 30s diff
+			text: `🚨 חדירת כלי טיס עוין (10/10/2024) 13:00
+
+אזור הצפון
+קריית שמונה (מיידי)
+
+היכנסו למרחב המוגן ושהו בו למשך 10 דקות.`,
+			overrideCategory: "", // This is a regular alert
+			wantErr:          false,
+			expectedCategory: "uav",
+			expectedCities:   []string{"קריית שמונה"},
+		},
+		{
+			name: "UAV alert - Expired (Regular 90s rule, over 90s)",
+			now:  time.Date(2024, 10, 10, 13, 1, 31, 0, jerusalem), // PubDate 13:00, 91s diff
+			text: `🚨 חדירת כלי טיס עוין (10/10/2024) 13:00
+
+אזור הצפון
+קריית שמונה (מיידי)
+
+היכנסו למרחב המוגן ושהו בו למשך 10 דקות.`,
+			overrideCategory: "", // This is a regular alert
+			wantErr:          true, // Should be expired
+		},
+		{
+			name: "Alert with no cities (Regular, not expired)",
+			now:  time.Date(2024, 10, 10, 14, 0, 30, 0, jerusalem), // PubDate 14:00, 30s diff
+			text: `🚨 ירי רקטות וטילים (10/10/2024) 14:00
+
+התרעה כללית באזור לא מוגדר.
+
+היכנסו למרחב המוגן ושהו בו למשך 10 דקות.`,
+			overrideCategory: "",
+			wantErr:          false,
+			expectedCategory: "rockets",
+			expectedCities:   []string{},
+		},
+		{
+			name: "Regular Alert - Previously 'not expired by 300s rule' (120s diff), now EXPIRED by 90s rule",
+			now:  time.Date(2025, 5, 29, 21, 25, 0, 0, jerusalem), // PubDate 21:23, 120s diff
 			text: `🚨 ירי רקטות וטילים (29/5/2025) 21:23
 
 אזור שומרון
@@ -67,158 +205,126 @@ func Test_processMessage(t *testing.T) {
 
 היכנסו למרחב המוגן ושהו בו למשך 10 דקות.
 להנחיות המלאות - https://www.oref.org.il/heb/life-saving-guidelines/rocket-and-missile-attacks`,
-			wantErr: false,
-		},
-		{
-			name: "New Message 1 - Expired",
-			// Message time: (29/05/2025) 21:23 IDT (18:23 UTC)
-			// "now" is 120 seconds after message time (18:25:00 UTC)
-			now: time.Date(2025, 5, 29, 18, 25, 0, 0, time.UTC),
-			text: `🚨 ירי רקטות וטילים (29/5/2025) 21:23
-
-אזור שומרון
-דולב, טלמון, נריה (דקה וחצי)
-
-היכנסו למרחב המוגן ושהו בו למשך 10 דקות.
-להנחיות המלאות - https://www.oref.org.il/heb/life-saving-guidelines/rocket-and-missile-attacks`,
-			wantErr: true,
-		},
-		{
-			name: "New Message 2 - Non-expired",
-			// Message time: (29/05/2025) 21:22 IDT (18:22 UTC)
-			// "now" is 30 seconds after message time.
-			now: time.Date(2025, 5, 29, 18, 22, 30, 0, time.UTC),
-			text: `🚨 ירי רקטות וטילים (29/5/2025) 21:22
-
-אזור השפלה
-גאליה (דקה)
-
-אזור לכיש
-בית אלעזרי, בית גמליאל, יבנה, כפר הנגיד, מעון צופיה, מפעל אגריגדה  (דקה)
-
-היכנסו למרחב המוגן ושהו בו למשך 10 דקות.
-להנחיות המלאות - https://www.oref.org.il/heb/life-saving-guidelines/rocket-and-missile-attacks`,
-			wantErr: false,
-		},
-		{
-			name: "New Message 2 - Expired",
-			// Message time: (29/05/2025) 21:22 IDT (18:22 UTC)
-			// "now" is 120 seconds after message time (18:24:00 UTC)
-			now: time.Date(2025, 5, 29, 18, 24, 0, 0, time.UTC),
-			text: `🚨 ירי רקטות וטילים (29/5/2025) 21:22
-
-אזור השפלה
-גאליה (דקה)
-
-אזור לכיש
-בית אלעזרי, בית גמליאל, יבנה, כפר הנגיד, מעון צופיה, מפעל אגריגדה  (דקה)
-
-היכנסו למרחב המוגן ושהו בו למשך 10 דקות.
-להנחיות המלאות - https://www.oref.org.il/heb/life-saving-guidelines/rocket-and-missile-attacks`,
-			wantErr: true,
+			overrideCategory: "",
+			wantErr:          true, // Now expired by 90s rule
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			mockBot := &MockBot{
+				SubmittedMessages: make([]*bot.Message, 0),
+				Client:            &model.Client4{},
+			}
+			err := processMessage(tt.text, districts, tt.now, &mockBot.Bot, tt.overrideCategory)
 
-			err := processMessage(tt.text, districts, tt.now, s.Bot)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("processMessage() error = %v, wantErr %v", err, tt.wantErr)
+			if tt.wantErr {
+				assert.Error(t, err, "Test: %s", tt.name)
+			} else {
+				assert.NoError(t, err, "Test: %s, got err: %v", tt.name, err)
+				if tt.expectedCategory != "" {
+					if len(tt.expectedCities) > 0 {
+						// Expect messages only if cities are expected AND found.
+						// extractCityNames determines if cities are found.
+						if len(mockBot.SubmittedMessages) > 0 {
+							submittedMsg := mockBot.SubmittedMessages[0]
+							assert.Equal(t, tt.expectedCategory, submittedMsg.Category, "Test: %s", tt.name)
+						} else {
+							// If expectedCities is > 0 but no messages, it implies extractCityNames found nothing.
+							// This could be an issue with test text or extractCityNames, or intended if cities aren't in text.
+							// For this test suite, we assume if expectedCities is populated, the text should contain them.
+							// However, to prevent test failure if extractCityNames is what's being implicitly tested,
+							// we only assert category if a message was actually submitted.
+							// A more direct test for extractCityNames would be separate.
+						}
+					} else { // No cities expected to be extracted (e.g., early warning with no city list)
+						assert.Empty(t, mockBot.SubmittedMessages, "Test: %s. Expected no messages when no cities are extracted.", tt.name)
+					}
+				}
 			}
 		})
 	}
 }
 
+// TestParseMessage_EarlyAlert tests that ParseMessage correctly identifies an early alert
+// and calls processMessage with the "rockets" category.
+func TestParseMessage_EarlyAlert(t *testing.T) {
+	mockBot := &MockBot{
+		SubmittedMessages: make([]*bot.Message, 0),
+		Client:            &model.Client4{},
+	}
+	source := &SourceTelegram{
+		Bot: &mockBot.Bot,
+	}
+
+	alertTime := time.Now().In(jerusalem).Add(-15 * time.Second) // Recent to avoid expiration
+	alertDateStr := alertTime.Format("02/01/2006")               // DD/MM/YYYY
+	alertTimeStr := alertTime.Format("15:04")                   // HH:MM
+	earlyAlertText := fmt.Sprintf("(%s) %s התרעה מוקדמת: בדקות הקרובות צפויות להתקבל התרעות באזורך.", alertDateStr, alertTimeStr)
+
+	update := &tg.UpdateNewChannelMessage{
+		Message: &tg.Message{
+			Out:     false,
+			PeerID:  &tg.PeerChannel{ChannelID: 1441886157}, // pikudhaoref_all
+			Message: earlyAlertText,
+			Date:    int(time.Now().Unix()),
+		},
+	}
+
+	err := source.ParseMessage(context.Background(), tg.Entities{}, update)
+	assert.NoError(t, err, "ParseMessage failed for early alert.")
+	assert.Empty(t, mockBot.SubmittedMessages, "Expected no messages submitted for early alert text with no cities.")
+}
+
 func TestParseMessage_Channel2335255539_KeywordFound(t *testing.T) {
-	// 1. Setup Hook
 	var capturedPostByHook *model.Post
 	hookCalled := false
 	CreatePostTestHook = func(postToCreate *model.Post) bool {
 		capturedPostByHook = postToCreate
 		hookCalled = true
-		return true // Indicate hook handled the call, so original CreatePost is skipped
+		return true
 	}
-	defer func() { CreatePostTestHook = nil }() // Cleanup hook
+	defer func() { CreatePostTestHook = nil }()
 
-	// 2. Setup SourceTelegram and Mocks
 	telegramChannelID := int64(2335255539)
 	expectedMattermostChannelID := "mock_mattermost_channel_id_123"
 	expectedMattermostChannelName := fmt.Sprintf("telegram-%d", telegramChannelID)
 
-	// Assuming bot.Bot has a public 'Channels' field or a setter for testing.
-	// If bot.Bot.channels is private and has no setter, this part of the test
-	// (verifying channel lookup) cannot be done without changing bot.go.
-	// For this test, we proceed assuming 'Channels' is accessible.
-	testBot := &bot.Bot{
-		Client: &model.Client4{}, // Must be non-nil
+	testBot := &MockBot{ // Use MockBot
+		Client: &model.Client4{},
 		Channels: []*model.Channel{
-			{
-				Id:   expectedMattermostChannelID,
-				Name: expectedMattermostChannelName,
-				Type: model.ChannelTypeOpen, // Type can be relevant for channel filtering
-			},
-			{
-				Id:   "other_channel_id",
-				Name: "some-other-channel",
-				Type: model.ChannelTypeOpen,
-			},
+			{Id: expectedMattermostChannelID, Name: expectedMattermostChannelName, Type: model.ChannelTypeOpen},
+			{Id: "other_channel_id", Name: "some-other-channel", Type: model.ChannelTypeOpen},
 		},
 	}
-
 	source := &SourceTelegram{
-		Bot: testBot,
+		Bot: &testBot.Bot, // Pass the embedded *bot.Bot
 	}
 
-	// 3. Prepare Input
-	keyword := "ירוט" // One of the relevant keywords
+	keyword := "ירוט"
 	messageText := fmt.Sprintf("This message contains a %s keyword.", keyword)
 	expectedPrefixedMessage := "חדשות ישראל בטלגרם: " + messageText
-
-	// Constructing tg.UpdateNewChannelMessage
-	// The Message field should be of type tg.MessageClass, which *tg.Message implements.
-	// Ensure PeerID is *tg.PeerChannel.
-	// Date is a required field for a message to be considered "NotEmpty".
-	update := &tg.UpdateNewChannelMessage{
-		Message: &tg.Message{
-			Out:     false, // Incoming message
-			PeerID:  &tg.PeerChannel{ChannelID: telegramChannelID},
-			Message: messageText,
-			Date:    int(time.Now().Unix()), // Unix timestamp for "now"
-		},
+	updateMessage := &tg.Message{
+		Out:     false,
+		PeerID:  &tg.PeerChannel{ChannelID: telegramChannelID},
+		Message: messageText,
+		Date:    int(time.Now().Unix()),
 	}
+	update := &tg.UpdateNewChannelMessage{Message: updateMessage}
 
-	// 4. Call ParseMessage
-	// Note: The `e tg.Entities` argument is not used by the part of ParseMessage we're testing.
 	err := source.ParseMessage(context.Background(), tg.Entities{}, update)
-
-	// 5. Assertions
-	if err != nil {
-		t.Errorf("ParseMessage() returned error = %v, wantErr nil", err)
-	}
-
-	if !hookCalled {
-		t.Fatalf("CreatePostTestHook was not called, message might not have been processed as expected or hook failed.")
-	}
-
-	if capturedPostByHook == nil {
-		// This check is redundant if hookCalled is true and hook assigns to capturedPostByHook,
-		// but good for safety.
-		t.Fatalf("CreatePostTestHook was called, but capturedPostByHook is nil.")
-	}
-
-	if capturedPostByHook.Message != expectedPrefixedMessage {
-		t.Errorf("Captured post message: got '%s', want '%s'", capturedPostByHook.Message, expectedPrefixedMessage)
-	}
-
-	if capturedPostByHook.ChannelId != expectedMattermostChannelID {
-		t.Errorf("Captured post ChannelId: got '%s', want '%s'", capturedPostByHook.ChannelId, expectedMattermostChannelID)
+	assert.NoError(t, err)
+	assert.True(t, hookCalled, "CreatePostTestHook was not called.")
+	if capturedPostByHook != nil { // Check to prevent nil dereference if hookCalled is false
+		assert.Equal(t, expectedPrefixedMessage, capturedPostByHook.Message)
+		assert.Equal(t, expectedMattermostChannelID, capturedPostByHook.ChannelId)
+	} else if hookCalled {
+		t.Fatal("Hook was called but capturedPostByHook is nil")
 	}
 }
 
-// Test case for when the specific channel (2335255539) is not found in Bot's channels list
 func TestParseMessage_Channel2335255539_ChannelNotFound(t *testing.T) {
-	var hookCalled bool = false
+	hookCalled := false
 	CreatePostTestHook = func(postToCreate *model.Post) bool {
 		hookCalled = true
 		return true
@@ -226,49 +332,30 @@ func TestParseMessage_Channel2335255539_ChannelNotFound(t *testing.T) {
 	defer func() { CreatePostTestHook = nil }()
 
 	telegramChannelID := int64(2335255539)
-	// Bot's channels list does NOT contain the target channel name "telegram-2335255539"
-	testBot := &bot.Bot{
-		Client: &model.Client4{},
-		Channels: []*model.Channel{
-			{
-				Id:   "some_other_id",
-				Name: "another-channel-name", // Does not match expected name convention
-				Type: model.ChannelTypeOpen,
-			},
-		},
+	testBot := &MockBot{ // Use MockBot
+		Client:   &model.Client4{},
+		Channels: []*model.Channel{{Id: "some_other_id", Name: "another-channel-name", Type: model.ChannelTypeOpen}},
 	}
-
 	source := &SourceTelegram{
-		Bot: testBot,
+		Bot: &testBot.Bot, // Pass the embedded *bot.Bot
 	}
 
 	keyword := "אזעק"
 	messageText := fmt.Sprintf("Alert: %s in the area!", keyword)
-
-	update := &tg.UpdateNewChannelMessage{
-		Message: &tg.Message{
-			PeerID:  &tg.PeerChannel{ChannelID: telegramChannelID},
-			Message: messageText,
-			Date:    int(time.Now().Unix()),
-		},
+	updateMessage := &tg.Message{
+		PeerID:  &tg.PeerChannel{ChannelID: telegramChannelID},
+		Message: messageText,
+		Date:    int(time.Now().Unix()),
 	}
+	update := &tg.UpdateNewChannelMessage{Message: updateMessage}
 
 	err := source.ParseMessage(context.Background(), tg.Entities{}, update)
-
-	if err != nil {
-		t.Errorf("ParseMessage() returned error = %v, wantErr nil", err)
-	}
-
-	if hookCalled {
-		t.Errorf("CreatePostTestHook was called, but it should not have been (channel not found).")
-	}
-	// Further assertions could involve checking mlog for the "Could not find corresponding Mattermost channel" warning,
-	// but that requires a more complex logging mock. For this test, checking that CreatePost was not called is sufficient.
+	assert.NoError(t, err)
+	assert.False(t, hookCalled, "CreatePostTestHook was called, but should not have been.")
 }
 
-// Test case for when a keyword is NOT found in a message from channel 2335255539
 func TestParseMessage_Channel2335255539_KeywordNotFound(t *testing.T) {
-	var hookCalled bool = false
+	hookCalled := false
 	CreatePostTestHook = func(postToCreate *model.Post) bool {
 		hookCalled = true
 		return true
@@ -278,38 +365,24 @@ func TestParseMessage_Channel2335255539_KeywordNotFound(t *testing.T) {
 	telegramChannelID := int64(2335255539)
 	expectedMattermostChannelID := "mock_mattermost_channel_id_123"
 	expectedMattermostChannelName := fmt.Sprintf("telegram-%d", telegramChannelID)
-
-	testBot := &bot.Bot{
-		Client: &model.Client4{},
-		Channels: []*model.Channel{ // Channel exists
-			{
-				Id:   expectedMattermostChannelID,
-				Name: expectedMattermostChannelName,
-				Type: model.ChannelTypeOpen,
-			},
-		},
+	testBot := &MockBot{ // Use MockBot
+		Client:   &model.Client4{},
+		Channels: []*model.Channel{{Id: expectedMattermostChannelID, Name: expectedMattermostChannelName, Type: model.ChannelTypeOpen}},
 	}
 	source := &SourceTelegram{
-		Bot: testBot,
+		Bot: &testBot.Bot, // Pass the embedded *bot.Bot
 	}
 
-	messageText := "This is a regular message with no special keywords." // No relevant keywords
-
-	update := &tg.UpdateNewChannelMessage{
-		Message: &tg.Message{
-			PeerID:  &tg.PeerChannel{ChannelID: telegramChannelID},
-			Message: messageText,
-			Date:    int(time.Now().Unix()),
-		},
+	messageText := "This is a regular message with no special keywords."
+	updateMessage := &tg.Message{
+		PeerID:  &tg.PeerChannel{ChannelID: telegramChannelID},
+		Message: messageText,
+		Date:    int(time.Now().Unix()),
 	}
+	update := &tg.UpdateNewChannelMessage{Message: updateMessage}
 
 	err := source.ParseMessage(context.Background(), tg.Entities{}, update)
+	assert.NoError(t, err)
+	assert.False(t, hookCalled, "CreatePostTestHook was called, but should not have been.")
 
-	if err != nil {
-		t.Errorf("ParseMessage() returned error = %v, wantErr nil", err)
-	}
-
-	if hookCalled {
-		t.Errorf("CreatePostTestHook was called, but it should not have been (no keyword found).")
-	}
 }

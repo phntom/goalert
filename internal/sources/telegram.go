@@ -101,7 +101,13 @@ func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update
 
 	if channelId.ChannelID == 1441886157 { // pikudhaoref_all
 		now := time.Now()
-		err := processMessage(text, district.GetDistricts(), now, s.Bot)
+		var err error
+		if strings.Contains(text, "בדקות הקרובות צפויות להתקבל התרעות באזורך") {
+			// Early alert detected, process with "rockets" category
+			err = processMessage(text, district.GetDistricts(), now, s.Bot, "rockets")
+		} else {
+			err = processMessage(text, district.GetDistricts(), now, s.Bot, "")
+		}
 		if err != nil {
 			return err
 		}
@@ -173,13 +179,14 @@ func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update
 	return nil
 }
 
-func processMessage(text string, districts district.Districts, now time.Time, b *bot.Bot) error {
+func processMessage(text string, districts district.Districts, now time.Time, b *bot.Bot, overrideCategory string) error {
 	dedup := make(map[string]*bot.Message)
 	var dedupOrder []string
 	cities := extractCityNames(text)
 	pubDate := extractPubTime(text)
 
-	err := checkExpired(pubDate, text, now)
+	isEarlyAlert := overrideCategory == "rockets"
+	err := checkExpired(pubDate, text, now, isEarlyAlert)
 	if err != nil {
 		if strings.Contains(text, "האירוע הסתיים") {
 			msg := bot.NewMessage("uav_event_over", "", 0, "")
@@ -191,12 +198,16 @@ func processMessage(text string, districts district.Districts, now time.Time, b 
 
 	mlog.Info("Channel message", mlog.String("text", text), mlog.Any("cities", cities))
 	category := ""
-	if strings.Contains(text, "ירי רקטות וטילים") {
-		category = "rockets"
-	} else if strings.Contains(text, "חדירת כלי טיס עוין") {
-		category = "uav"
-	} else if strings.Contains(text, "חדירת מחבלים") {
-		category = "infiltration"
+	if overrideCategory != "" {
+		category = overrideCategory
+	} else {
+		if strings.Contains(text, "ירי רקטות וטילים") {
+			category = "rockets"
+		} else if strings.Contains(text, "חדירת כלי טיס עוין") {
+			category = "uav"
+		} else if strings.Contains(text, "חדירת מחבלים") {
+			category = "infiltration"
+		}
 	}
 	instructions := "instructions"
 	if category == "infiltration" || category == "radiological" || category == "biohazard" {
@@ -226,7 +237,7 @@ func processMessage(text string, districts district.Districts, now time.Time, b 
 	return nil
 }
 
-func checkExpired(pubDate string, text string, now time.Time) error {
+func checkExpired(pubDate string, text string, now time.Time, isEarlyAlert bool) error {
 	location, _ := time.LoadLocation("Asia/Jerusalem")
 	// currentDate := time.Now().In(location).Format("2006-01-02") // Not needed anymore as date is in pubDate
 	parsedPubDate, err := time.ParseInLocation("02/01/2006 15:04", pubDate, location)
@@ -235,8 +246,13 @@ func checkExpired(pubDate string, text string, now time.Time) error {
 		return err
 	}
 
-	if parsedPubDate.Add(90 * time.Second).Before(now) {
-		mlog.Error("Expired telegram message", mlog.Any("Message", text), mlog.Any("ParsedPubDate", parsedPubDate))
+	expirationDuration := 90 * time.Second
+	if isEarlyAlert {
+		expirationDuration = 300 * time.Second
+	}
+
+	if parsedPubDate.Add(expirationDuration).Before(now) {
+		mlog.Error("Expired telegram message", mlog.Any("Message", text), mlog.Any("ParsedPubDate", parsedPubDate), mlog.Bool("isEarlyAlert", isEarlyAlert))
 		return errors.New("expired telegram message " + text)
 	}
 	return nil
