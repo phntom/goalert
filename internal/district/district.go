@@ -8,6 +8,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/phntom/goalert/internal/config"
 	"io"
+	"strings"
 	"sync"
 )
 
@@ -34,31 +35,35 @@ type Districts map[config.Language]map[ID]District
 //go:embed districts.*.json
 var districtFS embed.FS
 
-////go:embed districts_en.json
-//var districtsEnSource string
-//
-////go:embed districts_he.json
-//var districtsHeSource string
-//
-////go:embed districts_ru.json
-//var districtsRuSource string
-//
-////go:embed districts_ar.json
-//var districtsArSource string
-// Map of available languages to their corresponding JSON source strings.
-//var languages = map[config.Language]string{
-//	"en": districtsEnSource,
-//	"he": districtsHeSource,
-//	"ru": districtsRuSource,
-//	"ar": districtsArSource,
-//}
-
 // districts holds the unmarshaled JSON data. We use sync.Once to ensure the map is only initialized once.
 var (
 	districts      Districts
 	districtLookup map[string]ID
 	once           sync.Once
 )
+
+// normalizeCityName performs several normalization steps on a city name.
+func normalizeCityName(name string) string {
+	// Replace יי with י and remove hyphens, parentheses, single quotes, double quotes
+	replacer := strings.NewReplacer(
+		"יי", "י",
+		"-", "",
+		"(", "",
+		")", "",
+		"'", "",
+		"\"", "",
+	)
+	normalized := replacer.Replace(name)
+
+	// Replace multiple consecutive spaces with a single space
+	fields := strings.Fields(normalized)
+	normalized = strings.Join(fields, " ")
+
+	// Trim leading and trailing whitespace
+	normalized = strings.TrimSpace(normalized)
+
+	return normalized
+}
 
 // initDistricts is called once to initialize the districts map.
 func initDistricts() {
@@ -95,7 +100,10 @@ func initDistricts() {
 
 		d := make(map[ID]District, len(districtList))
 		if districtLookup == nil {
-			districtLookup = make(map[string]ID)
+			// Initialize with a capacity, e.g., sum of lengths of all districtLists if known, or a reasonable default.
+			// For now, let's estimate based on the first language processed, this might need adjustment for optimal performance.
+			estimatedCapacity := len(districtList) * numberOfLanguages
+			districtLookup = make(map[string]ID, estimatedCapacity)
 		}
 
 		for _, district := range districtList {
@@ -112,7 +120,11 @@ func initDistricts() {
 				mlog.Warn("Duplicate district ID", mlog.Any("district", district), mlog.String("newID", string(district.ID)))
 			}
 			d[district.ID] = district
-			districtLookup[district.SettlementName] = district.ID
+			// Use normalized city name for lookup
+			normalizedSettlementName := normalizeCityName(district.SettlementName)
+			if normalizedSettlementName != "" { // Avoid empty keys if normalization results in an empty string
+				districtLookup[normalizedSettlementName] = district.ID
+			}
 		}
 
 		districts[lang] = d
@@ -125,5 +137,7 @@ func GetDistricts() Districts {
 }
 
 func GetDistrictByCity(city string) ID {
-	return districtLookup[city]
+	once.Do(initDistricts) // Ensure districts are initialized
+	normalizedCity := normalizeCityName(city)
+	return districtLookup[normalizedCity]
 }
