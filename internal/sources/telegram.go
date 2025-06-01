@@ -118,6 +118,55 @@ func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update
 			// post.Metadata.Priority.Priority = model.NewString("important")
 			s.Bot.DirectMessage(&post, "he")
 		}
+	} else if channelId.ChannelID == 2335255539 {
+		keywords := []string{"ירוט", "ירט", "אזעק", "תימן", "תימני", "יורט", "שיגור", "פיצוץ"}
+		foundKeyword := false
+		for _, keyword := range keywords {
+			if strings.Contains(text, keyword) {
+				foundKeyword = true
+				break
+			}
+		}
+
+		if foundKeyword {
+			modifiedText := "חדשות ישראל בטלגרם: " + text
+			// Attempt to find the corresponding Mattermost channel by a conventional name.
+			// Assumes Mattermost channel is named e.g., "telegram-2335255539"
+			// Note: s.Bot.channels might not be populated if FindBotChannel hasn't run or is run by a different instance.
+			// This part of the logic relies on s.Bot.channels being available and correctly populated.
+			targetChannelName := fmt.Sprintf("telegram-%d", channelId.ChannelID)
+			var targetMattermostChannelID string
+
+			if s.Bot != nil && s.Bot.Client != nil && s.Bot.channels != nil {
+				for _, ch := range s.Bot.channels {
+					if ch.Name == targetChannelName {
+						targetMattermostChannelID = ch.Id
+						break
+					}
+				}
+			} else {
+				mlog.Warn("Bot instance or channels list not initialized, cannot find target channel by name", mlog.String("targetChannelName", targetChannelName))
+			}
+
+			if targetMattermostChannelID != "" {
+				post := model.Post{
+					Message:   modifiedText,
+					ChannelId: targetMattermostChannelID,
+				}
+				if CreatePostTestHook != nil && CreatePostTestHook(&post) {
+					// Test hook handled the post, do nothing further for this branch.
+				} else {
+					if _, err := s.Bot.Client.CreatePost(context.Background(), &post); err != nil {
+						mlog.Error("Failed to send message to specific Mattermost channel", mlog.String("channelId", targetMattermostChannelID), mlog.Err(err))
+					}
+				}
+			} else {
+				mlog.Warn("Could not find corresponding Mattermost channel for Telegram channel ID", mlog.Int64("telegramChannelId", channelId.ChannelID), mlog.String("assumedName", targetChannelName))
+				// Fallback or error: Potentially send to a default channel or log that the specific channel was not found.
+				// For now, it just logs. If general broadcast is desired as fallback, s.Bot.DirectMessage could be called.
+				// However, the requirement is "send back to the same channel".
+			}
+		}
 	} else {
 		mlog.Debug("Unknown channel id", mlog.Any("channelId", channelId.ChannelID))
 	}
