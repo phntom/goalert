@@ -13,7 +13,48 @@ import (
 	"github.com/phntom/goalert/internal/district"
 	"github.com/phntom/goalert/internal/monitoring"
 	"github.com/prometheus/client_golang/prometheus" // Added for dummy collectors
+
+	"github.com/phntom/goalert/internal/district" // Added for MockBot.GetPrevMsgs
 )
+
+// MockBot is a mock implementation of the Bot for testing purposes.
+type MockBot struct {
+	SubmittedMessages []*Message
+	Channels          []*model.Channel
+	alertFeed         chan *Message
+	userId            string
+	Monitoring        monitoring.Monitoring
+}
+
+// SubmitMessage appends the message to SubmittedMessages.
+func (mb *MockBot) SubmitMessage(msg *Message) {
+	mb.SubmittedMessages = append(mb.SubmittedMessages, msg)
+}
+
+// AwaitMessage simulates receiving messages and submitting them.
+func (mb *MockBot) AwaitMessage() {
+	for msg := range mb.alertFeed {
+		mb.SubmitMessage(msg)
+	}
+}
+
+// PostForChannel returns a dummy post.
+func (mb *MockBot) PostForChannel(c *model.Channel) *model.Post {
+	return &model.Post{
+		Message:   "dummy post",
+		ChannelId: c.Id,
+	}
+}
+
+// GetPrevMsgs returns empty slices.
+func (mb *MockBot) GetPrevMsgs(message *Message) ([]*Message, []district.ID) {
+	return []*Message{}, []district.ID{}
+}
+
+// UpdateMonitor is a no-op for the mock.
+func (mb *MockBot) UpdateMonitor(m *Message) {
+	// Do nothing
+}
 
 // NOTE: TestMain and global mock variables have been removed due to incompatibility
 // with how executeSubmitPost etc. are defined (as actual functions, not vars).
@@ -238,3 +279,65 @@ func attachmentsToText(attachmentsProp interface{}) string {
 // correct RocketID filtering per post) is currently not possible with this simplified test setup.
 // Such verification would require either refactoring AwaitMessage for testability (e.g., dependency injection)
 // or a more advanced/different mocking approach compatible with package-level functions.
+
+func Test_processMessage(t *testing.T) {
+	mockBot := &MockBot{
+		alertFeed: make(chan *Message, 1), // Buffered channel to prevent blocking on send
+		Channels: []*model.Channel{
+			{
+				Id:          "test_channel_id_" + model.NewId(),
+				Name:        "test-process-channel",
+				DisplayName: "Test Process Channel",
+				TeamId:      "test_team_id",
+				Type:        model.ChannelTypeOpen,
+			},
+		},
+		userId: "test_mockbot_user_id",
+		// Initialize Monitoring with non-registering collectors
+		Monitoring: monitoring.Monitoring{
+			SuccessfulPosts:     prometheus.NewCounter(prometheus.CounterOpts{Name: "test_proc_successful_posts"}),
+			SuccessfulPatches:   prometheus.NewCounter(prometheus.CounterOpts{Name: "test_proc_successful_patches"}),
+			FailedPatches:       prometheus.NewCounter(prometheus.CounterOpts{Name: "test_proc_failed_patches"}),
+			CitiesHistogram:     prometheus.NewHistogram(prometheus.HistogramOpts{Name: "test_proc_cities_histogram"}),
+			RegionsHistogram:    prometheus.NewHistogram(prometheus.HistogramOpts{Name: "test_proc_regions_histogram"}),
+			TimeOfDayHistogram:  prometheus.NewHistogram(prometheus.HistogramOpts{Name: "test_proc_time_of_day_histogram"}),
+			DayOfWeekHistogram:  prometheus.NewHistogram(prometheus.HistogramOpts{Name: "test_proc_day_of_week_histogram"}),
+			// Note: SuccessfulSourceFetches and FailedSourceFetches are CounterVecs,
+			// and HttpResponseTimeHistogram is a HistogramVec.
+			// These are not directly used by MockBot's methods but are part of the struct.
+			// Initializing them with New...Vec requires specific opts and label names,
+			// which might be overly complex if not strictly needed for the methods being tested.
+			// For MockBot, as long as its methods don't panic due to nil Vecs, this is okay.
+			// If direct interaction with these Vecs was needed, they'd require:
+			// SuccessfulSourceFetches: prometheus.NewCounterVec(prometheus.CounterOpts{Name: "test_proc_successful_source_fetches"}, []string{"source"}),
+			// FailedSourceFetches: prometheus.NewCounterVec(prometheus.CounterOpts{Name: "test_proc_failed_source_fetches"}, []string{"source"}),
+			// HttpResponseTimeHistogram: prometheus.NewHistogramVec(prometheus.HistogramOpts{Name: "test_proc_http_response_time_histogram"}, []string{"source"}),
+		},
+	}
+
+	sampleMessage := createTestMessage(t, 5, "rockets", "test instruction", 60)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		mockBot.AwaitMessage()
+	}()
+
+	mockBot.alertFeed <- sampleMessage
+	time.Sleep(100 * time.Millisecond) // Allow time for AwaitMessage to process
+
+	close(mockBot.alertFeed) // Close the channel to signal AwaitMessage to stop
+	wg.Wait()                // Wait for AwaitMessage goroutine to finish
+
+	if len(mockBot.SubmittedMessages) != 1 {
+		t.Errorf("Expected 1 submitted message, got %d", len(mockBot.SubmittedMessages))
+	}
+
+	// It's important to ensure that the message is not modified by AwaitMessage or SubmitMessage.
+	// If it could be modified, we would need a more sophisticated comparison.
+	// For now, reflect.DeepEqual is a good choice.
+	if !reflect.DeepEqual(sampleMessage, mockBot.SubmittedMessages[0]) {
+		t.Errorf("Submitted message does not match original message.\nOriginal: %+v\nSubmitted: %+v", sampleMessage, mockBot.SubmittedMessages[0])
+	}
+}
