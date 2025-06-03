@@ -29,15 +29,7 @@ func (m *MockBot) Register()               {}
 func (m *MockBot) AwaitMessage()           {}
 func (m *MockBot) DirectMessage(post *model.Post, language string) {}
 
-var jerusalem *time.Location
-
-func init() {
-	var err error
-	jerusalem, err = time.LoadLocation("Asia/Jerusalem")
-	if err != nil {
-		panic(fmt.Sprintf("Failed to load Asia/Jerusalem location: %v", err))
-	}
-}
+var jerusalem = time.FixedZone("IST", 2*60*60)
 
 var tests = []struct {
 	name             string
