@@ -22,7 +22,7 @@ type Bot struct {
 	serverVersion   string
 	username        string
 	userId          string
-	channels        []*model.Channel
+	Channels        []*model.Channel
 	ConfigChannel   *model.Channel
 	alertFeed       chan *Message
 	dedup           map[district.ID]*Message
@@ -115,15 +115,15 @@ func (b *Bot) FindBotChannel() {
 				continue
 			}
 			channel.AddProp("teamName", team.Name)
-			b.channels = append(b.channels, channel)
+			b.Channels = append(b.Channels, channel)
 		}
 	}
-	if b.channels == nil || len(b.channels) == 0 {
+	if b.Channels == nil || len(b.Channels) == 0 {
 		mlog.Fatal("Bot is not a member of any channel, invite him and try again")
 		os.Exit(2)
 	}
 	var channelNames []string
-	for _, channel := range b.channels {
+	for _, channel := range b.Channels {
 		channelNames = append(channelNames, fmt.Sprintf("%s/%s", channel.Props["teamName"], channel.Name))
 	}
 	mlog.Info("Joined channels", mlog.Any("channels", channelNames))
@@ -185,7 +185,7 @@ func (b *Bot) AwaitMessage() {
 				newMessage.Prerender() // Prerender for the new set of cities
 				b.UpdateMonitor(newMessage) // Update monitor for this new (chunked) message
 
-				for _, channel := range b.channels {
+				for _, channel := range b.Channels {
 					post := newMessage.PostForChannel(channel)
 					result, err := executeSubmitPost(b, post, newMessage, channel)
 					if err != nil {
@@ -218,7 +218,7 @@ func (b *Bot) AwaitMessage() {
 		// Original message processing logic starts here for messages with <= 20 cities
 		if len(message.Cities) == 0 {
 			mlog.Warn("no cities", mlog.Any("message", message))
-			for _, channel := range b.channels {
+			for _, channel := range b.Channels {
 				post := message.PostForChannel(channel)
 				_, err := executeSubmitPost(b, post, message, channel)
 				if err != nil {
@@ -240,7 +240,7 @@ func (b *Bot) AwaitMessage() {
 		}
 
 		if len(citiesNotFound) > 0 {
-			for _, channel := range b.channels {
+			for _, channel := range b.Channels {
 				post := message.PostForChannel(channel)
 				result, err := executeSubmitPost(b, post, message, channel)
 				if err != nil {
@@ -309,12 +309,12 @@ func (b *Bot) UpdateMonitor(m *Message) {
 }
 
 func (b *Bot) DirectMessage(post *model.Post, language config.Language) {
-	if b.channels == nil {
+	if b.Channels == nil {
 		mlog.Error("No channels available for direct messaging")
 		return
 	}
 
-	for _, channel := range b.channels {
+	for _, channel := range b.Channels {
 		if ChannelToLanguage(channel) == language {
 			post.ChannelId = channel.Id
 			_, err := executeSubmitPost(b, post, nil, channel)

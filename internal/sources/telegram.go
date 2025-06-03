@@ -25,6 +25,10 @@ import (
 var extractCityNamesRe = regexp.MustCompile(`\n(.*?) *\((\d+ שניות|מיידי)\)`)
 var extractPubTimeRe = regexp.MustCompile(`\((\d{1,2}/\d{1,2}/\d{4})\) (\d{1,2}:\d{2})`)
 
+// CreatePostTestHook is a hook for testing CreatePost calls.
+// It should be nil in production.
+var CreatePostTestHook func(post *model.Post) bool
+
 type SourceTelegram struct {
 	Bot    *bot.Bot
 	client *telegram.Client
@@ -143,8 +147,8 @@ func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update
 			targetChannelName := fmt.Sprintf("telegram-%d", channelId.ChannelID)
 			var targetMattermostChannelID string
 
-			if s.Bot != nil && s.Bot.Client != nil && s.Bot.channels != nil {
-				for _, ch := range s.Bot.channels {
+			if s.Bot != nil && s.Bot.Client != nil && s.Bot.Channels != nil {
+				for _, ch := range s.Bot.Channels {
 					if ch.Name == targetChannelName {
 						targetMattermostChannelID = ch.Id
 						break
@@ -162,12 +166,12 @@ func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update
 				if CreatePostTestHook != nil && CreatePostTestHook(&post) {
 					// Test hook handled the post, do nothing further for this branch.
 				} else {
-					if _, err := s.Bot.Client.CreatePost(context.Background(), &post); err != nil {
+					if _, _, err := s.Bot.Client.CreatePost(context.Background(), &post); err != nil {
 						mlog.Error("Failed to send message to specific Mattermost channel", mlog.String("channelId", targetMattermostChannelID), mlog.Err(err))
 					}
 				}
 			} else {
-				mlog.Warn("Could not find corresponding Mattermost channel for Telegram channel ID", mlog.Int64("telegramChannelId", channelId.ChannelID), mlog.String("assumedName", targetChannelName))
+				mlog.Warn("Could not find corresponding Mattermost channel for Telegram channel ID", mlog.Any("telegramChannelId", channelId.ChannelID), mlog.String("assumedName", targetChannelName))
 				// Fallback or error: Potentially send to a default channel or log that the specific channel was not found.
 				// For now, it just logs. If general broadcast is desired as fallback, s.Bot.DirectMessage could be called.
 				// However, the requirement is "send back to the same channel".
