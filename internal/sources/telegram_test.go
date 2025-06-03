@@ -11,6 +11,7 @@ import (
 	"github.com/phntom/goalert/internal/district"
 	"github.com/gotd/td/tg"
 	"github.com/stretchr/testify/assert"
+	"log"
 )
 
 // MockBot for capturing submitted messages
@@ -21,6 +22,16 @@ type MockBot struct {
 	Channels          []*model.Channel // Added to satisfy Bot struct if it has it
 }
 
+var jerusalem *time.Location
+
+func init() {
+	var err error
+	jerusalem, err = time.LoadLocation("Asia/Jerusalem")
+	if err != nil {
+		log.Fatalf("Failed to load Asia/Jerusalem location: %v", err)
+	}
+}
+
 func (m *MockBot) SubmitMessage(msg *bot.Message) {
 	m.SubmittedMessages = append(m.SubmittedMessages, msg)
 }
@@ -29,9 +40,9 @@ func (m *MockBot) Register()               {}
 func (m *MockBot) AwaitMessage()           {}
 func (m *MockBot) DirectMessage(post *model.Post, language string) {}
 
-var jerusalem = time.FixedZone("IST", 2*60*60)
+// var jerusalem = time.FixedZone("IST", 2*60*60) // Replaced by init()
 
-var tests = []struct {
+var tests []struct { // Declare tests variable
 	name             string
 	now              time.Time
 	text             string
@@ -39,11 +50,29 @@ var tests = []struct {
 	wantErr          bool
 	expectedCategory string
 	expectedCities   []string
-}{
-	{
-		name: "Regular rocket alert - Valid",
-		now:  time.Date(2024, 10, 10, 11, 19, 30, 0, jerusalem),
-		text: `🚨 ירי רקטות וטילים (10/10/2024) 11:19
+}
+
+func init() {
+	var err error
+	jerusalem, err = time.LoadLocation("Asia/Jerusalem")
+	if err != nil {
+		log.Fatalf("Failed to load Asia/Jerusalem location: %v", err)
+	}
+
+	// Initialize tests after jerusalem is loaded
+	tests = []struct {
+		name             string
+		now              time.Time
+		text             string
+		overrideCategory string
+		wantErr          bool
+		expectedCategory string
+		expectedCities   []string
+	}{
+		{
+			name: "Regular rocket alert - Valid",
+			now:  time.Date(2024, 10, 10, 11, 19, 30, 0, jerusalem),
+			text: `🚨 ירי רקטות וטילים (10/10/2024) 11:19
 
 אזור קו העימות
 מטולה (מיידי)
@@ -195,7 +224,8 @@ var tests = []struct {
 להנחיות המלאות - https://www.oref.org.il/heb/life-saving-guidelines/rocket-and-missile-attacks`,
 		overrideCategory: "",
 		wantErr:          true, // Now expired by 90s rule
-	},
+		},
+	}
 }
 
 func Test_processMessage(t *testing.T) {

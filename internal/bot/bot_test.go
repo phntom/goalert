@@ -51,7 +51,7 @@ func setupTestBot(t *testing.T) *Bot {
 		TeamId:      "test_team_id",
 		Type:        model.ChannelTypeOpen,
 	}
-	b.channels = []*model.Channel{dummyChannel}
+	b.Channels = []*model.Channel{dummyChannel}
 	return b
 }
 
