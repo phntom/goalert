@@ -14,7 +14,6 @@ import (
 	"github.com/phntom/goalert/internal/bot"
 	"github.com/phntom/goalert/internal/district"
 	"log"
-	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -75,6 +74,7 @@ func (s *SourceTelegram) ParseMessage(ctx context.Context, e interface{} /*tg.En
 			log.Printf("Recovered from panic: %v", r) // This log might be an issue if std log is problematic
 		}
 	}()
+	return nil
 	mlog.Info("TEST_DEBUG: SourceTelegram.ParseMessage called, actual logic commented out for testing hang.")
 	return nil // Actual logic commented out
 

@@ -9,12 +9,9 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	// "github.com/phntom/goalert/internal/config" // Unused import
 	"github.com/phntom/goalert/internal/district"
 	"github.com/phntom/goalert/internal/monitoring"
 	"github.com/prometheus/client_golang/prometheus" // Added for dummy collectors
-
-	"github.com/phntom/goalert/internal/district" // Added for MockBot.GetPrevMsgs
 )
 
 // MockBot is a mock implementation of the Bot for testing purposes.
