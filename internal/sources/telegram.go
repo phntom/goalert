@@ -2,13 +2,13 @@ package sources
 
 import (
 	"context"
-	// "github.com/go-faster/errors" // Commented for testing hang
-	// "github.com/gotd/td/examples" // Commented for testing hang
-	// "github.com/gotd/td/telegram" // Commented for testing hang
-	// "github.com/gotd/td/telegram/auth" // Commented for testing hang
-	// "github.com/gotd/td/telegram/updates" // Commented for testing hang
-	// updhook "github.com/gotd/td/telegram/updates/hook" // Commented for testing hang
-	// "github.com/gotd/td/tg" // Commented for testing hang
+	"github.com/go-faster/errors"
+	"github.com/gotd/td/examples"
+	"github.com/gotd/td/telegram"
+	"github.com/gotd/td/telegram/auth"
+	"github.com/gotd/td/telegram/updates"
+	updhook "github.com/gotd/td/telegram/updates/hook"
+	"github.com/gotd/td/tg"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/phntom/goalert/internal/bot"
@@ -30,34 +30,33 @@ var CreatePostTestHook func(post *model.Post) bool
 
 type SourceTelegram struct {
 	Bot *bot.Bot
-	// client *telegram.Client // Commented for testing hang
-	// gaps   *updates.Manager // Commented for testing hang
+	client *telegram.Client
+	gaps   *updates.Manager
 }
 
 func (s *SourceTelegram) Register() {
-	// d := tg.NewUpdateDispatcher() // Commented for testing hang
-	// gaps := updates.New(updates.Config{ // Commented for testing hang
-	// 	Handler: d,
-	// })
-	// d.OnNewChannelMessage(s.ParseMessage) // Commented for testing hang
+	d := tg.NewUpdateDispatcher()
+	gaps := updates.New(updates.Config{
+		Handler: d,
+	})
+	d.OnNewChannelMessage(s.ParseMessage)
 
-	// client, err := telegram.ClientFromEnvironment(telegram.Options{ // Commented for testing hang
-	// 	UpdateHandler: gaps,
-	// 	Middlewares: []telegram.Middleware{
-	// 		updhook.UpdateHook(gaps.Handle),
-	// 	},
-	// 	SessionStorage: &StorageMattermost{
-	// 		client:        s.Bot.Client,
-	// 		configChannel: s.Bot.ConfigChannel,
-	// 	},
-	// })
-	// if err != nil { // Commented for testing hang
-	// 	mlog.Error("telegram client error", mlog.Err(err))
-	// 	os.Exit(7)
-	// }
-	// s.client = client // Commented for testing hang
-	// s.gaps = gaps // Commented for testing hang
-	mlog.Info("TEST_DEBUG: SourceTelegram.Register called, actual logic commented out for testing hang.")
+	client, err := telegram.ClientFromEnvironment(telegram.Options{
+		UpdateHandler: gaps,
+		Middlewares: []telegram.Middleware{
+			updhook.UpdateHook(gaps.Handle),
+		},
+		SessionStorage: &StorageMattermost{
+			client:        s.Bot.Client,
+			configChannel: s.Bot.ConfigChannel,
+		},
+	})
+	if err != nil {
+		mlog.Error("telegram client error", mlog.Err(err))
+		// os.Exit(7) // Consider removing os.Exit from library code.
+	}
+	s.client = client
+	s.gaps = gaps
 }
 
 func (s *SourceTelegram) Fetch() []byte {
@@ -68,17 +67,12 @@ func (s *SourceTelegram) Parse(content []byte) []bot.Message {
 	return nil
 }
 
-func (s *SourceTelegram) ParseMessage(ctx context.Context, e interface{} /*tg.Entities*/, update interface{} /* *tg.UpdateNewChannelMessage*/) error { // Types changed
+func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update *tg.UpdateNewChannelMessage) error {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Printf("Recovered from panic: %v", r) // This log might be an issue if std log is problematic
 		}
 	}()
-	return nil
-	mlog.Info("TEST_DEBUG: SourceTelegram.ParseMessage called, actual logic commented out for testing hang.")
-	return nil // Actual logic commented out
-
-	/* // Entire function body commented out for testing hang
 	if update == nil {
 		log.Println("Update is nil")
 		return nil
@@ -185,12 +179,9 @@ func (s *SourceTelegram) ParseMessage(ctx context.Context, e interface{} /*tg.En
 		mlog.Debug("Unknown channel id", mlog.Any("channelId", channelId.ChannelID))
 	}
 	return nil
-	*/
 }
 
 func processMessage(text string, districts district.Districts, now time.Time, b *bot.Bot, overrideCategory string) error {
-	mlog.Info("TEST_DEBUG: processMessage called, actual logic commented out for testing hang.")
-	return nil // Actual logic commented out
 	dedup := make(map[string]*bot.Message)
 	var dedupOrder []string
 	cities := extractCityNames(text)
@@ -240,20 +231,15 @@ func processMessage(text string, districts district.Districts, now time.Time, b 
 	for _, hash := range dedupOrder {
 		b.SubmitMessage(dedup[hash])
 	}
-	/* // Entire function body commented out for testing hang
 	if len(dedup) > 0 {
 		b.Monitoring.SuccessfulSourceFetches.WithLabelValues("telegram").Inc()
 	} else {
 		b.Monitoring.FailedSourceFetches.WithLabelValues("telegram").Inc()
 	}
 	return nil
-	*/
 }
 
 func checkExpired(pubDate string, text string, now time.Time, isEarlyAlert bool) error {
-	mlog.Info("TEST_DEBUG: checkExpired called, actual logic commented out for testing hang.")
-	return nil // Actual logic commented out
-	/* // Entire function body commented out for testing hang
 	location, _ := time.LoadLocation("Asia/Jerusalem")
 	// currentDate := time.Now().In(location).Format("2006-01-02") // Not needed anymore as date is in pubDate
 	parsedPubDate, err := time.ParseInLocation("02/01/2006 15:04", pubDate, location)
@@ -272,13 +258,9 @@ func checkExpired(pubDate string, text string, now time.Time, isEarlyAlert bool)
 		return errors.New("expired telegram message " + text)
 	}
 	return nil
-	*/
 }
 
 func (s *SourceTelegram) Run() {
-	mlog.Info("TEST_DEBUG: SourceTelegram.Run called, actual logic commented out for testing hang.")
-	// Entire function body commented out for testing hang
-	/*
 	flow := auth.NewFlow(examples.Terminal{}, auth.SendCodeOptions{})
 
 	err := s.client.Run(context.Background(), func(ctx context.Context) error {
@@ -300,9 +282,8 @@ func (s *SourceTelegram) Run() {
 	})
 	if err != nil {
 		mlog.Error("telegram run error", mlog.Err(err))
-		//os.Exit(7)
+		//os.Exit(7) // Consider removing os.Exit
 	}
-	*/
 }
 
 func extractCityNames(text string) []string {
