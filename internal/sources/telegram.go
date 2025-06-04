@@ -2,7 +2,6 @@ package sources
 
 import (
 	"context"
-	"fmt" // Added for formatting
 	"github.com/go-faster/errors"
 	"github.com/gotd/td/examples"
 	"github.com/gotd/td/telegram"
@@ -18,6 +17,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"fmt" // Added for formatting
 )
 
 // Regular expression to match city names followed by duration in parentheses
@@ -29,7 +29,7 @@ var extractPubTimeRe = regexp.MustCompile(`\((\d{1,2}/\d{1,2}/\d{4})\) (\d{1,2}:
 var CreatePostTestHook func(post *model.Post) bool
 
 type SourceTelegram struct {
-	Bot    *bot.Bot
+	Bot *bot.Bot
 	client *telegram.Client
 	gaps   *updates.Manager
 }
@@ -53,7 +53,7 @@ func (s *SourceTelegram) Register() {
 	})
 	if err != nil {
 		mlog.Error("telegram client error", mlog.Err(err))
-		os.Exit(7)
+		// os.Exit(7) // Consider removing os.Exit from library code.
 	}
 	s.client = client
 	s.gaps = gaps
@@ -70,10 +70,9 @@ func (s *SourceTelegram) Parse(content []byte) []bot.Message {
 func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update *tg.UpdateNewChannelMessage) error {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Printf("Recovered from panic: %v", r)
+			log.Printf("Recovered from panic: %v", r) // This log might be an issue if std log is problematic
 		}
 	}()
-
 	if update == nil {
 		log.Println("Update is nil")
 		return nil
@@ -283,7 +282,7 @@ func (s *SourceTelegram) Run() {
 	})
 	if err != nil {
 		mlog.Error("telegram run error", mlog.Err(err))
-		//os.Exit(7)
+		//os.Exit(7) // Consider removing os.Exit
 	}
 }
 

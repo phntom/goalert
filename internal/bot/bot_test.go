@@ -82,6 +82,8 @@ func setupTestBot(t *testing.T) *Bot {
 	// If Bot.UpdateMonitor doesn't use them, this is fine. Otherwise, they need dummy initialization too.
 	// Bot.UpdateMonitor does not use SuccessfulSourceFetches or HttpResponseTimeHistogram.
 
+	b.Register() // Ensure Register is called
+
 	dummyChannel := &model.Channel{
 		Id:          "test_channel_id_" + model.NewId(),
 		Name:        "test-channel",
@@ -337,4 +339,94 @@ func Test_processMessage(t *testing.T) {
 	if !reflect.DeepEqual(sampleMessage, mockBot.SubmittedMessages[0]) {
 		t.Errorf("Submitted message does not match original message.\nOriginal: %+v\nSubmitted: %+v", sampleMessage, mockBot.SubmittedMessages[0])
 	}
+}
+
+func TestRegisterInitialization(t *testing.T) {
+	b := &Bot{
+		// Client is not strictly needed for Register, but good practice to initialize
+		Client: model.NewAPIv4Client("http://localhost:8065"), // Dummy client
+		// Monitoring also not strictly needed for Register itself, but part of Bot struct
+		Monitoring: monitoring.Monitoring{
+			SuccessfulPosts:   prometheus.NewCounter(prometheus.CounterOpts{Name: "test_reg_successful_posts"}),
+			SuccessfulPatches: prometheus.NewCounter(prometheus.CounterOpts{Name: "test_reg_successful_patches"}),
+			FailedPatches:     prometheus.NewCounter(prometheus.CounterOpts{Name: "test_reg_failed_patches"}),
+			// Add other monitoring fields if Register initializes them and nil checks are an issue
+		},
+		// Not initializing Channels or userId as Register doesn't directly use them
+	}
+	b.Register()
+
+	if b.alertFeed == nil {
+		t.Error("Expected bot.alertFeed to be initialized, but it was nil")
+	}
+	if b.dedup == nil {
+		t.Error("Expected bot.dedup to be initialized, but it was nil")
+	}
+}
+
+func TestRegisterAndSubmitMessage(t *testing.T) {
+	b := setupTestBot(t) // setupTestBot now calls Register
+
+	// Ensure Channels is populated (setupTestBot does this)
+	if len(b.Channels) == 0 {
+		t.Fatal("b.Channels should be populated by setupTestBot")
+	}
+
+	sampleMessage := createTestMessage(t, 5, "rockets", "test submit message", 60)
+
+	var wg sync.WaitGroup
+	wg.Add(1) // Increment counter for AwaitMessage goroutine
+
+	// Channel to signal that executeSubmitPost was called (or message processed)
+	// We won't directly check executeSubmitPost, but ensure AwaitMessage consumes.
+	// A simple way is to check if AwaitMessage exits cleanly after processing one message.
+	// For a more direct check, one might try to read from a channel that executeSubmitPost writes to,
+	// but that requires modifying executeSubmitPost or having a more complex mock.
+
+	go func() {
+		defer wg.Done()
+		defer func() {
+			if r := recover(); r != nil {
+				// This helps catch panics within AwaitMessage, which is useful
+				// as direct output verification of executeSubmitPost is not done.
+				t.Errorf("AwaitMessage panicked: %v", r)
+			}
+		}()
+		b.AwaitMessage() // This will block until alertFeed is closed
+	}()
+
+	// Submit the message
+	b.SubmitMessage(sampleMessage) // This sends to b.alertFeed
+
+	// Give AwaitMessage some time to process the message.
+	// The challenge here is knowing when AwaitMessage has processed the specific message.
+	// Since executeSubmitPost makes dummy network calls that might "succeed" quickly or fail,
+	// and we are not capturing its output, we rely on AwaitMessage not panicking
+	// and processing the item from the channel.
+	//
+	// A robust way without deep executeSubmitPost mocking:
+	// 1. Submit one message.
+	// 2. Close alertFeed.
+	// 3. Wait for AwaitMessage to finish (wg.Wait()).
+	// If AwaitMessage finishes without panic, it implies it processed messages from alertFeed
+	// until it was closed. This is an indirect way of checking consumption.
+
+	// To ensure the message is picked up before closing the channel:
+	// We can make alertFeed unbuffered or size 1, then the send in SubmitMessage
+	// would block until AwaitMessage's loop picks it up.
+	// However, b.alertFeed is initialized with buffer 50 in setupTestBot.
+	// A short sleep is pragmatic here, assuming processing is fast.
+	time.Sleep(100 * time.Millisecond) // Allow AwaitMessage to pick up the message
+
+	// Now close the alertFeed to allow AwaitMessage to complete its loop and exit
+	close(b.alertFeed)
+
+	wg.Wait() // Wait for AwaitMessage goroutine to finish
+
+	// At this point, the test primarily ensures that SubmitMessage can send a message
+	// and AwaitMessage can receive and process it without panicking, given the dummy client.
+	// No direct assertion on message content post-processing in AwaitMessage is made here
+	// due to lack of capture mechanisms for executeSubmitPost's actions.
+	// The fact that wg.Wait() completes without timeout and without panic in AwaitMessage
+	// is the main success criterion for this test structure.
 }
