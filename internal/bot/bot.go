@@ -308,6 +308,10 @@ func (b *Bot) UpdateMonitor(m *Message) {
 	b.Monitoring.RegionsHistogram.Observe(float64(len(districts)))
 }
 
+func (b *Bot) GetMonitoring() monitoring.Monitoring {
+	return b.Monitoring
+}
+
 func (b *Bot) DirectMessage(post *model.Post, language config.Language) {
 	if b.Channels == nil {
 		mlog.Error("No channels available for direct messaging")

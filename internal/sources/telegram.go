@@ -11,7 +11,7 @@ import (
 	"github.com/gotd/td/tg"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/phntom/goalert/internal/bot"
+	"github.com/phntom/goalert/internal/bot" // Will use bot.BotService
 	"github.com/phntom/goalert/internal/district"
 	"log"
 	"regexp"
@@ -29,7 +29,7 @@ var extractPubTimeRe = regexp.MustCompile(`\((\d{1,2}/\d{1,2}/\d{4})\) (\d{1,2}:
 var CreatePostTestHook func(post *model.Post) bool
 
 type SourceTelegram struct {
-	Bot *bot.Bot
+	Bot bot.BotService // Changed from *bot.Bot to bot.BotService
 	client *telegram.Client
 	gaps   *updates.Manager
 }
@@ -46,9 +46,9 @@ func (s *SourceTelegram) Register() {
 		Middlewares: []telegram.Middleware{
 			updhook.UpdateHook(gaps.Handle),
 		},
-		SessionStorage: &StorageMattermost{
-			client:        s.Bot.Client,
-			configChannel: s.Bot.ConfigChannel,
+		SessionStorage: &StorageMattermost{ // Potential issue: s.Bot is BotService, may not have Client/ConfigChannel
+			client:        s.Bot.(*bot.Bot).Client,        // Assuming BotService is implemented by *bot.Bot and type asserting
+			configChannel: s.Bot.(*bot.Bot).ConfigChannel, // Assuming BotService is implemented by *bot.Bot and type asserting
 		},
 	})
 	if err != nil {
@@ -124,7 +124,11 @@ func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update
 		}
 		if important {
 			// post.Metadata.Priority.Priority = model.NewString("important")
-			s.Bot.DirectMessage(&post, "he")
+			if concreteBot, ok := s.Bot.(*bot.Bot); ok { // Type assertion to access DirectMessage
+				concreteBot.DirectMessage(&post, "he")
+			} else {
+				mlog.Error("s.Bot is not of type *bot.Bot, cannot call DirectMessage")
+			}
 		}
 	} else if channelId.ChannelID == 2335255539 {
 		keywords := []string{"ירוט", "ירט", "אזעק", "תימן", "תימני", "יורט", "שיגור", "פיצוץ"}
@@ -144,16 +148,17 @@ func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update
 			// This part of the logic relies on s.Bot.channels being available and correctly populated.
 			targetChannelName := fmt.Sprintf("telegram-%d", channelId.ChannelID)
 			var targetMattermostChannelID string
+			concreteBot, botIsConcrete := s.Bot.(*bot.Bot)
 
-			if s.Bot != nil && s.Bot.Client != nil && s.Bot.Channels != nil {
-				for _, ch := range s.Bot.Channels {
+			if botIsConcrete && concreteBot.Client != nil && concreteBot.Channels != nil {
+				for _, ch := range concreteBot.Channels {
 					if ch.Name == targetChannelName {
 						targetMattermostChannelID = ch.Id
 						break
 					}
 				}
 			} else {
-				mlog.Warn("Bot instance or channels list not initialized, cannot find target channel by name", mlog.String("targetChannelName", targetChannelName))
+				mlog.Warn("Bot instance, Client, or Channels list not initialized, or Bot is not concrete *bot.Bot", mlog.String("targetChannelName", targetChannelName))
 			}
 
 			if targetMattermostChannelID != "" {
@@ -164,8 +169,12 @@ func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update
 				if CreatePostTestHook != nil && CreatePostTestHook(&post) {
 					// Test hook handled the post, do nothing further for this branch.
 				} else {
-					if _, _, err := s.Bot.Client.CreatePost(context.Background(), &post); err != nil {
-						mlog.Error("Failed to send message to specific Mattermost channel", mlog.String("channelId", targetMattermostChannelID), mlog.Err(err))
+					if botIsConcrete && concreteBot.Client != nil {
+						if _, _, err := concreteBot.Client.CreatePost(context.Background(), &post); err != nil {
+							mlog.Error("Failed to send message to specific Mattermost channel", mlog.String("channelId", targetMattermostChannelID), mlog.Err(err))
+						}
+					} else {
+						mlog.Error("Cannot CreatePost, Bot is not concrete *bot.Bot or Client is nil")
 					}
 				}
 			} else {
@@ -181,7 +190,7 @@ func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update
 	return nil
 }
 
-func processMessage(text string, districts district.Districts, now time.Time, b *bot.Bot, overrideCategory string) error {
+func processMessage(text string, districts district.Districts, now time.Time, b bot.BotService, overrideCategory string) error { // Changed b *bot.Bot to b bot.BotService
 	dedup := make(map[string]*bot.Message)
 	var dedupOrder []string
 	cities := extractCityNames(text)
@@ -219,7 +228,11 @@ func processMessage(text string, districts district.Districts, now time.Time, b 
 	}
 	for _, cityName := range cities {
 		districtID := district.GetDistrictByCity(cityName)
-		cityObj := districts["he"][districtID]
+		cityObj, ok := districts["he"][districtID]
+		if !ok {
+			// Potentially skip this city or return an error, depending on desired behavior
+			continue
+		}
 		msg := bot.NewMessage(instructions, category, cityObj.SafetyBufferSeconds, pubDate)
 		hash := msg.GetHash()
 		if _, ok := dedup[hash]; !ok {
@@ -232,9 +245,9 @@ func processMessage(text string, districts district.Districts, now time.Time, b 
 		b.SubmitMessage(dedup[hash])
 	}
 	if len(dedup) > 0 {
-		b.Monitoring.SuccessfulSourceFetches.WithLabelValues("telegram").Inc()
+		b.GetMonitoring().SuccessfulSourceFetches.WithLabelValues("telegram").Inc() // Used GetMonitoring()
 	} else {
-		b.Monitoring.FailedSourceFetches.WithLabelValues("telegram").Inc()
+		b.GetMonitoring().FailedSourceFetches.WithLabelValues("telegram").Inc() // Used GetMonitoring()
 	}
 	return nil
 }

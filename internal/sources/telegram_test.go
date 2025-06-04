@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	// "github.com/phntom/goalert/internal/config" // Removed unused import
+	"github.com/phntom/goalert/internal/monitoring"
 	"github.com/gotd/td/tg"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/phntom/goalert/internal/bot"
@@ -34,6 +36,18 @@ func init() {
 
 func (m *MockBot) SubmitMessage(msg *bot.Message) {
 	m.SubmittedMessages = append(m.SubmittedMessages, msg)
+}
+
+// GetMonitoring implements part of bot.BotService for MockBot
+func (m *MockBot) GetMonitoring() monitoring.Monitoring {
+	// If the embedded m.Bot.Monitoring is not initialized by default or in tests,
+	// this might need to return a valid (even if new/empty) monitoring.Monitoring instance.
+	// For now, assume m.Bot.Monitoring is accessible and adequately initialized where needed.
+	if m.Bot.Monitoring.CitiesHistogram == nil { // A simple check if Monitoring was initialized
+		// Call Setup to initialize prometheus metrics.
+		m.Bot.Monitoring.Setup()
+	}
+	return m.Bot.Monitoring
 }
 
 func (m *MockBot) Register()                                       {}
@@ -229,6 +243,13 @@ func init() {
 }
 
 func Test_processMessage(t *testing.T) {
+	// Set environment variables for Telegram client initialization
+	t.Setenv("APP_ID", "12345")
+	t.Setenv("APP_HASH", "test_api_hash") // Corrected from API_HASH to APP_HASH
+	t.Setenv("BOT_TOKEN", "test_bot_token")
+	// It might also need SESSION_FILE, but gotd might default to in-memory if not set.
+	// t.Setenv("SESSION_FILE", "test_session.json")
+
 	districts := district.GetDistricts()
 	mockBot := &MockBot{
 		SubmittedMessages: make([]*bot.Message, 0),
@@ -237,15 +258,22 @@ func Test_processMessage(t *testing.T) {
 	}
 	mockBot.Bot.Register()
 	go mockBot.Bot.AwaitMessage()
+	// Ensure the embedded bot's Monitoring is initialized for the GetMonitoring method of MockBot.
+	// It's better if the Bot's constructor or Register method ensures Monitoring is not nil.
+	// As a fallback here for the test:
+	if mockBot.Bot.Monitoring.CitiesHistogram == nil {
+		mockBot.Bot.Monitoring.Setup() // Call Setup
+	}
 	s := &SourceTelegram{
-		Bot: &mockBot.Bot,
+		Bot: &mockBot.Bot, // This remains *bot.Bot for SourceTelegram's concrete needs
 	}
 	s.Register()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockBot.SubmittedMessages = make([]*bot.Message, 0)
-			err := processMessage(tt.text, districts, tt.now, &mockBot.Bot, tt.overrideCategory)
+			// Pass mockBot (which is *MockBot, implementing BotService) to processMessage
+			err := processMessage(tt.text, districts, tt.now, mockBot, tt.overrideCategory)
 
 			if tt.wantErr {
 				assert.Error(t, err, "Test: %s. Expected error, got nil", tt.name)
@@ -270,6 +298,10 @@ func Test_processMessage(t *testing.T) {
 // TestParseMessage_EarlyAlert tests that ParseMessage correctly identifies an early alert
 // and calls processMessage with the "rockets" category.
 func TestParseMessage_EarlyAlert(t *testing.T) {
+	t.Setenv("APP_ID", "12345")
+	t.Setenv("APP_HASH", "test_api_hash")
+	t.Setenv("BOT_TOKEN", "test_bot_token")
+
 	mockBot := &MockBot{
 		SubmittedMessages: make([]*bot.Message, 0),
 		Client:            &model.Client4{},
@@ -298,6 +330,10 @@ func TestParseMessage_EarlyAlert(t *testing.T) {
 }
 
 func TestParseMessage_Channel2335255539_KeywordFound(t *testing.T) {
+	t.Setenv("APP_ID", "12345")
+	t.Setenv("APP_HASH", "test_api_hash")
+	t.Setenv("BOT_TOKEN", "test_bot_token")
+
 	var capturedPostByHook *model.Post
 	hookCalled := false
 	CreatePostTestHook = func(postToCreate *model.Post) bool {
@@ -311,13 +347,13 @@ func TestParseMessage_Channel2335255539_KeywordFound(t *testing.T) {
 	expectedMattermostChannelID := "mock_mattermost_channel_id_123"
 	expectedMattermostChannelName := fmt.Sprintf("telegram-%d", telegramChannelID)
 
-	testBot := &MockBot{ // Use MockBot
-		Client: &model.Client4{},
-		Channels: []*model.Channel{
-			{Id: expectedMattermostChannelID, Name: expectedMattermostChannelName, Type: model.ChannelTypeOpen},
-			{Id: "other_channel_id", Name: "some-other-channel", Type: model.ChannelTypeOpen},
-		},
+	testBot := &MockBot{}
+	testBot.Bot.Client = &model.Client4{} // Initialize the embedded Bot's Mattermost client
+	testBot.Bot.Channels = []*model.Channel{ // Initialize the embedded Bot's channels
+		{Id: expectedMattermostChannelID, Name: expectedMattermostChannelName, Type: model.ChannelTypeOpen},
+		{Id: "other_channel_id", Name: "some-other-channel", Type: model.ChannelTypeOpen},
 	}
+
 	source := &SourceTelegram{
 		Bot: &testBot.Bot, // Pass the embedded *bot.Bot
 	}
@@ -345,6 +381,10 @@ func TestParseMessage_Channel2335255539_KeywordFound(t *testing.T) {
 }
 
 func TestParseMessage_Channel2335255539_ChannelNotFound(t *testing.T) {
+	t.Setenv("APP_ID", "12345")
+	t.Setenv("APP_HASH", "test_api_hash")
+	t.Setenv("BOT_TOKEN", "test_bot_token")
+
 	hookCalled := false
 	CreatePostTestHook = func(postToCreate *model.Post) bool {
 		hookCalled = true
@@ -353,9 +393,10 @@ func TestParseMessage_Channel2335255539_ChannelNotFound(t *testing.T) {
 	defer func() { CreatePostTestHook = nil }()
 
 	telegramChannelID := int64(2335255539)
-	testBot := &MockBot{ // Use MockBot
-		Client:   &model.Client4{},
-		Channels: []*model.Channel{{Id: "some_other_id", Name: "another-channel-name", Type: model.ChannelTypeOpen}},
+	testBot := &MockBot{}
+	testBot.Bot.Client = &model.Client4{}
+	testBot.Bot.Channels = []*model.Channel{
+		{Id: "some_other_id", Name: "another-channel-name", Type: model.ChannelTypeOpen},
 	}
 	source := &SourceTelegram{
 		Bot: &testBot.Bot, // Pass the embedded *bot.Bot
@@ -376,6 +417,10 @@ func TestParseMessage_Channel2335255539_ChannelNotFound(t *testing.T) {
 }
 
 func TestParseMessage_Channel2335255539_KeywordNotFound(t *testing.T) {
+	t.Setenv("APP_ID", "12345")
+	t.Setenv("APP_HASH", "test_api_hash")
+	t.Setenv("BOT_TOKEN", "test_bot_token")
+
 	hookCalled := false
 	CreatePostTestHook = func(postToCreate *model.Post) bool {
 		hookCalled = true
@@ -386,9 +431,10 @@ func TestParseMessage_Channel2335255539_KeywordNotFound(t *testing.T) {
 	telegramChannelID := int64(2335255539)
 	expectedMattermostChannelID := "mock_mattermost_channel_id_123"
 	expectedMattermostChannelName := fmt.Sprintf("telegram-%d", telegramChannelID)
-	testBot := &MockBot{ // Use MockBot
-		Client:   &model.Client4{},
-		Channels: []*model.Channel{{Id: expectedMattermostChannelID, Name: expectedMattermostChannelName, Type: model.ChannelTypeOpen}},
+	testBot := &MockBot{}
+	testBot.Bot.Client = &model.Client4{}
+	testBot.Bot.Channels = []*model.Channel{
+		{Id: expectedMattermostChannelID, Name: expectedMattermostChannelName, Type: model.ChannelTypeOpen},
 	}
 	source := &SourceTelegram{
 		Bot: &testBot.Bot, // Pass the embedded *bot.Bot
