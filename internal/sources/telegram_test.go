@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gotd/td/tg"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/phntom/goalert/internal/bot"
 	"github.com/phntom/goalert/internal/district"
-	"github.com/gotd/td/tg"
 	"github.com/stretchr/testify/assert"
 	"log"
 )
@@ -36,8 +36,8 @@ func (m *MockBot) SubmitMessage(msg *bot.Message) {
 	m.SubmittedMessages = append(m.SubmittedMessages, msg)
 }
 
-func (m *MockBot) Register()               {}
-func (m *MockBot) AwaitMessage()           {}
+func (m *MockBot) Register()                                       {}
+func (m *MockBot) AwaitMessage()                                   {}
 func (m *MockBot) DirectMessage(post *model.Post, language string) {}
 
 // var jerusalem = time.FixedZone("IST", 2*60*60) // Replaced by init()
@@ -79,165 +79,172 @@ func init() {
 
 היכנסו למרחב המוגן ושהו בו למשך 10 דקות.
 להנחיות המלאות - https://www.oref.org.il/heb/life-saving-guidelines/rocket-and-missile-attacks`,
-		overrideCategory: "",
-		wantErr:          false,
-		expectedCategory: "rockets",
-		expectedCities:   []string{"מטולה"},
-	},
-	// --- Regular Alerts (90s expiration) ---
-	{
-		name: "Regular Alert - Valid (under 90s)",
-		now:  time.Date(2024, 10, 10, 11, 20, 29, 0, jerusalem), // PubDate 11:19, 89s diff
-		text: `🚨 ירי רקטות וטילים (10/10/2024) 11:19
+			overrideCategory: "",
+			wantErr:          false,
+			expectedCategory: "rockets",
+			expectedCities:   []string{"מטולה"},
+		},
+		// --- Regular Alerts (90s expiration) ---
+		{
+			name: "Regular Alert - Valid (under 90s)",
+			now:  time.Date(2024, 10, 10, 11, 20, 29, 0, jerusalem), // PubDate 11:19, 89s diff
+			text: `🚨 ירי רקטות וטילים (10/10/2024) 11:19
 
 אזור קו העימות
 מטולה (מיידי)
 
 היכנסו למרחב המוגן ושהו בו למשך 10 דקות.`,
-		overrideCategory: "",
-		wantErr:          false,
-		expectedCategory: "rockets",
-		expectedCities:   []string{"מטולה"},
-	},
-	{
-		name: "Regular Alert - Expired (just over 90s)",
-		now:  time.Date(2024, 10, 10, 11, 20, 31, 0, jerusalem), // PubDate 11:19, 91s diff
-		text: `🚨 ירי רקטות וטילים (10/10/2024) 11:19
+			overrideCategory: "",
+			wantErr:          false,
+			expectedCategory: "rockets",
+			expectedCities:   []string{"מטולה"},
+		},
+		{
+			name: "Regular Alert - Expired (just over 90s)",
+			now:  time.Date(2024, 10, 10, 11, 20, 31, 0, jerusalem), // PubDate 11:19, 91s diff
+			text: `🚨 ירי רקטות וטילים (10/10/2024) 11:19
 
 אזור קו העימות
 מטולה (מיידי)
 
 היכנסו למרחב המוגן ושהו בו למשך 10 דקות.`,
-		overrideCategory: "",
-		wantErr:          true, // Should be expired by 90s rule
-	},
-	{
-		name: "Regular Alert - Expired (121s diff, previously NOT expired by 300s blanket rule)",
-		now:  time.Date(2024, 10, 10, 11, 21, 1, 0, jerusalem), // PubDate 11:19, 121s diff
-		text: `🚨 ירי רקטות וטילים (10/10/2024) 11:19
-
-אזור קו העימות
-מטולה (מיידי)
-
-היכנסו למרחב המוגן ושהו בו למשך 10 דקות.
-להנחיות המלאות - https://www.oref.org.il/heb/life-saving-guidelines/rocket-and-missile-attacks`,
-		overrideCategory: "",
-		wantErr:          true, // Now expired by 90s rule
-	},
-	{
-		name: "Regular Alert - Expired (299s diff, previously NOT expired by 300s blanket rule)",
-		now:  time.Date(2024, 10, 10, 11, 4, 59, 0, jerusalem), // PubDate 11:00, 299s diff
-		text: `🚨 ירי רקטות וטילים (10/10/2024) 11:00
+			overrideCategory: "",
+			wantErr:          true, // Should be expired by 90s rule
+		},
+		{
+			name: "Regular Alert - Expired (121s diff, previously NOT expired by 300s blanket rule)",
+			now:  time.Date(2024, 10, 10, 11, 21, 1, 0, jerusalem), // PubDate 11:19, 121s diff
+			text: `🚨 ירי רקטות וטילים (10/10/2024) 11:19
 
 אזור קו העימות
 מטולה (מיידי)
 
 היכנסו למרחב המוגן ושהו בו למשך 10 דקות.
 להנחיות המלאות - https://www.oref.org.il/heb/life-saving-guidelines/rocket-and-missile-attacks`,
-		overrideCategory: "",
-		wantErr:          true, // Now expired by 90s rule
-	},
-	// --- Early Alerts (300s expiration) ---
-	{
-		name: "Early Alert - Valid (under 90s)", // Still valid under 300s
-		now:  time.Date(2024, 10, 10, 12, 0, 30, 0, jerusalem), // PubDate 12:00, 30s diff
-		text: `(10/10/2024) 12:00 התרעה מוקדמת: בדקות הקרובות צפויות להתקבל התרעות באזורך.`,
-		overrideCategory: "rockets",
-		wantErr:          false,
-		expectedCategory: "rockets",
-		expectedCities:   []string{},
-	},
-	{
-		name: "Early Alert - Valid (over 90s, under 300s)",
-		now:  time.Date(2024, 10, 10, 12, 2, 30, 0, jerusalem), // PubDate 12:00, 150s diff
-		text: `(10/10/2024) 12:00 התרעה מוקדמת: בדקות הקרובות צפויות להתקבל התרעות באזורך.`,
-		overrideCategory: "rockets",
-		wantErr:          false, // Should NOT be expired by 300s rule
-		expectedCategory: "rockets",
-		expectedCities:   []string{},
-	},
-	{
-		name: "Early Alert - Not Expired (just under 300s)",
-		now:  time.Date(2024, 10, 10, 12, 4, 59, 0, jerusalem), // PubDate 12:00, 299s diff
-		text: `(10/10/2024) 12:00 התרעה מוקדמת: בדקות הקרובות צפויות להתקבל התרעות באזורך.`,
-		overrideCategory: "rockets",
-		wantErr:          false,
-		expectedCategory: "rockets",
-		expectedCities:   []string{},
-	},
-	{
-		name: "Early Alert - Expired (just over 300s)",
-		now:  time.Date(2024, 10, 10, 12, 5, 1, 0, jerusalem), // PubDate 12:00, 301s diff
-		text: `(10/10/2024) 12:00 התרעה מוקדמת: בדקות הקרובות צפויות להתקבל התרעות באזורך.`,
-		overrideCategory: "rockets",
-		wantErr:          true, // Should be expired by 300s rule
-	},
-	// --- General cases ---
-	{
-		name: "UAV alert - Valid (Regular 90s rule, under 90s)",
-		now:  time.Date(2024, 10, 10, 13, 0, 30, 0, jerusalem), // PubDate 13:00, 30s diff
-		text: `🚨 חדירת כלי טיס עוין (10/10/2024) 13:00
+			overrideCategory: "",
+			wantErr:          true, // Now expired by 90s rule
+		},
+		{
+			name: "Regular Alert - Expired (299s diff, previously NOT expired by 300s blanket rule)",
+			now:  time.Date(2024, 10, 10, 11, 4, 59, 0, jerusalem), // PubDate 11:00, 299s diff
+			text: `🚨 ירי רקטות וטילים (10/10/2024) 11:00
+
+אזור קו העימות
+מטולה (מיידי)
+
+היכנסו למרחב המוגן ושהו בו למשך 10 דקות.
+להנחיות המלאות - https://www.oref.org.il/heb/life-saving-guidelines/rocket-and-missile-attacks`,
+			overrideCategory: "",
+			wantErr:          true, // Now expired by 90s rule
+		},
+		// --- Early Alerts (300s expiration) ---
+		{
+			name:             "Early Alert - Valid (under 90s)",                // Still valid under 300s
+			now:              time.Date(2024, 10, 10, 12, 0, 30, 0, jerusalem), // PubDate 12:00, 30s diff
+			text:             `(10/10/2024) 12:00 התרעה מוקדמת: בדקות הקרובות צפויות להתקבל התרעות באזורך.`,
+			overrideCategory: "rockets",
+			wantErr:          false,
+			expectedCategory: "rockets",
+			expectedCities:   []string{},
+		},
+		{
+			name:             "Early Alert - Valid (over 90s, under 300s)",
+			now:              time.Date(2024, 10, 10, 12, 2, 30, 0, jerusalem), // PubDate 12:00, 150s diff
+			text:             `(10/10/2024) 12:00 התרעה מוקדמת: בדקות הקרובות צפויות להתקבל התרעות באזורך.`,
+			overrideCategory: "rockets",
+			wantErr:          false, // Should NOT be expired by 300s rule
+			expectedCategory: "rockets",
+			expectedCities:   []string{},
+		},
+		{
+			name:             "Early Alert - Not Expired (just under 300s)",
+			now:              time.Date(2024, 10, 10, 12, 4, 59, 0, jerusalem), // PubDate 12:00, 299s diff
+			text:             `(10/10/2024) 12:00 התרעה מוקדמת: בדקות הקרובות צפויות להתקבל התרעות באזורך.`,
+			overrideCategory: "rockets",
+			wantErr:          false,
+			expectedCategory: "rockets",
+			expectedCities:   []string{},
+		},
+		{
+			name:             "Early Alert - Expired (just over 300s)",
+			now:              time.Date(2024, 10, 10, 12, 5, 1, 0, jerusalem), // PubDate 12:00, 301s diff
+			text:             `(10/10/2024) 12:00 התרעה מוקדמת: בדקות הקרובות צפויות להתקבל התרעות באזורך.`,
+			overrideCategory: "rockets",
+			wantErr:          true, // Should be expired by 300s rule
+		},
+		// --- General cases ---
+		{
+			name: "UAV alert - Valid (Regular 90s rule, under 90s)",
+			now:  time.Date(2024, 10, 10, 13, 0, 30, 0, jerusalem), // PubDate 13:00, 30s diff
+			text: `🚨 חדירת כלי טיס עוין (10/10/2024) 13:00
 
 אזור הצפון
 קריית שמונה (מיידי)
 
 היכנסו למרחב המוגן ושהו בו למשך 10 דקות.`,
-		overrideCategory: "", // This is a regular alert
-		wantErr:          false,
-		expectedCategory: "uav",
-		expectedCities:   []string{"קריית שמונה"},
-	},
-	{
-		name: "UAV alert - Expired (Regular 90s rule, over 90s)",
-		now:  time.Date(2024, 10, 10, 13, 1, 31, 0, jerusalem), // PubDate 13:00, 91s diff
-		text: `🚨 חדירת כלי טיס עוין (10/10/2024) 13:00
+			overrideCategory: "", // This is a regular alert
+			wantErr:          false,
+			expectedCategory: "uav",
+			expectedCities:   []string{"קריית שמונה"},
+		},
+		{
+			name: "UAV alert - Expired (Regular 90s rule, over 90s)",
+			now:  time.Date(2024, 10, 10, 13, 1, 31, 0, jerusalem), // PubDate 13:00, 91s diff
+			text: `🚨 חדירת כלי טיס עוין (10/10/2024) 13:00
 
 אזור הצפון
 קריית שמונה (מיידי)
 
 היכנסו למרחב המוגן ושהו בו למשך 10 דקות.`,
-		overrideCategory: "", // This is a regular alert
-		wantErr:          true, // Should be expired
-	},
-	{
-		name: "Alert with no cities (Regular, not expired)",
-		now:  time.Date(2024, 10, 10, 14, 0, 30, 0, jerusalem), // PubDate 14:00, 30s diff
-		text: `🚨 ירי רקטות וטילים (10/10/2024) 14:00
+			overrideCategory: "",   // This is a regular alert
+			wantErr:          true, // Should be expired
+		},
+		{
+			name: "Alert with no cities (Regular, not expired)",
+			now:  time.Date(2024, 10, 10, 14, 0, 30, 0, jerusalem), // PubDate 14:00, 30s diff
+			text: `🚨 ירי רקטות וטילים (10/10/2024) 14:00
 
 התרעה כללית באזור לא מוגדר.
 
 היכנסו למרחב המוגן ושהו בו למשך 10 דקות.`,
-		overrideCategory: "",
-		wantErr:          false,
-		expectedCategory: "rockets",
-		expectedCities:   []string{},
-	},
-	{
-		name: "Regular Alert - Previously 'not expired by 300s rule' (120s diff), now EXPIRED by 90s rule",
-		now:  time.Date(2025, 5, 29, 21, 25, 0, 0, jerusalem), // PubDate 21:23, 120s diff
-		text: `🚨 ירי רקטות וטילים (29/5/2025) 21:23
+			overrideCategory: "",
+			wantErr:          false,
+			expectedCategory: "rockets",
+			expectedCities:   []string{},
+		},
+		{
+			name: "Regular Alert - Previously 'not expired by 300s rule' (120s diff), now EXPIRED by 90s rule",
+			now:  time.Date(2025, 5, 29, 21, 25, 0, 0, jerusalem), // PubDate 21:23, 120s diff
+			text: `🚨 ירי רקטות וטילים (29/5/2025) 21:23
 
 אזור שומרון
 דולב, טלמון, נריה (דקה וחצי)
 
 היכנסו למרחב המוגן ושהו בו למשך 10 דקות.
 להנחיות המלאות - https://www.oref.org.il/heb/life-saving-guidelines/rocket-and-missile-attacks`,
-		overrideCategory: "",
-		wantErr:          true, // Now expired by 90s rule
+			overrideCategory: "",
+			wantErr:          true, // Now expired by 90s rule
 		},
 	}
 }
 
 func Test_processMessage(t *testing.T) {
 	districts := district.GetDistricts()
+	mockBot := &MockBot{
+		SubmittedMessages: make([]*bot.Message, 0),
+		Client:            &model.Client4{},
+		// Channels:          []*model.Channel{}, // Initialize if needed
+	}
+	mockBot.Bot.Register()
+	go mockBot.Bot.AwaitMessage()
+	s := &SourceTelegram{
+		Bot: &mockBot.Bot,
+	}
+	s.Register()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockBot := &MockBot{
-				SubmittedMessages: make([]*bot.Message, 0),
-				Client:            &model.Client4{},
-				// Channels:          []*model.Channel{}, // Initialize if needed
-			}
+			mockBot.SubmittedMessages = make([]*bot.Message, 0)
 			err := processMessage(tt.text, districts, tt.now, &mockBot.Bot, tt.overrideCategory)
 
 			if tt.wantErr {
@@ -273,7 +280,7 @@ func TestParseMessage_EarlyAlert(t *testing.T) {
 
 	alertTime := time.Now().In(jerusalem).Add(-15 * time.Second) // Recent to avoid expiration
 	alertDateStr := alertTime.Format("02/01/2006")               // DD/MM/YYYY
-	alertTimeStr := alertTime.Format("15:04")                   // HH:MM
+	alertTimeStr := alertTime.Format("15:04")                    // HH:MM
 	earlyAlertText := fmt.Sprintf("(%s) %s התרעה מוקדמת: בדקות הקרובות צפויות להתקבל התרעות באזורך.", alertDateStr, alertTimeStr)
 
 	update := &tg.UpdateNewChannelMessage{
