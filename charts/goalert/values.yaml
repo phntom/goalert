@@ -1,10 +1,11 @@
 config:
   authToken: xxx
   domain: http://mattermost-team-edition.chat.svc:8065
-  team: nix
-  channel: rockets
-  appID: "123"
-  appHash: xxx
+  # Optional source overrides; leave blank to use the built-in defaults.
+  # ynet defaults to the AWS-direct source-alerts origin (bypasses Akamai cache).
+  ynetURL: ""
+  orefHistoryURL: ""
+  tzevaadomWsURL: ""
 
 replicaCount: 1
 
@@ -12,8 +13,9 @@ image:
   repository: phntom/goalert
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "0.0.47"
-  hash: "sha256:3562785a57e6f745bd28a6a7855a86ca43719e068c1b2b95ba93e8beecce2ddf"
+  tag: "0.1.0"
+  # Optional digest pin (e.g. sha256:...); blank pulls by tag.
+  hash: ""
 
 service:
   type: ClusterIP
