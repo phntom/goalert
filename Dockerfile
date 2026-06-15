@@ -12,8 +12,7 @@ FROM alpine:3.21
 RUN apk --no-cache add tzdata ca-certificates
 WORKDIR /app
 COPY --from=builder /out/goalert ./goalert
-ENV AUTH_TOKEN="" \
-    CHAT_DOMAIN="https://kix.co.il"
+ENV CHAT_DOMAIN="https://kix.co.il"
 EXPOSE 3000
 USER nobody
 ENTRYPOINT ["/app/goalert"]
