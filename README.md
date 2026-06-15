@@ -15,6 +15,11 @@ served in Hebrew, English, Russian and Arabic, chosen by the channel name.
   end-of-alert (all-clear) and a dedup backstop.
 - **Tzeva Adom WebSocket** — push-based, lowest latency, and the origin of
   pre-alerts (an early "expect alerts shortly" warning).
+- **Telegram** (optional) — the Pikud HaOref aggregated-alert channel, the only
+  source that carries the launch **origin** (e.g. "from Yemen"), which is shown
+  in the card title. Also forwards IDF Spokesperson news (early missile
+  warnings) and keyword-filtered Israel news. Needs `APP_ID`/`APP_HASH` and a
+  Mattermost channel named `config` (used to persist the Telegram session).
 
 ## Run
 
@@ -32,7 +37,8 @@ go run ./cmd/goalert
 | `OREF_HISTORY_URL` | no | oref `GetAlarmsHistory.aspx` | override the oref feed |
 | `TZEVAADOM_WS_URL` | no | `wss://ws.tzevaadom.co.il/socket` | override the WS endpoint |
 | `METRICS_ADDR` | no | `:3000` | Prometheus `/metrics` listen address |
-| `DISABLE_YNET` / `DISABLE_OREF` / `DISABLE_TZEVAADOM` | no | — | set to `1` to disable a source |
+| `APP_ID` / `APP_HASH` | no | — | Telegram app credentials; enable the Telegram source |
+| `DISABLE_YNET` / `DISABLE_OREF` / `DISABLE_TZEVAADOM` / `DISABLE_TELEGRAM` | no | — | set to `1` to disable a source |
 
 The bot posts to every channel it is a member of (except `town-square` and
 `off-topic`).

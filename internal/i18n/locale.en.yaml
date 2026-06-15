@@ -23,3 +23,10 @@ message:
   nonconventional: Non-conventional threat
   cbrne: Hazardous materials threat
   hazmat: Hazardous materials event
+origin:
+  yemen: Yemen
+  iran: Iran
+  lebanon: Lebanon
+  gaza: Gaza
+  syria: Syria
+  iraq: Iraq

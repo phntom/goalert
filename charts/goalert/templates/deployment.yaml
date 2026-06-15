@@ -38,6 +38,17 @@ spec:
                 secretKeyRef:
                   name:  {{ template "goalert.fullname" . }}
                   key: AUTH_TOKEN
+            {{- with .Values.config.appID }}
+            - name: APP_ID
+              value: {{ . | quote }}
+            {{- end }}
+            {{- if .Values.config.appHash }}
+            - name: APP_HASH
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "goalert.fullname" . }}
+                  key: APP_HASH
+            {{- end }}
             {{- with .Values.config.ynetURL }}
             - name: YNET_URL
               value: {{ . | quote }}

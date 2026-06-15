@@ -15,6 +15,7 @@ import (
 // Channel is a destination channel and the language to render it in.
 type Channel struct {
 	ID   string
+	Name string
 	Lang i18n.Language
 }
 

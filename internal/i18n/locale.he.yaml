@@ -30,3 +30,10 @@ message:
   nonconventional: חשש לאירוע לא קונבנציונלי
   cbrne: חשש לחומרים מסוכנים
   hazmat: חשיפה לחומרים מסוכנים
+origin:
+  yemen: תימן
+  iran: איראן
+  lebanon: לבנון
+  gaza: עזה
+  syria: סוריה
+  iraq: עיראק

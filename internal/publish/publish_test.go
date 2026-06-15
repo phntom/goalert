@@ -157,6 +157,14 @@ func TestEndAlertPatchesToAllClear(t *testing.T) {
 	t.Error("expected an all-clear (green) patch after end alert")
 }
 
+func TestRenderOrigin(t *testing.T) {
+	inc := &Incident{category: alert.CatMissile, origin: "yemen", areas: testAreas().All()[:1], ids: map[string]bool{}}
+	title := attachment(Render(inc, "en").Props).Title
+	if !strings.Contains(title, "Yemen") {
+		t.Errorf("expected origin in title, got %q", title)
+	}
+}
+
 func TestRenderImmediateWhenNoShelterTime(t *testing.T) {
 	inc := &Incident{category: alert.CatMissile, areas: testAreas().All()[:1], safety: 0, ids: map[string]bool{}}
 	post := Render(inc, "en")

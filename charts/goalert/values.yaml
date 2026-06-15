@@ -1,6 +1,11 @@
 config:
   authToken: xxx
   domain: http://mattermost-team-edition.chat.svc:8065
+  # Telegram source (origin info + IDF/Israel news). Leave blank to disable it;
+  # when set, the bot must be a member of a Mattermost channel named "config"
+  # (used to persist the Telegram session).
+  appID: ""
+  appHash: ""
   # Optional source overrides; leave blank to use the built-in defaults.
   # ynet defaults to the AWS-direct source-alerts origin (bypasses Akamai cache).
   ynetURL: ""

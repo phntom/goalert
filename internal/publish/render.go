@@ -20,6 +20,11 @@ const (
 // the engine later patches Message to "" so only the card remains.
 func Render(inc *Incident, lang i18n.Language) *model.Post {
 	title := i18n.Text(inc.category.TitleKey(), lang)
+	if inc.origin != "" {
+		if name := i18n.TextOr("origin."+inc.origin, lang, ""); name != "" {
+			title = title + " · " + name
+		}
+	}
 	if n := len(inc.ids); n > 1 {
 		title = fmt.Sprintf("%s (%d)", title, n)
 	}

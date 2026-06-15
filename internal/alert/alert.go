@@ -27,6 +27,9 @@ type Alert struct {
 	At       time.Time
 	Source   string
 	IDs      []string
+	// Origin is a canonical launch-origin key (e.g. "yemen"), when a source
+	// reports it (currently only Telegram aggregated alerts); "" otherwise.
+	Origin string
 }
 
 // KindOf derives the lifecycle Kind from a category.

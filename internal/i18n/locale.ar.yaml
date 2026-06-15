@@ -21,3 +21,10 @@ message:
   nonconventional: تهديد غير تقليدي
   cbrne: مواد خطرة
   hazmat: حدث مواد خطرة
+origin:
+  yemen: اليمن
+  iran: إيران
+  lebanon: لبنان
+  gaza: غزة
+  syria: سوريا
+  iraq: العراق

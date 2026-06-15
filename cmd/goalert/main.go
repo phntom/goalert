@@ -37,7 +37,7 @@ func main() {
 	}
 
 	feed := make(chan alert.Alert, 64)
-	for _, s := range buildSources(areas, m) {
+	for _, s := range buildSources(chat, areas, m) {
 		go s.Run(ctx, feed)
 		mlog.Info("source started", mlog.String("source", s.Name()))
 	}
@@ -47,8 +47,9 @@ func main() {
 }
 
 // buildSources assembles the enabled alert sources. Each can be turned off with
-// its DISABLE_* env var.
-func buildSources(areas *area.Set, m *metrics.Metrics) []source.Source {
+// its DISABLE_* env var. Telegram additionally needs APP_ID/APP_HASH and a
+// Mattermost "config" channel for session storage; it is skipped if missing.
+func buildSources(chat *publish.Mattermost, areas *area.Set, m *metrics.Metrics) []source.Source {
 	var srcs []source.Source
 	if !disabled("DISABLE_YNET") {
 		srcs = append(srcs, source.NewYnet(os.Getenv("YNET_URL"), m))
@@ -58,6 +59,13 @@ func buildSources(areas *area.Set, m *metrics.Metrics) []source.Source {
 	}
 	if !disabled("DISABLE_TZEVAADOM") {
 		srcs = append(srcs, source.NewTzevaadom(os.Getenv("TZEVAADOM_WS_URL"), areas, m))
+	}
+	if !disabled("DISABLE_TELEGRAM") {
+		if tg, err := source.NewTelegram(chat.Client(), chat.ConfigChannelID(), chat, m); err != nil {
+			mlog.Warn("telegram source disabled", mlog.Err(err))
+		} else {
+			srcs = append(srcs, tg)
+		}
 	}
 	return srcs
 }

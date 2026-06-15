@@ -26,3 +26,10 @@ message:
   nonconventional: Неконвенциональная угроза
   cbrne: Опасные материалы
   hazmat: Утечка опасных веществ
+origin:
+  yemen: Йемен
+  iran: Иран
+  lebanon: Ливан
+  gaza: Газа
+  syria: Сирия
+  iraq: Ирак

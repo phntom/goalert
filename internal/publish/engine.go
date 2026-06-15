@@ -33,6 +33,7 @@ type postRef struct {
 // it produced, the source ids seen, and when it expires.
 type Incident struct {
 	category alert.Category
+	origin   string
 	areas    []*area.Area
 	safety   int
 	at       time.Time
@@ -71,6 +72,19 @@ func (inc *Incident) snapshotPosts() []postRef {
 	inc.mu.Lock()
 	defer inc.mu.Unlock()
 	return slices.Clone(inc.posts)
+}
+
+func (inc *Incident) setOriginIfEmpty(o string) bool {
+	if o == "" {
+		return false
+	}
+	inc.mu.Lock()
+	defer inc.mu.Unlock()
+	if inc.origin != "" {
+		return false
+	}
+	inc.origin = o
+	return true
 }
 
 func (inc *Incident) markEnded() {
@@ -167,7 +181,11 @@ func (e *Engine) reconcile(a alert.Alert, areas []*area.Area) (fresh, toPatch []
 	for _, ar := range areas {
 		inc, ok := e.live[ar.ID]
 		if ok && !inc.expired() && inc.category == a.Category {
-			if inc.addIDs(a.IDs) && !patched[inc] {
+			changed := inc.addIDs(a.IDs)
+			if inc.setOriginIfEmpty(a.Origin) {
+				changed = true
+			}
+			if changed && !patched[inc] {
 				patched[inc] = true
 				toPatch = append(toPatch, inc)
 			}
@@ -275,7 +293,7 @@ func (e *Engine) cleanup(ctx context.Context) {
 
 func newIncident(a alert.Alert, areas []*area.Area) *Incident {
 	inc := &Incident{
-		category: a.Category, areas: areas, safety: minMigun(areas),
+		category: a.Category, origin: a.Origin, areas: areas, safety: minMigun(areas),
 		at: a.At, ids: make(map[string]bool), expire: time.Now().Add(ttlFor(a.Kind)),
 	}
 	for _, id := range a.IDs {
