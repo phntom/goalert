@@ -61,6 +61,22 @@ spec:
             - name: TZEVAADOM_WS_URL
               value: {{ . | quote }}
             {{- end }}
+            {{- if .Values.config.disableYnet }}
+            - name: DISABLE_YNET
+              value: "1"
+            {{- end }}
+            {{- if .Values.config.disableOref }}
+            - name: DISABLE_OREF
+              value: "1"
+            {{- end }}
+            {{- if .Values.config.disableTzevaadom }}
+            - name: DISABLE_TZEVAADOM
+              value: "1"
+            {{- end }}
+            {{- if .Values.config.disableTelegram }}
+            - name: DISABLE_TELEGRAM
+              value: "1"
+            {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           ports:

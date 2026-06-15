@@ -11,6 +11,13 @@ config:
   ynetURL: ""
   orefHistoryURL: ""
   tzevaadomWsURL: ""
+  # Per-source kill switches. Note: oref.org.il geo-blocks non-Israeli IPs
+  # (returns HTTP 403), so set disableOref: true when the host egresses from
+  # outside Israel; all-clear then comes from Telegram + Tzeva Adom.
+  disableYnet: false
+  disableOref: false
+  disableTzevaadom: false
+  disableTelegram: false
 
 replicaCount: 1
 

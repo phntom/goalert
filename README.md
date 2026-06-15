@@ -43,6 +43,20 @@ go run ./cmd/goalert
 The bot posts to every channel it is a member of (except `town-square` and
 `off-topic`).
 
+## Deploy (Docker)
+
+```sh
+docker run -d --name goalert --restart unless-stopped \
+  --env-file goalert.env \
+  phntom/goalert:0.1.0
+```
+
+`goalert.env` holds the variables from the table above (`CHAT_DOMAIN`,
+`AUTH_TOKEN`, `APP_ID`, `APP_HASH`, …). The Telegram session persists in the
+Mattermost `config` channel, so it survives container restarts and host moves
+with no re-authentication. `oref.org.il` geo-blocks non-Israeli IPs (HTTP 403),
+so run from an Israeli egress or set `DISABLE_OREF=1`.
+
 ## Area data
 
 City/area data is embedded in `internal/area/data.gen.json` and reconciles oref
