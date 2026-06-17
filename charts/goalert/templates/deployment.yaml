@@ -28,7 +28,7 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}@{{ .Values.image.hash }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}{{ with .Values.image.hash }}@{{ . }}{{ end }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: CHAT_DOMAIN
@@ -38,10 +38,45 @@ spec:
                 secretKeyRef:
                   name:  {{ template "goalert.fullname" . }}
                   key: AUTH_TOKEN
+            {{- with .Values.config.appID }}
             - name: APP_ID
-              value: {{ .Values.config.appID | quote }}
+              value: {{ . | quote }}
+            {{- end }}
+            {{- if .Values.config.appHash }}
             - name: APP_HASH
-              value: {{ .Values.config.appHash | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "goalert.fullname" . }}
+                  key: APP_HASH
+            {{- end }}
+            {{- with .Values.config.ynetURL }}
+            - name: YNET_URL
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.config.orefHistoryURL }}
+            - name: OREF_HISTORY_URL
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.config.tzevaadomWsURL }}
+            - name: TZEVAADOM_WS_URL
+              value: {{ . | quote }}
+            {{- end }}
+            {{- if .Values.config.disableYnet }}
+            - name: DISABLE_YNET
+              value: "1"
+            {{- end }}
+            {{- if .Values.config.disableOref }}
+            - name: DISABLE_OREF
+              value: "1"
+            {{- end }}
+            {{- if .Values.config.disableTzevaadom }}
+            - name: DISABLE_TZEVAADOM
+              value: "1"
+            {{- end }}
+            {{- if .Values.config.disableTelegram }}
+            - name: DISABLE_TELEGRAM
+              value: "1"
+            {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           ports:

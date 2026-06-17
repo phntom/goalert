@@ -1,0 +1,32 @@
+mention_prefix: OrefAlarm
+subdivision:
+  replace:
+    "1017": Acre - Industrial Zone
+  industrial_zone: Industrial Zone
+  regional_center: Regional Council
+  regional_council: Regional Council
+message:
+  instructions: "{1}{2}{3} seek shelter"
+  lockdown: Enter a building, lock the doors and close the windows
+  uav_instructions: Following the entry of a hostile aircraft, enter the protected space and remain there until the event is over
+  pre_alert: Alerts are expected in your area in the coming minutes; be ready to enter the protected space
+  all_clear: The event is over; you may leave the protected space
+  secondsPrefix: "You have "
+  secondsSuffix: " seconds to"
+  immediate: Immediately
+  rockets: Rocket and missile fire
+  uav: Hostile aircraft intrusion
+  infiltration: Terrorist infiltration
+  earthquake: Earthquake
+  tsunami: Tsunami alert
+  warning: Alert
+  nonconventional: Non-conventional threat
+  cbrne: Hazardous materials threat
+  hazmat: Hazardous materials event
+origin:
+  yemen: Yemen
+  iran: Iran
+  lebanon: Lebanon
+  gaza: Gaza
+  syria: Syria
+  iraq: Iraq

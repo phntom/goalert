@@ -1,0 +1,30 @@
+mention_prefix: الطوارئتنبيها
+subdivision:
+  industrial_zone: المنطقة الصناعية
+  regional_center: المجلس الإقليمي
+  regional_council: المجلس الإقليمي
+message:
+  instructions: "{1}{2}{3} ادخلوا إلى المكان المحمي"
+  lockdown: أدخلوا المبنى وأغلقوا الأبواب والنوافذ
+  uav_instructions: في أعقاب دخول طائرة معادية، ادخلوا إلى المكان المحمي وابقوا فيه حتى انتهاء الحدث
+  pre_alert: من المتوقع تلقي تنبيهات في منطقتكم خلال الدقائق القادمة، استعدوا لدخول المكان المحمي
+  all_clear: انتهى الحدث، يمكنكم مغادرة المكان المحمي
+  secondsPrefix: " "
+  secondsSuffix: " ثانية"
+  immediate: فوراً
+  rockets: إطلاق قذائف وصواريخ
+  uav: اختراق طائرة معادية
+  infiltration: تسلل مخربين
+  earthquake: هزة أرضية
+  tsunami: تحذير من تسونامي
+  warning: تنبيه
+  nonconventional: تهديد غير تقليدي
+  cbrne: مواد خطرة
+  hazmat: حدث مواد خطرة
+origin:
+  yemen: اليمن
+  iran: إيران
+  lebanon: لبنان
+  gaza: غزة
+  syria: سوريا
+  iraq: العراق

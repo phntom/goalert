@@ -10,6 +10,11 @@
 # Test binary, built with `go test -c`
 *.test
 
+# Compiled command binaries (built into the repo root by `go build`)
+/goalert
+/genareas
+/alert
+
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
