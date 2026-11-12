@@ -2,15 +2,16 @@ package sources
 
 import (
 	"encoding/json"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/phntom/goalert/internal/bot"
-	"github.com/phntom/goalert/internal/district"
-	"github.com/phntom/goalert/internal/fetcher"
+	"log/slog"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/phntom/goalert/internal/bot"
+	"github.com/phntom/goalert/internal/district"
+	"github.com/phntom/goalert/internal/fetcher"
 )
 
 var categories = map[string]string{
@@ -59,10 +60,10 @@ func (s *SourceOref) Parse(content []byte) []*bot.Message {
 	content = []byte(string(content)[start:])
 	err := json.Unmarshal(content, &alerts)
 	if err != nil {
-		mlog.Error("failed to unmarshal",
-			mlog.Err(err),
-			mlog.Any("content", content),
-			mlog.Any("source", "oref"),
+		slog.Error("failed to unmarshal",
+			"error", err,
+			"content", string(content),
+			"source", "oref",
 		)
 		return nil
 	}
@@ -77,24 +78,19 @@ func (s *SourceOref) Parse(content []byte) []*bot.Message {
 		category := categories[alerts.CategoryInt]
 		s.seen[city] = true
 		if category == "" {
-			mlog.Warn("unknown oref category", mlog.Any("alerts", alerts))
+			slog.Warn("unknown oref category", "alerts", alerts)
 			continue
 		}
 		districtID := district.GetDistrictByCity(city)
 		if districtID == "" {
-			mlog.Warn("district not found",
-				mlog.Any("data", city),
-				mlog.Any("source", "oref"),
+			slog.Warn("district not found",
+				"data", city,
+				"source", "oref",
 			)
 			continue
 		}
 		cityObj := districts["he"][districtID]
-		instructions := "instructions"
-		if category == "infiltration" || category == "radiological" || category == "biohazard" {
-			instructions = "lockdown"
-		} else if category == "uav" {
-			instructions = "uav_instructions"
-		}
+		instructions := instructionsFor(category)
 		msg := bot.NewMessage(instructions, category, cityObj.SafetyBufferSeconds, calculatePubTime(alerts.ID))
 		hash := msg.GetHash()
 		if _, ok := dedup[hash]; !ok {
@@ -113,7 +109,7 @@ func (s *SourceOref) Parse(content []byte) []*bot.Message {
 func calculatePubTime(id string) string {
 	number, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
-		mlog.Error("failed to convert id to time", mlog.Any("id", id), mlog.Err(err))
+		slog.Error("failed to convert id to time", "id", id, "error", err)
 		return ""
 	}
 
@@ -144,8 +140,6 @@ func (s *SourceOref) Run() {
 		time.Sleep(sleepDuration)
 
 		content := s.Fetch()
-		//content := []byte("{\"id\": \"133449412450000000\",\"cat\": \"1\",\"title\": \"ירי רקטות וטילים\",\"data\": [\"בית שקמה\"],\"desc\": \"היכנסו למרחב המוגן ושהו בו 10 דקות\"}")
-		//content := []byte("{\n\t\t \"id\": \"133451945860000000\",\n\t\t \"cat\": \"1\",\n\t\t \"title\": \"ירי רקטות וטילים\",\n\t\t \"data\": [\n\t\t   \"ערב אל עראמשה\"\n\t\t ],\n\t\t \"desc\": \"היכנסו למרחב המוגן ושהו בו 10 דקות\"\n\t\t}")
 		if content == nil {
 			failed += 1
 			if failed > 30 {
@@ -156,7 +150,7 @@ func (s *SourceOref) Run() {
 		failed = 0
 		empty := true
 		for _, m := range s.Parse(content) {
-			mlog.Debug("oref", mlog.Any("content", string(content)))
+			slog.Info("oref", "content", string(content))
 			s.Bot.SubmitMessage(m)
 			empty = false
 		}

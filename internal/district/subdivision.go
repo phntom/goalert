@@ -2,9 +2,10 @@ package district
 
 import (
 	"fmt"
-	"github.com/phntom/goalert/internal/config"
 	"strings"
 	"unicode"
+
+	"github.com/phntom/goalert/internal/config"
 )
 
 var SubdivisionsSet = map[ID]ID{

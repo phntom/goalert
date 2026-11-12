@@ -2,14 +2,14 @@ package district
 
 import (
 	"embed"
-	_ "embed"
 	"encoding/json"
 	"fmt"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/phntom/goalert/internal/config"
 	"io"
+	"log/slog"
 	"strings"
 	"sync"
+
+	"github.com/phntom/goalert/internal/config"
 )
 
 type ID string
@@ -75,35 +75,32 @@ func initDistricts() {
 		filename := fmt.Sprintf("districts.%s.json", lang)
 		file, err := districtFS.Open(filename)
 		if err != nil {
-			mlog.Error("Failed loading district", mlog.Err(err),
-				mlog.Any("lang", lang),
-				mlog.Any("filename", filename),
+			slog.Error("Failed loading district", "error", err,
+				"lang", lang,
+				"filename", filename,
 			)
 			return
 		}
 		content, err := io.ReadAll(file)
 		if err != nil {
-			mlog.Error("Failed reading district file", mlog.Err(err),
-				mlog.Any("lang", lang),
-				mlog.Any("filename", filename),
+			slog.Error("Failed reading district file", "error", err,
+				"lang", lang,
+				"filename", filename,
 			)
 			return
 		}
 		err = json.Unmarshal(content, &districtList)
 		if err != nil {
-			mlog.Error("Failed unmarshaling district file", mlog.Err(err),
-				mlog.Any("lang", lang),
-				mlog.Any("filename", filename),
+			slog.Error("Failed unmarshaling district file", "error", err,
+				"lang", lang,
+				"filename", filename,
 			)
 			return
 		}
 
 		d := make(map[ID]District, len(districtList))
 		if districtLookup == nil {
-			// Initialize with a capacity, e.g., sum of lengths of all districtLists if known, or a reasonable default.
-			// For now, let's estimate based on the first language processed, this might need adjustment for optimal performance.
-			estimatedCapacity := len(districtList) * numberOfLanguages
-			districtLookup = make(map[string]ID, estimatedCapacity)
+			districtLookup = make(map[string]ID, len(districtList)*numberOfLanguages)
 		}
 
 		for _, district := range districtList {
@@ -117,12 +114,13 @@ func initDistricts() {
 					}
 					i++
 				}
-				mlog.Warn("Duplicate district ID", mlog.Any("district", district), mlog.String("newID", string(district.ID)))
+				slog.Warn("Duplicate district ID", "district", district, "newID", string(district.ID))
 			}
 			d[district.ID] = district
-			// Use normalized city name for lookup
+			// Use the normalized city name as the lookup key so variations
+			// in hyphenation, quoting and spelling resolve to the district.
 			normalizedSettlementName := normalizeCityName(district.SettlementName)
-			if normalizedSettlementName != "" { // Avoid empty keys if normalization results in an empty string
+			if normalizedSettlementName != "" {
 				districtLookup[normalizedSettlementName] = district.ID
 			}
 		}
@@ -137,7 +135,6 @@ func GetDistricts() Districts {
 }
 
 func GetDistrictByCity(city string) ID {
-	once.Do(initDistricts) // Ensure districts are initialized
-	normalizedCity := normalizeCityName(city)
-	return districtLookup[normalizedCity]
+	once.Do(initDistricts)
+	return districtLookup[normalizeCityName(city)]
 }

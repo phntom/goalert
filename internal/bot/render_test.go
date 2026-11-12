@@ -1,16 +1,18 @@
 package bot
 
 import (
+	"testing"
+
 	"github.com/go-test/deep"
 	"github.com/mattermost/mattermost/server/public/model"
+
 	"github.com/phntom/goalert/internal/config"
 	"github.com/phntom/goalert/internal/district"
-	"testing"
 )
 
 func TestRender(t *testing.T) {
 	type args struct {
-		msg  Message
+		msg  *Message
 		lang config.Language
 	}
 	tests := []struct {
@@ -21,7 +23,7 @@ func TestRender(t *testing.T) {
 		{
 			name: "rocket alert hebrew simple",
 			args: args{
-				msg: Message{
+				msg: &Message{
 					Instructions:  "instructions",
 					Category:      "rockets",
 					SafetySeconds: 90,
@@ -35,8 +37,8 @@ func TestRender(t *testing.T) {
 				Message: "עין חרוד\nתוך 90 שניות היכנסו למרחב המוגן\nצבעאדוםעיןחרוד #עין_חרוד",
 				Metadata: &model.PostMetadata{
 					Priority: &model.PostPriority{
-						Priority:     model.NewString("urgent"),
-						RequestedAck: model.NewBool(true),
+						Priority:     model.NewPointer("urgent"),
+						RequestedAck: model.NewPointer(true),
 					},
 				},
 			},
@@ -44,7 +46,7 @@ func TestRender(t *testing.T) {
 		{
 			name: "rocket alert english simple",
 			args: args{
-				msg: Message{
+				msg: &Message{
 					Instructions:  "instructions",
 					Category:      "rockets",
 					SafetySeconds: 90,
@@ -58,8 +60,8 @@ func TestRender(t *testing.T) {
 				Message: "Ein Harod\nYou have 90 seconds to seek shelter\nOrefAlarmEinHarod #Ein_Harod",
 				Metadata: &model.PostMetadata{
 					Priority: &model.PostPriority{
-						Priority:     model.NewString("urgent"),
-						RequestedAck: model.NewBool(true),
+						Priority:     model.NewPointer("urgent"),
+						RequestedAck: model.NewPointer(true),
 					},
 				},
 			},
@@ -67,7 +69,7 @@ func TestRender(t *testing.T) {
 		{
 			name: "rocket alert russian simple",
 			args: args{
-				msg: Message{
+				msg: &Message{
 					Instructions:  "instructions",
 					Category:      "rockets",
 					SafetySeconds: 90,
@@ -81,8 +83,8 @@ func TestRender(t *testing.T) {
 				Message: "Эйн Харод\nУ вас 90 секунд, чтобы найти убежище\nТревогаТылаЭйнХарод #Эйн_Харод",
 				Metadata: &model.PostMetadata{
 					Priority: &model.PostPriority{
-						Priority:     model.NewString("urgent"),
-						RequestedAck: model.NewBool(true),
+						Priority:     model.NewPointer("urgent"),
+						RequestedAck: model.NewPointer(true),
 					},
 				},
 			},
@@ -90,7 +92,7 @@ func TestRender(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := Render(&tt.args.msg, tt.args.lang)
+			got := Render(tt.args.msg, tt.args.lang)
 			if len(tt.want.Attachments()) == 0 {
 				//goland:noinspection GoDeprecation
 				got.Props = nil

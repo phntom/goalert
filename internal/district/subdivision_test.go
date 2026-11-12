@@ -1,9 +1,10 @@
 package district
 
 import (
-	"github.com/phntom/goalert/internal/config"
 	"strings"
 	"testing"
+
+	"github.com/phntom/goalert/internal/config"
 )
 
 func TestGetCity(t *testing.T) {

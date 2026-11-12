@@ -1,1 +1,8 @@
-Go Alert installed.
+Goalert release "{{ .Release.Name }}" is installed in namespace "{{ .Release.Namespace }}".
+
+Follow the bot logs:
+  kubectl -n {{ .Release.Namespace }} logs -f deploy/{{ include "goalert.fullname" . }}
+
+Port-forward port 3000 and read /metrics:
+  kubectl -n {{ .Release.Namespace }} port-forward deploy/{{ include "goalert.fullname" . }} 3000:3000
+  curl http://localhost:3000/metrics

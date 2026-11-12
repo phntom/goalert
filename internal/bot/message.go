@@ -3,12 +3,14 @@ package bot
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/phntom/goalert/internal/config"
-	"github.com/phntom/goalert/internal/district"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/mattermost/mattermost/server/public/model"
+
+	"github.com/phntom/goalert/internal/config"
+	"github.com/phntom/goalert/internal/district"
 )
 
 type Message struct {
@@ -55,6 +57,8 @@ func (m *Message) GetHash() string {
 }
 
 func (m *Message) PostForChannel(c *model.Channel) *model.Post {
+	m.PostMutex.Lock()
+	defer m.PostMutex.Unlock()
 	if len(m.Rendered) == 0 {
 		m.Prerender()
 	}
@@ -64,6 +68,8 @@ func (m *Message) PostForChannel(c *model.Channel) *model.Post {
 	return post
 }
 
+// Prerender renders the message for every configured language. Callers must
+// hold PostMutex.
 func (m *Message) Prerender() {
 	for _, lang := range config.Languages {
 		m.Rendered[lang] = Render(m, lang)
@@ -75,6 +81,8 @@ func (m *Message) IsExpired() bool {
 }
 
 func (m *Message) PatchData(n *Message) bool {
+	m.PostMutex.Lock()
+	defer m.PostMutex.Unlock()
 	if n.Category != "" && m.Category != n.Category {
 		m.Category = n.Category
 		m.Changed = true
@@ -92,7 +100,6 @@ func (m *Message) PatchData(n *Message) bool {
 		m.RocketIDs[rocketID] = true
 	}
 	if m.Changed {
-		//m.Expire = time.Now().Add(5 * time.Second)
 		m.Changed = false
 		m.Prerender()
 		return true

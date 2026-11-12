@@ -51,12 +51,25 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-Create the name of the service account to use
+Container image reference: repository:tag (tag defaults to the chart appVersion),
+with an @<hash> digest suffix appended only when image.hash is set.
 */}}
-{{- define "goalert.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "goalert.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
+{{- define "goalert.image" -}}
+{{- $tag := default .Chart.AppVersion .Values.image.tag -}}
+{{- printf "%s:%s" .Values.image.repository $tag -}}
+{{- with .Values.image.hash }}
+{{- printf "@%s" . }}
 {{- end }}
+{{- end }}
+
+{{/*
+Name of the Secret holding AUTH_TOKEN and APP_HASH:
+config.existingSecret when set, the chart fullname otherwise.
+*/}}
+{{- define "goalert.secretName" -}}
+{{- if .Values.config.existingSecret -}}
+{{- .Values.config.existingSecret -}}
+{{- else -}}
+{{- include "goalert.fullname" . -}}
+{{- end -}}
 {{- end }}

@@ -1,20 +1,18 @@
-FROM golang:alpine AS builder
+# Build stage: pinned Go toolchain matching go.mod.
+FROM golang:1.27.4-alpine3.24 AS builder
 WORKDIR /app
-COPY go.mod go.sum /app/
-COPY internal /app/internal/
-COPY cmd /app/cmd/
-#RUN ls && false
-RUN go mod tidy
-RUN go build -o alert /app/cmd/goalert-bot
-ENV CGO_ENABLED="0"
-RUN go test ./...
+# Cache dependencies first; go.mod/go.sum are authoritative (never `go mod tidy` in a build).
+COPY go.mod go.sum ./
+RUN go mod download
+COPY cmd ./cmd
+COPY internal ./internal
+ENV CGO_ENABLED=0
+RUN go build -trimpath -ldflags="-s -w" -o /app/alert ./cmd/goalert-bot
 
-FROM alpine:3.14
+# Runtime stage: distroless static, non-root, no shell.
+FROM gcr.io/distroless/static-debian12:nonroot
 WORKDIR /app
-RUN apk --no-cache add tzdata
-COPY --from=builder /app/alert ./
-ENV AUTH_TOKEN=""
-ENV CHAT_DOMAIN="https://kix.co.il"
+COPY --from=builder --chown=65532:65532 /app/alert /app/alert
+USER nonroot:nonroot
 EXPOSE 3000
-
 CMD ["/app/alert"]

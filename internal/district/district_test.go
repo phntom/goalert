@@ -1,9 +1,10 @@
 package district
 
 import (
-	"github.com/phntom/goalert/internal/config"
 	"sync"
 	"testing"
+
+	"github.com/phntom/goalert/internal/config"
 )
 
 func TestInitDistricts(t *testing.T) {
@@ -95,7 +96,7 @@ func TestGetDistrictByCity_Normalization(t *testing.T) {
 		{name: "Tel Aviv East no spaces around hyphen", inputCity: "תל אביב-מזרח", expectedID: "", expectFound: false},
 		// This input "שריגים (לי און)" normalizes to "שריגים לי און", stored key for 1266 is "שריגים ליאון".
 		{name: "Srigim with parentheses (hypothetical)", inputCity: "שריגים (לי און)", expectedID: "", expectFound: false},
-		{name: "City with single quotes", inputCity: "שריגים 'ליאון'", expectedID: "1266", expectFound: true}, // Normalizes to "שריגים ליאון"
+		{name: "City with single quotes", inputCity: "שריגים 'ליאון'", expectedID: "1266", expectFound: true},   // Normalizes to "שריגים ליאון"
 		{name: "City with double quotes", inputCity: "\"שריגים ליאון\"", expectedID: "1266", expectFound: true}, // Normalizes to "שריגים ליאון"
 
 		// Telegram Data Patterns
@@ -107,7 +108,7 @@ func TestGetDistrictByCity_Normalization(t *testing.T) {
 		// General Non-existence and empty inputs
 		{name: "NonExistentCity", inputCity: "עיר לא קיימת", expectedID: "", expectFound: false},
 		{name: "EmptyCity", inputCity: "", expectedID: "", expectFound: false},
-		{name: "HyphenOnlyCity", inputCity: "-", expectedID: "", expectFound: false}, // Normalizes to ""
+		{name: "HyphenOnlyCity", inputCity: "-", expectedID: "", expectFound: false},   // Normalizes to ""
 		{name: "SpacesOnlyCity", inputCity: "   ", expectedID: "", expectFound: false}, // Normalizes to ""
 	}
 

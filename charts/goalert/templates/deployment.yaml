@@ -6,18 +6,28 @@ metadata:
     {{- include "goalert.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  {{- with .Values.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "goalert.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
+      {{- $podAnnotations := deepCopy (.Values.podAnnotations | default dict) }}
+      {{- if not .Values.config.existingSecret }}
+      {{- $_ := set $podAnnotations "checksum/secret" (include (print .Template.BasePath "/secret.yaml") . | sha256sum) }}
+      {{- end }}
+      {{- with $podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
         {{- include "goalert.selectorLabels" . | nindent 8 }}
     spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -28,34 +38,60 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}@{{ .Values.image.hash }}"
+          image: {{ include "goalert.image" . | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: CHAT_DOMAIN
-              value: {{ .Values.config.domain }}
+              value: {{ .Values.config.domain | quote }}
             - name: AUTH_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name:  {{ template "goalert.fullname" . }}
+                  name: {{ include "goalert.secretName" . }}
                   key: AUTH_TOKEN
+            - name: APP_HASH
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "goalert.secretName" . }}
+                  key: APP_HASH
             - name: APP_ID
               value: {{ .Values.config.appID | quote }}
-            - name: APP_HASH
-              value: {{ .Values.config.appHash | quote }}
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- if .Values.config.logLevel }}
+            - name: LOG_LEVEL
+              value: {{ .Values.config.logLevel | quote }}
+            {{- end }}
+            {{- if .Values.config.configTeam }}
+            - name: CONFIG_TEAM
+              value: {{ .Values.config.configTeam | quote }}
+            {{- end }}
+            {{- if .Values.config.configChannel }}
+            - name: CONFIG_CHANNEL
+              value: {{ .Values.config.configChannel | quote }}
+            {{- end }}
+            {{- if .Values.config.disableSources.ynet }}
+            - name: DISABLE_YNET
+              value: "1"
+            {{- end }}
+            {{- if .Values.config.disableSources.oref }}
+            - name: DISABLE_OREF
+              value: "1"
+            {{- end }}
+            {{- if .Values.config.disableSources.telegram }}
+            - name: DISABLE_TELEGRAM
+              value: "1"
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           ports:
             - name: http
               containerPort: 3000
               protocol: TCP
           livenessProbe:
-            httpGet:
-              path: /metrics
-              port: http
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
           readinessProbe:
-            httpGet:
-              path: /metrics
-              port: http
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

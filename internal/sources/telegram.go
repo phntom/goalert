@@ -2,34 +2,33 @@ package sources
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
+	"os"
+	"regexp"
+	"slices"
+	"strings"
+	"time"
+
 	"github.com/go-faster/errors"
-	"github.com/gotd/td/examples"
 	"github.com/gotd/td/telegram"
 	"github.com/gotd/td/telegram/auth"
 	"github.com/gotd/td/telegram/updates"
 	updhook "github.com/gotd/td/telegram/updates/hook"
 	"github.com/gotd/td/tg"
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+
 	"github.com/phntom/goalert/internal/bot"
 	"github.com/phntom/goalert/internal/district"
-	"log"
-	"regexp"
-	"strings"
-	"time"
-	"fmt" // Added for formatting
 )
 
-// Regular expression to match city names followed by duration in parentheses
-var extractCityNamesRe = regexp.MustCompile(`\n(.*?) *\((\d+ שניות|מיידי)\)`)
+// Regular expression to match city names followed by duration in parentheses:
+// immediate (מיידי), N seconds (N שניות), a minute (דקה), or a minute and a half (דקה וחצי).
+var extractCityNamesRe = regexp.MustCompile(`\n(.*?) *\((מיידי|\d+ שניות|דקה וחצי|דקה)\)`)
 var extractPubTimeRe = regexp.MustCompile(`\((\d{1,2}/\d{1,2}/\d{4})\) (\d{1,2}:\d{2})`)
 
-// CreatePostTestHook is a hook for testing CreatePost calls.
-// It should be nil in production.
-var CreatePostTestHook func(post *model.Post) bool
-
 type SourceTelegram struct {
-	Bot *bot.Bot
+	Bot    *bot.Bot
 	client *telegram.Client
 	gaps   *updates.Manager
 }
@@ -52,8 +51,8 @@ func (s *SourceTelegram) Register() {
 		},
 	})
 	if err != nil {
-		mlog.Error("telegram client error", mlog.Err(err))
-		// os.Exit(7) // Consider removing os.Exit from library code.
+		slog.Error("telegram client error", "error", err)
+		os.Exit(7)
 	}
 	s.client = client
 	s.gaps = gaps
@@ -70,11 +69,12 @@ func (s *SourceTelegram) Parse(content []byte) []bot.Message {
 func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update *tg.UpdateNewChannelMessage) error {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Printf("Recovered from panic: %v", r) // This log might be an issue if std log is problematic
+			slog.Error("Recovered from panic", "panic", r)
 		}
 	}()
+
 	if update == nil {
-		log.Println("Update is nil")
+		slog.Warn("Update is nil")
 		return nil
 	}
 
@@ -85,13 +85,13 @@ func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update
 
 	peer := m.GetPeerID()
 	if peer == nil {
-		log.Println("Peer is nil")
+		slog.Warn("Peer is nil")
 		return nil
 	}
 
 	channelId, ok := peer.(*tg.PeerChannel)
 	if !ok {
-		log.Println("Peer is not a channel")
+		slog.Warn("Peer is not a channel")
 		return nil
 	}
 
@@ -101,11 +101,13 @@ func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update
 		return nil
 	}
 
-	if channelId.ChannelID == 1441886157 { // pikudhaoref_all
+	switch channelId.ChannelID {
+	case 1441886157: // pikudhaoref_all
 		now := time.Now()
 		var err error
 		if strings.Contains(text, "בדקות הקרובות צפויות להתקבל התרעות באזורך") {
-			// Early alert detected, process with "rockets" category
+			// Early alert: an alert is expected in the area shortly; process
+			// it as a rockets alert ahead of the actual alert message.
 			err = processMessage(text, district.GetDistricts(), now, s.Bot, "rockets")
 		} else {
 			err = processMessage(text, district.GetDistricts(), now, s.Bot, "")
@@ -113,96 +115,98 @@ func (s *SourceTelegram) ParseMessage(ctx context.Context, e tg.Entities, update
 		if err != nil {
 			return err
 		}
-	} else if channelId.ChannelID == 1155294424 { // idf_telegram
+	case 1155294424: // idf_telegram
 		important := false
 		if strings.Contains(text, "התרע") || strings.Contains(text, "פיגוע") || strings.Contains(text, "יירט") || strings.Contains(text, "מדיניות") || strings.Contains(text, "הנחיות") {
 			important = true
 		}
-		mlog.Info("IDF message", mlog.String("text", text), mlog.Bool("important", important))
+		slog.Info("IDF message", "text", text, "important", important)
 		post := model.Post{
 			Message: text,
 		}
 		if important {
-			// post.Metadata.Priority.Priority = model.NewString("important")
 			s.Bot.DirectMessage(&post, "he")
 		}
-	} else if channelId.ChannelID == 2335255539 {
+	case 2335255539: // israel_news
 		keywords := []string{"ירוט", "ירט", "אזעק", "תימן", "תימני", "יורט", "שיגור", "פיצוץ"}
-		foundKeyword := false
-		for _, keyword := range keywords {
-			if strings.Contains(text, keyword) {
-				foundKeyword = true
+		if !slices.ContainsFunc(keywords, func(keyword string) bool { return strings.Contains(text, keyword) }) {
+			return nil
+		}
+		targetChannelName := fmt.Sprintf("telegram-%d", channelId.ChannelID)
+		if s.Bot == nil {
+			slog.Warn("Bot is not initialized, cannot forward message", "targetChannelName", targetChannelName)
+			return nil
+		}
+		var target *model.Channel
+		for _, ch := range s.Bot.Channels {
+			if ch.Name == targetChannelName {
+				target = ch
 				break
 			}
 		}
-
-		if foundKeyword {
-			modifiedText := "חדשות ישראל בטלגרם: " + text
-			// Attempt to find the corresponding Mattermost channel by a conventional name.
-			// Assumes Mattermost channel is named e.g., "telegram-2335255539"
-			// Note: s.Bot.channels might not be populated if FindBotChannel hasn't run or is run by a different instance.
-			// This part of the logic relies on s.Bot.channels being available and correctly populated.
-			targetChannelName := fmt.Sprintf("telegram-%d", channelId.ChannelID)
-			var targetMattermostChannelID string
-
-			if s.Bot != nil && s.Bot.Client != nil && s.Bot.Channels != nil {
-				for _, ch := range s.Bot.Channels {
-					if ch.Name == targetChannelName {
-						targetMattermostChannelID = ch.Id
-						break
-					}
-				}
-			} else {
-				mlog.Warn("Bot instance or channels list not initialized, cannot find target channel by name", mlog.String("targetChannelName", targetChannelName))
-			}
-
-			if targetMattermostChannelID != "" {
-				post := model.Post{
-					Message:   modifiedText,
-					ChannelId: targetMattermostChannelID,
-				}
-				if CreatePostTestHook != nil && CreatePostTestHook(&post) {
-					// Test hook handled the post, do nothing further for this branch.
-				} else {
-					if _, _, err := s.Bot.Client.CreatePost(context.Background(), &post); err != nil {
-						mlog.Error("Failed to send message to specific Mattermost channel", mlog.String("channelId", targetMattermostChannelID), mlog.Err(err))
-					}
-				}
-			} else {
-				mlog.Warn("Could not find corresponding Mattermost channel for Telegram channel ID", mlog.Any("telegramChannelId", channelId.ChannelID), mlog.String("assumedName", targetChannelName))
-				// Fallback or error: Potentially send to a default channel or log that the specific channel was not found.
-				// For now, it just logs. If general broadcast is desired as fallback, s.Bot.DirectMessage could be called.
-				// However, the requirement is "send back to the same channel".
-			}
+		if target == nil {
+			slog.Warn("Could not find corresponding Mattermost channel for Telegram channel",
+				"telegramChannelId", channelId.ChannelID,
+				"expectedName", targetChannelName,
+			)
+			return nil
 		}
-	} else {
-		mlog.Debug("Unknown channel id", mlog.Any("channelId", channelId.ChannelID))
+		post := model.Post{
+			Message:   "חדשות ישראל בטלגרם: " + text,
+			ChannelId: target.Id,
+		}
+		if _, err := s.Bot.SubmitPostToChannel(&post, target); err != nil {
+			slog.Warn("Failed to forward message to Mattermost channel", "targetChannelName", targetChannelName, "error", err)
+		}
+	default:
+		slog.Debug("Unknown channel id", "channelId", channelId.ChannelID)
 	}
 	return nil
 }
 
 func processMessage(text string, districts district.Districts, now time.Time, b *bot.Bot, overrideCategory string) error {
-	dedup := make(map[string]*bot.Message)
-	var dedupOrder []string
 	cities := extractCityNames(text)
 	pubDate := extractPubTime(text)
+
+	// An "event over" message announces the end of an alert (e.g. a hostile
+	// aircraft incursion); it must be posted whether or not it is stale, so
+	// check it before rejecting expired messages.
+	if strings.Contains(text, "האירוע הסתיים") {
+		msg := bot.NewMessage("uav_event_over", "", 0, "")
+		b.SubmitMessage(&msg)
+		return nil
+	}
 
 	isEarlyAlert := overrideCategory == "rockets"
 	err := checkExpired(pubDate, text, now, isEarlyAlert)
 	if err != nil {
-		if strings.Contains(text, "האירוע הסתיים") {
-			msg := bot.NewMessage("uav_event_over", "", 0, "")
-			b.SubmitMessage(&msg)
-		} else {
-			return err
-		}
+		return err
 	}
 
-	mlog.Info("Channel message", mlog.String("text", text), mlog.Any("cities", cities))
-	category := ""
-	if overrideCategory != "" {
-		category = overrideCategory
+	slog.Info("Channel message", "text", text, "cities", cities)
+	messages := buildAlertMessages(text, districts, overrideCategory)
+	for _, message := range messages {
+		b.SubmitMessage(message)
+	}
+	if len(messages) > 0 {
+		b.Monitoring.SuccessfulSourceFetches.WithLabelValues("telegram").Inc()
 	} else {
+		b.Monitoring.FailedSourceFetches.WithLabelValues("telegram").Inc()
+	}
+	return nil
+}
+
+// buildAlertMessages groups the extracted cities of a Home Front Command
+// message into alert messages, one per distinct instructions/category/
+// safety-buffer/pub-date combination, preserving first-seen order. A
+// non-empty overrideCategory replaces the automatic category detection
+// (early alerts carry no category keywords yet).
+func buildAlertMessages(text string, districts district.Districts, overrideCategory string) []*bot.Message {
+	cities := extractCityNames(text)
+	pubDate := extractPubTime(text)
+
+	category := overrideCategory
+	if category == "" {
 		if strings.Contains(text, "ירי רקטות וטילים") {
 			category = "rockets"
 		} else if strings.Contains(text, "חדירת כלי טיס עוין") {
@@ -211,14 +215,16 @@ func processMessage(text string, districts district.Districts, now time.Time, b 
 			category = "infiltration"
 		}
 	}
-	instructions := "instructions"
-	if category == "infiltration" || category == "radiological" || category == "biohazard" {
-		instructions = "lockdown"
-	} else if category == "uav" {
-		instructions = "uav_instructions"
-	}
+	instructions := instructionsFor(category)
+
+	dedup := make(map[string]*bot.Message)
+	var dedupOrder []string
 	for _, cityName := range cities {
 		districtID := district.GetDistrictByCity(cityName)
+		if districtID == "" {
+			slog.Warn("city not found in districts", "city", cityName)
+			continue
+		}
 		cityObj := districts["he"][districtID]
 		msg := bot.NewMessage(instructions, category, cityObj.SafetyBufferSeconds, pubDate)
 		hash := msg.GetHash()
@@ -226,42 +232,39 @@ func processMessage(text string, districts district.Districts, now time.Time, b 
 			dedup[hash] = &msg
 			dedupOrder = append(dedupOrder, hash)
 		}
-		msg.AppendDistrict(districtID)
+		dedup[hash].AppendDistrict(districtID)
 	}
+	messages := make([]*bot.Message, 0, len(dedupOrder))
 	for _, hash := range dedupOrder {
-		b.SubmitMessage(dedup[hash])
+		messages = append(messages, dedup[hash])
 	}
-	if len(dedup) > 0 {
-		b.Monitoring.SuccessfulSourceFetches.WithLabelValues("telegram").Inc()
-	} else {
-		b.Monitoring.FailedSourceFetches.WithLabelValues("telegram").Inc()
-	}
-	return nil
+	return messages
 }
 
 func checkExpired(pubDate string, text string, now time.Time, isEarlyAlert bool) error {
 	location, _ := time.LoadLocation("Asia/Jerusalem")
-	// currentDate := time.Now().In(location).Format("2006-01-02") // Not needed anymore as date is in pubDate
 	parsedPubDate, err := time.ParseInLocation("02/01/2006 15:04", pubDate, location)
 	if err != nil {
-		mlog.Error("Error parsing pubDate", mlog.Any("Message", text), mlog.String("pubDate", pubDate), mlog.Err(err))
+		slog.Error("Error parsing pubDate", "Message", text, "pubDate", pubDate, "error", err)
 		return err
 	}
 
 	expirationDuration := 90 * time.Second
 	if isEarlyAlert {
+		// Early alerts announce an alert expected within the coming minutes
+		// and stay valid longer than regular alerts.
 		expirationDuration = 300 * time.Second
 	}
 
 	if parsedPubDate.Add(expirationDuration).Before(now) {
-		mlog.Error("Expired telegram message", mlog.Any("Message", text), mlog.Any("ParsedPubDate", parsedPubDate), mlog.Bool("isEarlyAlert", isEarlyAlert))
+		slog.Error("Expired telegram message", "Message", text, "ParsedPubDate", parsedPubDate, "isEarlyAlert", isEarlyAlert)
 		return errors.New("expired telegram message " + text)
 	}
 	return nil
 }
 
 func (s *SourceTelegram) Run() {
-	flow := auth.NewFlow(examples.Terminal{}, auth.SendCodeOptions{})
+	flow := auth.NewFlow(terminalAuth{}, auth.SendCodeOptions{})
 
 	err := s.client.Run(context.Background(), func(ctx context.Context) error {
 		if err := s.client.Auth().IfNecessary(ctx, flow); err != nil {
@@ -276,13 +279,12 @@ func (s *SourceTelegram) Run() {
 
 		return s.gaps.Run(ctx, s.client.API(), user.ID, updates.AuthOptions{
 			OnStart: func(ctx context.Context) {
-				mlog.Info("Telegram gaps message parser started")
+				slog.Info("Telegram gaps message parser started")
 			},
 		})
 	})
 	if err != nil {
-		mlog.Error("telegram run error", mlog.Err(err))
-		//os.Exit(7) // Consider removing os.Exit
+		slog.Error("telegram run error", "error", err)
 	}
 }
 
@@ -292,8 +294,12 @@ func extractCityNames(text string) []string {
 	var cities []string
 	for _, match := range matches {
 		if len(match) > 1 {
-			// Add the city name to the list
-			cities = append(cities, match[1])
+			// A single line may list several cities separated by commas.
+			for name := range strings.SplitSeq(match[1], ",") {
+				if name = strings.TrimSpace(name); name != "" {
+					cities = append(cities, name)
+				}
+			}
 		}
 	}
 	return cities

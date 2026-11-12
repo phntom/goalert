@@ -2,14 +2,15 @@ package sources
 
 import (
 	"encoding/json"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/phntom/goalert/internal/bot"
-	"github.com/phntom/goalert/internal/district"
-	"github.com/phntom/goalert/internal/fetcher"
+	"log/slog"
 	"net/http"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/phntom/goalert/internal/bot"
+	"github.com/phntom/goalert/internal/district"
+	"github.com/phntom/goalert/internal/fetcher"
 )
 
 type YnetMessage struct {
@@ -53,10 +54,10 @@ func (s *SourceYnet) Parse(content []byte) []*bot.Message {
 	lenAlertContent := len(content)
 	if lenAlertContent < 40 {
 		if lenAlertContent > 3 && lenAlertContent != 39 {
-			mlog.Warn("invalid content fetched - wrong length",
-				mlog.Any("length", lenAlertContent),
-				mlog.Any("content", string(content)),
-				mlog.Any("source", "ynet"),
+			slog.Warn("invalid content fetched - wrong length",
+				"length", lenAlertContent,
+				"content", string(content),
+				"source", "ynet",
 			)
 		}
 		// empty - i.e. no messages
@@ -71,10 +72,10 @@ func (s *SourceYnet) Parse(content []byte) []*bot.Message {
 	var alerts YnetMessage
 	err := json.Unmarshal(txtJson, &alerts)
 	if err != nil {
-		mlog.Error("failed to unmarshal",
-			mlog.Err(err),
-			mlog.Any("content", content),
-			mlog.Any("source", "ynet"),
+		slog.Error("failed to unmarshal",
+			"error", err,
+			"content", string(content),
+			"source", "ynet",
 		)
 		return nil
 	}
@@ -84,9 +85,9 @@ func (s *SourceYnet) Parse(content []byte) []*bot.Message {
 		}
 		districtID := district.GetDistrictByCity(item.Item.Title)
 		if districtID == "" {
-			mlog.Warn("district not found",
-				mlog.Any("title", item.Item.Title),
-				mlog.Any("source", "ynet"),
+			slog.Warn("district not found",
+				"title", item.Item.Title,
+				"source", "ynet",
 			)
 			continue
 		}
@@ -101,9 +102,9 @@ func (s *SourceYnet) Parse(content []byte) []*bot.Message {
 			instructions = "lockdown"
 			category = "infiltration"
 		} else if strings.Contains(item.Item.Description, "תרגיל") {
-			mlog.Warn("drill",
-				mlog.Any("item", item),
-				mlog.Any("source", "ynet"),
+			slog.Warn("drill",
+				"item", item,
+				"source", "ynet",
 			)
 			s.seen[item.Item.Guid] = true
 			continue
@@ -141,7 +142,6 @@ func (s *SourceYnet) Run() {
 		}
 
 		content := s.Fetch()
-		//content := []byte("jsonCallback({\"alerts\": {\"items\": [{\"item\": {\"guid\": \"f038657b-99e1-48ec-b5c2-3e49c409b3bb\",\"pubdate\": \"11:40\",\"title\": \"בית שקמה\",\"description\": \"היכנסו למרחב המוגן\",\"link\": \"\"}}]}});")
 		if content == nil {
 			failed += 1
 			if failed > 30 {
@@ -152,7 +152,7 @@ func (s *SourceYnet) Run() {
 		}
 		failed = 0
 		for _, m := range s.Parse(content) {
-			mlog.Debug("ynet", mlog.Any("content", string(content)))
+			slog.Info("ynet", "content", string(content))
 			s.Bot.SubmitMessage(m)
 		}
 

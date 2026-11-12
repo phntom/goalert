@@ -1,25 +1,50 @@
+# Mattermost bot configuration.
 config:
+  # Mattermost bot authentication token (stored in the Secret as AUTH_TOKEN).
   authToken: xxx
+  # Mattermost base URL the bot posts to.
   domain: http://mattermost-team-edition.chat.svc:8065
-  team: nix
-  channel: rockets
+  # Use an existing Secret (must contain AUTH_TOKEN and APP_HASH) instead of creating one.
+  existingSecret: ""
+  # Telegram API id.
   appID: "123"
+  # Telegram API hash (stored in the Secret as APP_HASH).
   appHash: xxx
+  # Log level: debug | info | warn | error. Empty means the application default.
+  logLevel: ""
+  # Mattermost team that stores the Telegram session.
+  configTeam: ""
+  # Mattermost channel that stores the Telegram session.
+  configChannel: ""
+  # Per-source kill switches: true disables that alert source.
+  disableSources:
+    ynet: false
+    oref: false
+    telegram: false
 
+# Must stay 1: two replicas would post every alert twice.
 replicaCount: 1
 
+# Container image settings.
 image:
   repository: phntom/goalert
+  # Image pull policy.
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: "0.0.47"
+  # Image digest; appended as "@<hash>" to the image reference when set.
   hash: "sha256:3562785a57e6f745bd28a6a7855a86ca43719e068c1b2b95ba93e8beecce2ddf"
 
+# Service exposing the bot's HTTP port.
 service:
   type: ClusterIP
   port: 3000
+
+# Ingress exposing the bot through the cluster's HTTP proxy.
 ingress:
   enabled: true
+  # Ingress class name (e.g. nginx). Empty means cluster default.
+  className: ""
   annotations:
     nginx.ingress.kubernetes.io/service-upstream: "true"
     nginx.ingress.kubernetes.io/enable-cors: "true"
@@ -36,23 +61,63 @@ ingress:
           pathType: Prefix
   tls: []
 
+# Extra environment variables appended to the container (list of {name, value} or {name, valueFrom}).
+extraEnv: []
+
+# Deployment update strategy. Empty means the Kubernetes default (RollingUpdate).
+# Do NOT set Recreate: the old pod must keep running until the new one is ready,
+# otherwise alerts are missed during the rollout.
+strategy: {}
+
+# Seconds given to the container to shut down before it is killed.
+terminationGracePeriodSeconds: 30
+
+# Registry pull secrets for the image.
 imagePullSecrets: []
+
+# Overrides the chart name in resource names.
 nameOverride: ""
+# Overrides the full resource name.
 fullnameOverride: ""
 
+# Extra annotations added to the pod.
 podAnnotations: {}
 
-podSecurityContext: {}
-  # fsGroup: 2000
+# Pod-level security context (the image runs as the non-root user 65532).
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
 
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
+# Container-level security context (the image needs no writable filesystem).
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
 
+# Liveness probe against GET /healthz (200 while the process runs).
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+# Readiness probe against GET /readyz (200 once connected to Mattermost, 503 before).
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: http
+  periodSeconds: 5
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+# Container resources; left empty so deployers choose consciously.
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
@@ -68,6 +133,8 @@ resources: {}
 #nodeSelector:
 #  doks.digitalocean.com/node-pool: pool-production
 
+# Tolerations for scheduling the pod on tainted nodes.
 tolerations: []
 
+# Affinity rules for scheduling the pod.
 affinity: {}

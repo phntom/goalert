@@ -5,5 +5,11 @@
 *.dylib
 *.test
 *.out
-charts
+.git
+.gitignore
+.claude
 .idea
+charts
+out
+*.md
+.golangci.yml

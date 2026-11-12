@@ -2,12 +2,14 @@ package bot
 
 import (
 	"fmt"
-	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/phntom/goalert/internal/config"
-	"github.com/phntom/goalert/internal/district"
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/mattermost/mattermost/server/public/model"
+
+	"github.com/phntom/goalert/internal/config"
+	"github.com/phntom/goalert/internal/district"
 )
 
 func Render(msg *Message, lang config.Language) *model.Post {
@@ -59,7 +61,7 @@ func Render(msg *Message, lang config.Language) *model.Post {
 		Message: text,
 		RootId:  replyToId,
 		Props: map[string]any{
-			"attachments": []*model.SlackAttachment{
+			"attachments": []*model.MessageAttachment{
 				{
 					Title:    title,
 					Text:     instructions,
@@ -71,21 +73,21 @@ func Render(msg *Message, lang config.Language) *model.Post {
 		},
 		Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:     model.NewString(urgent),
-				RequestedAck: model.NewBool(ack),
+				Priority:     model.NewPointer(urgent),
+				RequestedAck: model.NewPointer(ack),
 			},
 		},
 	}
 }
 
-func CitiesToFields(cities map[string][]string) []*model.SlackAttachmentField {
-	fields := make([]*model.SlackAttachmentField, 0, len(cities))
+func CitiesToFields(cities map[string][]string) []*model.MessageAttachmentField {
+	fields := make([]*model.MessageAttachmentField, 0, len(cities))
 	for n1, n2 := range cities {
 		value := strings.Join(n2, "\n")
 		if len(n2) == 1 && n1 == n2[0] {
 			value = ""
 		}
-		fields = append(fields, &model.SlackAttachmentField{
+		fields = append(fields, &model.MessageAttachmentField{
 			Title: n1,
 			Value: value,
 			Short: true,

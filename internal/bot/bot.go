@@ -3,21 +3,27 @@ package bot
 import (
 	"context"
 	"fmt"
-	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/phntom/goalert/internal/config"
-	"github.com/phntom/goalert/internal/district"
-	"github.com/phntom/goalert/internal/monitoring"
+	"log/slog"
 	"os"
 	"os/signal"
 	"slices"
 	"sync"
+	"syscall"
 	"time"
+
+	"github.com/mattermost/mattermost/server/public/model"
+
+	"github.com/phntom/goalert/internal/config"
+	"github.com/phntom/goalert/internal/district"
+	"github.com/phntom/goalert/internal/monitoring"
 )
 
 type Bot struct {
 	IsOnline        bool
 	Client          *model.Client4
+	apiSubmitPost   func(context.Context, *model.Post) (*model.Post, *model.Response, error)
+	apiPatchPost    func(context.Context, string, *model.PostPatch) (*model.Post, *model.Response, error)
+	apiSaveReaction func(context.Context, *model.Reaction) (*model.Reaction, *model.Response, error)
 	webSocketClient *model.WebSocketClient
 	serverVersion   string
 	username        string
@@ -35,16 +41,28 @@ const postTimeout = 10 * time.Second
 func (b *Bot) Register() {
 	b.alertFeed = make(chan *Message)
 	b.dedup = make(map[district.ID]*Message)
+	// The Mattermost API seam dispatches through b.Client at call time.
+	// Register runs before Connect assigns b.Client, so method values would
+	// capture a nil client here.
+	b.apiSubmitPost = func(ctx context.Context, post *model.Post) (*model.Post, *model.Response, error) {
+		return b.Client.CreatePost(ctx, post)
+	}
+	b.apiPatchPost = func(ctx context.Context, postID string, patch *model.PostPatch) (*model.Post, *model.Response, error) {
+		return b.Client.PatchPost(ctx, postID, patch)
+	}
+	b.apiSaveReaction = func(ctx context.Context, reaction *model.Reaction) (*model.Reaction, *model.Response, error) {
+		return b.Client.SaveReaction(ctx, reaction)
+	}
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		for range c {
-			mlog.Info("Exiting")
+			slog.Info("Exiting")
 			b.Disconnect()
 			os.Exit(0)
 		}
 	}()
-	b.Monitoring.Setup()
+	b.Monitoring.Setup(func() bool { return b.IsOnline })
 }
 
 func (b *Bot) Connect() {
@@ -52,7 +70,7 @@ func (b *Bot) Connect() {
 	b.MakeSureServerIsRunning()
 	b.LoginAsTheBotUser()
 	b.IsOnline = true
-	mlog.Info("Connected")
+	slog.Info("Connected")
 }
 
 func (b *Bot) Disconnect() {
@@ -60,35 +78,43 @@ func (b *Bot) Disconnect() {
 		b.webSocketClient.Close()
 	}
 	b.IsOnline = false
-	mlog.Info("Disconnected")
+	slog.Info("Disconnected")
 }
 
 func (b *Bot) MakeSureServerIsRunning() {
-	props, _, err := b.Client.GetOldClientConfig(context.Background(), "")
+	_, resp, err := b.Client.GetPing(context.Background())
 	if err != nil {
-		mlog.Error("There was a problem pinging the Mattermost server.  Are you sure it's running?", mlog.Err(err))
+		slog.Error("There was a problem pinging the Mattermost server.  Are you sure it's running?", "error", err)
 		os.Exit(1)
 	}
-	b.serverVersion = props["Version"]
-	mlog.Info("Server detected and is running", mlog.Any("serverVersion", b.serverVersion))
+	b.serverVersion = resp.ServerVersion
+	slog.Info("Server detected and is running", "serverVersion", b.serverVersion)
 }
 
 func (b *Bot) LoginAsTheBotUser() {
 	b.Client.SetToken(os.Getenv("AUTH_TOKEN"))
 	user, _, err := b.Client.GetMe(context.Background(), "")
 	if err != nil {
-		mlog.Error("There was a problem logging into the Mattermost server", mlog.Err(err))
+		slog.Error("There was a problem logging into the Mattermost server", "error", err)
 		os.Exit(1)
 	}
 	b.username = user.Username
 	b.userId = user.Id
-	mlog.Info("Logged in", mlog.Any("username", b.username), mlog.Any("userId", b.userId))
+	slog.Info("Logged in", "username", b.username, "userId", b.userId)
 }
 
 func (b *Bot) FindBotChannel() {
+	configTeam := os.Getenv("CONFIG_TEAM")
+	if configTeam == "" {
+		configTeam = "phantom"
+	}
+	configChannel := os.Getenv("CONFIG_CHANNEL")
+	if configChannel == "" {
+		configChannel = "config"
+	}
 	teams, _, err := b.Client.GetTeamsForUser(context.Background(), b.userId, "")
 	if err != nil {
-		mlog.Error("There was a problem fetching active teams for bot", mlog.Err(err))
+		slog.Error("There was a problem fetching active teams for bot", "error", err)
 		os.Exit(1)
 	}
 	for _, team := range teams {
@@ -97,7 +123,7 @@ func (b *Bot) FindBotChannel() {
 		}
 		channels, _, err := b.Client.GetChannelsForTeamForUser(context.Background(), team.Id, b.userId, false, "")
 		if err != nil {
-			mlog.Error("There was a problem fetching channels for team", mlog.Any("teamId", team.Id), mlog.Err(err))
+			slog.Error("There was a problem fetching channels for team", "teamId", team.Id, "error", err)
 			os.Exit(1)
 		}
 		for _, channel := range channels {
@@ -110,7 +136,7 @@ func (b *Bot) FindBotChannel() {
 			if channel.Name == "off-topic" || channel.Name == "town-square" {
 				continue
 			}
-			if team.Name == "phantom" && channel.Name == "config" {
+			if team.Name == configTeam && channel.Name == configChannel {
 				b.ConfigChannel = channel
 				continue
 			}
@@ -118,15 +144,18 @@ func (b *Bot) FindBotChannel() {
 			b.Channels = append(b.Channels, channel)
 		}
 	}
-	if b.Channels == nil || len(b.Channels) == 0 {
-		mlog.Fatal("Bot is not a member of any channel, invite him and try again")
+	if b.ConfigChannel == nil {
+		slog.Warn("config channel not found", "team", configTeam, "channel", configChannel)
+	}
+	if len(b.Channels) == 0 {
+		slog.Error("Bot is not a member of any channel, invite him and try again")
 		os.Exit(2)
 	}
 	var channelNames []string
 	for _, channel := range b.Channels {
 		channelNames = append(channelNames, fmt.Sprintf("%s/%s", channel.Props["teamName"], channel.Name))
 	}
-	mlog.Info("Joined channels", mlog.Any("channels", channelNames))
+	slog.Info("Joined channels", "channels", channelNames)
 }
 
 func (b *Bot) SubmitMessage(m *Message) {
@@ -138,27 +167,20 @@ func (b *Bot) AwaitMessage() {
 	for message := range b.alertFeed {
 		// If there are more than 20 cities, split the message
 		if len(message.Cities) > 20 {
-			originalCities := message.Cities // Keep a copy of the original cities
-			// Also copy RocketIDs associated with the original set of cities if necessary.
-			// For simplicity, we assume RocketIDs apply to the whole message context for now.
-			// If RocketIDs are per-city, this logic would need adjustment.
+			originalCities := message.Cities
 
 			for i := 0; i < len(originalCities); i += 20 {
-				end := i + 20
-				if end > len(originalCities) {
-					end = len(originalCities)
-				}
+				end := min(i+20, len(originalCities))
 				chunk := originalCities[i:end]
 
-				// Create a new message for the chunk
 				newMessage := &Message{
 					Instructions:   message.Instructions,
 					Category:       message.Category,
 					Cities:         make([]district.ID, len(chunk)),
 					SafetySeconds:  message.SafetySeconds,
-					RocketIDs:      make(map[string]bool), // New map for each chunk
+					RocketIDs:      make(map[string]bool),
 					PubDate:        message.PubDate,
-					Expire:         message.Expire, // Copy expiration time
+					Expire:         message.Expire,
 					Rendered:       make(map[config.Language]*model.Post),
 					PostMutex:      sync.Mutex{},
 					PostIDs:        []string{},
@@ -166,31 +188,24 @@ func (b *Bot) AwaitMessage() {
 					Changed:        true,
 				}
 				copy(newMessage.Cities, chunk)
-				// If RocketIDs are relevant per city, filter them here.
-				// For now, copying all RocketIDs if they are not city-specific.
-				// This assumes that if a rocket ID was relevant for the original large message,
-				// it's relevant for all its constituent smaller messages.
-				// If RocketIDs are tied to specific cities, this needs more granular handling.
 				for _, cityID := range chunk {
 					if relevant, ok := message.RocketIDs[string(cityID)]; ok {
 						newMessage.RocketIDs[string(cityID)] = relevant
 					}
 				}
-				// If RocketIDs are not per city but global for the alert:
-				// for k, v := range message.RocketIDs {
-				// 	newMessage.RocketIDs[k] = v
-				// }
 
-
-				newMessage.Prerender() // Prerender for the new set of cities
-				b.UpdateMonitor(newMessage) // Update monitor for this new (chunked) message
+				newMessage.PostMutex.Lock()
+				newMessage.Prerender()
+				newMessage.PostMutex.Unlock()
+				b.UpdateMonitor(newMessage)
 
 				for _, channel := range b.Channels {
 					post := newMessage.PostForChannel(channel)
 					result, err := executeSubmitPost(b, post, newMessage, channel)
 					if err != nil {
-						mlog.Error("Failed to submit post for chunked message", mlog.Err(err), mlog.Any("channel", channel.Id), mlog.Any("chunkCities", newMessage.Cities))
-						continue // Continue to the next channel for this chunk
+						slog.Error("Failed to submit post for chunked message", "error", err, "channel", channel.Id, "chunkCities", newMessage.Cities)
+						// Continue to the next channel for this chunk
+						continue
 					}
 
 					// Goroutine for reactions and patching, specific to this newMessage and result
@@ -199,31 +214,26 @@ func (b *Bot) AwaitMessage() {
 							emoji := msgToProcess.Category + "-alert"
 							executeAddReaction(b, postResult, emoji)
 						}
-						// The original code had a check:
-						// if message.Category != "" && message.Category != "rockets" { /* no operation */ }
-						// This seems to be a placeholder or no-op, so it's omitted.
 
 						time.Sleep(200 * time.Millisecond) // Small delay before patching
 						// Prepare the post for patching using the channel the message was actually sent to.
 						patchContent := msgToProcess.PostForChannel(ch)
 						executePatchPost(b, patchContent, postResult.Id)
-					}(newMessage, result, channel) // Pass current newMessage, result, and channel
+					}(newMessage, result, channel)
 				}
 			}
-			// After processing all chunks, continue to the next message in alertFeed
-			// This prevents the original large message from being processed by the subsequent logic.
+			// The original message is fully handled by the chunks above.
 			continue
 		}
 
-		// Original message processing logic starts here for messages with <= 20 cities
 		if len(message.Cities) == 0 {
-			mlog.Warn("no cities", mlog.Any("message", message))
+			slog.Warn("no cities", "message", message)
 			for _, channel := range b.Channels {
 				post := message.PostForChannel(channel)
 				_, err := executeSubmitPost(b, post, message, channel)
 				if err != nil {
 					// Log error and continue to next channel, rather than stopping AwaitMessage
-					mlog.Error("Failed to submit post for message with no cities", mlog.Err(err), mlog.Any("channel", channel.Id))
+					slog.Error("Failed to submit post for message with no cities", "error", err, "channel", channel.Id)
 					continue
 				}
 			}
@@ -245,7 +255,7 @@ func (b *Bot) AwaitMessage() {
 				result, err := executeSubmitPost(b, post, message, channel)
 				if err != nil {
 					// Log error and continue to next channel
-					mlog.Error("Failed to submit post for message with cities not found", mlog.Err(err), mlog.Any("channel", channel.Id))
+					slog.Error("Failed to submit post for message with cities not found", "error", err, "channel", channel.Id)
 					continue
 				}
 
@@ -255,13 +265,12 @@ func (b *Bot) AwaitMessage() {
 						emoji := msgToProcess.Category + "-alert"
 						executeAddReaction(b, postResult, emoji)
 					}
-					// if message.Category != "" && message.Category != "rockets" { /* no-op */ }
 
 					time.Sleep(200 * time.Millisecond)
 					// Prepare the post for patching using the channel the message was actually sent to.
 					patchContent := msgToProcess.PostForChannel(ch)
 					executePatchPost(b, patchContent, postResult.Id)
-				}(message, result, channel) // Pass current message, result, and channel
+				}(message, result, channel)
 			}
 		}
 	}
@@ -284,8 +293,11 @@ func (b *Bot) Cleanup() {
 		time.Sleep(1 * time.Second)
 		b.dedupMutex.Lock()
 		for id, message := range b.dedup {
-			if message.Changed {
-				message.Changed = false
+			message.PostMutex.Lock()
+			changed := message.Changed
+			message.Changed = false
+			message.PostMutex.Unlock()
+			if changed {
 				message.PatchPosts(b)
 			}
 			if message.IsExpired() {
@@ -305,12 +317,18 @@ func (b *Bot) UpdateMonitor(m *Message) {
 	for _, city := range m.Cities {
 		regions[districts["he"][city].AreaName] = true
 	}
-	b.Monitoring.RegionsHistogram.Observe(float64(len(districts)))
+	b.Monitoring.RegionsHistogram.Observe(float64(len(regions)))
+}
+
+// SubmitPostToChannel posts a pre-built post to one specific channel through
+// the Mattermost API seam. The post is not tracked for later patching.
+func (b *Bot) SubmitPostToChannel(post *model.Post, channel *model.Channel) (*model.Post, error) {
+	return executeSubmitPost(b, post, nil, channel)
 }
 
 func (b *Bot) DirectMessage(post *model.Post, language config.Language) {
 	if b.Channels == nil {
-		mlog.Error("No channels available for direct messaging")
+		slog.Error("No channels available for direct messaging")
 		return
 	}
 
@@ -319,7 +337,7 @@ func (b *Bot) DirectMessage(post *model.Post, language config.Language) {
 			post.ChannelId = channel.Id
 			_, err := executeSubmitPost(b, post, nil, channel)
 			if err != nil {
-				mlog.Error("Failed to submit post", mlog.Err(err))
+				slog.Error("Failed to submit post", "error", err)
 				continue
 			}
 		}

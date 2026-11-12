@@ -2,19 +2,29 @@ package bot
 
 import (
 	"context"
+	"errors"
+	"log/slog"
+
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
+// errMattermostAPINotInitialized is returned when the Mattermost API seam was
+// never initialized, which is only possible in tests that skip Register.
+var errMattermostAPINotInitialized = errors.New("mattermost API is not initialized")
+
 func executeSubmitPost(b *Bot, post *model.Post, message *Message, channel *model.Channel) (*model.Post, error) {
+	if b.apiSubmitPost == nil {
+		slog.Error("mattermost API is not initialized")
+		return nil, errMattermostAPINotInitialized
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), postTimeout)
 	defer cancel()
-	result, response, err := b.Client.CreatePost(ctx, post)
+	result, response, err := b.apiSubmitPost(ctx, post)
 	if err != nil {
-		mlog.Error("failed creating post",
-			mlog.Err(err),
-			mlog.Any("post", post),
-			mlog.Any("response", response),
+		slog.Error("failed creating post",
+			"error", err,
+			"post", post,
+			"response", response,
 		)
 		return nil, err
 	}
@@ -29,20 +39,25 @@ func executeSubmitPost(b *Bot, post *model.Post, message *Message, channel *mode
 }
 
 func executePatchPost(b *Bot, post *model.Post, postID string) {
+	if b.apiPatchPost == nil {
+		slog.Error("mattermost API is not initialized")
+		b.Monitoring.FailedPatches.Inc()
+		return
+	}
 	//goland:noinspection GoDeprecation
 	patch := model.PostPatch{
-		Message: model.NewString(""),
+		Message: model.NewPointer(""),
 		Props:   &post.Props,
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), postTimeout)
-	_, response, err := b.Client.PatchPost(ctx, postID, &patch)
+	_, response, err := b.apiPatchPost(ctx, postID, &patch)
 	cancel()
 	if err != nil {
-		mlog.Error("failed patching post",
-			mlog.Err(err),
-			mlog.Any("postID", postID),
-			mlog.Any("patch", patch),
-			mlog.Any("response", response),
+		slog.Error("failed patching post",
+			"error", err,
+			"postID", postID,
+			"patch", patch,
+			"response", response,
 		)
 		b.Monitoring.FailedPatches.Inc()
 	} else {
@@ -51,18 +66,22 @@ func executePatchPost(b *Bot, post *model.Post, postID string) {
 }
 
 func executeAddReaction(b *Bot, post *model.Post, emoji string) {
+	if b.apiSaveReaction == nil {
+		slog.Error("mattermost API is not initialized")
+		return
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), postTimeout)
 	defer cancel()
-	_, _, err := b.Client.SaveReaction(ctx, &model.Reaction{
+	_, _, err := b.apiSaveReaction(ctx, &model.Reaction{
 		UserId:    b.userId,
 		PostId:    post.Id,
 		EmojiName: emoji,
 	})
 	if err != nil {
-		mlog.Error("failed adding reaction",
-			mlog.Err(err),
-			mlog.Any("emoji", emoji),
-			mlog.Any("postID", post),
+		slog.Error("failed adding reaction",
+			"error", err,
+			"emoji", emoji,
+			"postID", post,
 		)
 	}
 }

@@ -4,12 +4,13 @@ import (
 	"embed"
 	"errors"
 	"fmt"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"golang.org/x/text/language"
-	"gopkg.in/yaml.v3"
+	"log/slog"
 	"os"
 	"sync"
+
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"go.yaml.in/yaml/v3"
+	"golang.org/x/text/language"
 )
 
 // Configuration management
@@ -36,7 +37,7 @@ func Init() {
 	for _, lang := range Languages {
 		_, err := LanguageBundle.LoadMessageFileFS(LocaleFS, fmt.Sprintf("locale.%s.yaml", lang))
 		if err != nil {
-			mlog.Error("failed loading translation", mlog.Err(err), mlog.Any("lang", lang))
+			slog.Error("failed loading translation", "error", err, "lang", lang)
 			os.Exit(2)
 		}
 
@@ -47,10 +48,10 @@ func GetText(id string, lang Language) string {
 	once.Do(Init)
 	result, err := i18n.NewLocalizer(LanguageBundle, string(lang)).Localize(&i18n.LocalizeConfig{MessageID: id})
 	if err != nil {
-		mlog.Error("GetText localizer error",
-			mlog.Any("id", id),
-			mlog.Any("lang", lang),
-			mlog.Err(err),
+		slog.Error("GetText localizer error",
+			"id", id,
+			"lang", lang,
+			"error", err,
 		)
 	}
 	return result
@@ -64,11 +65,11 @@ func GetTextOptional(id string, lang Language, def string) string {
 		if errors.As(err, &msgNotFoundError) {
 			return def
 		}
-		mlog.Error("unexpected errror localizing",
-			mlog.Any("id", id),
-			mlog.Any("lang", lang),
-			mlog.Any("def", def),
-			mlog.Err(err),
+		slog.Error("unexpected error localizing",
+			"id", id,
+			"lang", lang,
+			"def", def,
+			"error", err,
 		)
 	}
 	return result

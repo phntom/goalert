@@ -1,13 +1,19 @@
 package monitoring
 
 import (
+	"errors"
+	"log/slog"
+	"net/http"
+	"sync"
+	"time"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"net/http"
-	"sync"
 )
 
+// registerMetricsOnce guards promauto registration so Setup can be called
+// more than once (per process) without panicking on duplicate collectors.
 var registerMetricsOnce sync.Once
 
 type Monitoring struct {
@@ -23,7 +29,27 @@ type Monitoring struct {
 	DayOfWeekHistogram        prometheus.Histogram
 }
 
-func (m *Monitoring) Setup() {
+// handler builds the HTTP routes served on the monitoring port: Prometheus
+// metrics plus the liveness and readiness probes. ready reports whether the
+// bot is connected to Mattermost.
+func (m *Monitoring) handler(ready func() bool) http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte("ok\n"))
+	})
+	mux.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
+		if !ready() {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_, _ = w.Write([]byte("not ready\n"))
+			return
+		}
+		_, _ = w.Write([]byte("ok\n"))
+	})
+	return mux
+}
+
+func (m *Monitoring) Setup(ready func() bool) {
 	registerMetricsOnce.Do(func() {
 		m.SuccessfulSourceFetches = promauto.NewCounterVec(
 			prometheus.CounterOpts{
@@ -93,9 +119,16 @@ func (m *Monitoring) Setup() {
 				Buckets: prometheus.LinearBuckets(1, 1, 7), // 7 days
 			},
 		)
-
-		http.Handle("/metrics", promhttp.Handler())
-		//goland:noinspection GoUnhandledErrorResult
-		go http.ListenAndServe(":3000", nil) //nolint:errcheck
 	})
+
+	server := &http.Server{
+		Addr:              ":3000",
+		Handler:           m.handler(ready),
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+	go func() {
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("metrics server stopped", "error", err)
+		}
+	}()
 }

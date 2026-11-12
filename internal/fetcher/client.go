@@ -1,11 +1,12 @@
 package fetcher
 
 import (
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/phntom/goalert/internal/monitoring"
 	"io"
+	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/phntom/goalert/internal/monitoring"
 )
 
 func CreateHTTPClient() *http.Client {
@@ -21,7 +22,7 @@ func CreateHTTPClient() *http.Client {
 }
 
 func FetchSource(client *http.Client, url string, sourceName string, referrer string, monitor *monitoring.Monitoring) []byte {
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -36,7 +37,7 @@ func FetchSource(client *http.Client, url string, sourceName string, referrer st
 	req.Header.Set("Content-Type", "application/json;charset=utf-8")
 
 	var res *http.Response
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		// Sending the request
 		startTime := time.Now()
 		res, err = client.Do(req)
@@ -44,11 +45,16 @@ func FetchSource(client *http.Client, url string, sourceName string, referrer st
 		monitor.HttpResponseTimeHistogram.WithLabelValues(sourceName).Observe(duration)
 
 		if err != nil {
-			mlog.Error("failed to fetch - client error",
-				mlog.Err(err),
-				mlog.Any("source", sourceName),
-				mlog.Any("attempt", i),
+			slog.Error("failed to fetch - client error",
+				"error", err,
+				"source", sourceName,
+				"attempt", i,
 			)
+			if res != nil {
+				// Can be non-nil together with an error on redirect failures.
+				_ = res.Body.Close()
+				res = nil
+			}
 			client.CloseIdleConnections()
 			monitor.FailedSourceFetches.WithLabelValues(sourceName).Inc()
 			continue
@@ -57,23 +63,25 @@ func FetchSource(client *http.Client, url string, sourceName string, referrer st
 	}
 
 	if err != nil {
-		mlog.Error("Failed fetching "+sourceName, mlog.Err(err))
+		slog.Error("Failed fetching "+sourceName, "error", err)
 		return nil
 	}
 
-	if res.StatusCode != 200 {
-		mlog.Warn("failed to fetch - wrong status code",
-			mlog.Any("status", res.StatusCode),
-			mlog.Any("res", res),
-			mlog.Any("source", sourceName),
+	defer func() { _ = res.Body.Close() }()
+
+	if res.StatusCode != http.StatusOK {
+		slog.Warn("failed to fetch - wrong status code",
+			"status", res.StatusCode,
+			"source", sourceName,
 		)
+		monitor.FailedSourceFetches.WithLabelValues(sourceName).Inc()
 		return nil
 	}
 	content, err := io.ReadAll(res.Body)
 	if err != nil {
-		mlog.Error("failed to fetch - io error",
-			mlog.Err(err),
-			mlog.Any("source", sourceName),
+		slog.Error("failed to fetch - io error",
+			"error", err,
+			"source", sourceName,
 		)
 		monitor.FailedSourceFetches.WithLabelValues(sourceName).Inc()
 		return nil
