@@ -7,7 +7,7 @@ toolchain go1.27.4
 require (
 	github.com/go-faster/errors v0.8.0
 	github.com/go-test/deep v1.1.2
-	github.com/gotd/td v0.163.0
+	github.com/gotd/td v0.166.1
 	github.com/mattermost/mattermost/server/public v0.6.1
 	github.com/nicksnyder/go-i18n/v2 v2.7.0
 	github.com/prometheus/client_golang v1.25.0
